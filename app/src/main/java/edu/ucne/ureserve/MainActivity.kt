@@ -14,12 +14,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.FirebaseApp
+import dagger.hilt.android.AndroidEntryPoint
 import edu.ucne.ureserve.presentation.navigation.UreserveNavHost
 import edu.ucne.ureserve.ui.theme.URESERVETheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 👇 Inicializa Firebase aquí
+        if (FirebaseApp.getApps(this).isEmpty()) {
+            FirebaseApp.initializeApp(this)
+        }
+
         enableEdgeToEdge()
         setContent {
             URESERVETheme {
