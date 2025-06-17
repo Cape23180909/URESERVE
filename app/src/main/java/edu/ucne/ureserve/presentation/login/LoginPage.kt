@@ -33,6 +33,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.di.ApiModule
+import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun GradientBackground(content: @Composable () -> Unit) {
@@ -59,20 +65,19 @@ fun GradientBackground(content: @Composable () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onLoginClick: (String, String) -> Unit = { _, _ -> }
+    onLoginSuccess: () -> Unit,
+    apiUrl: String = "https://ureserve-hghra5gdhzgzdghk.eastus2-01.azurewebsites.net/api/Usuarios" // Reemplaza con la URL de tu API
 ) {
     val correo = remember { mutableStateOf("") }
     val clave = remember { mutableStateOf("") }
 
-    // Estados para errores
     val correoError = remember { mutableStateOf<String?>(null) }
     val claveError = remember { mutableStateOf<String?>(null) }
+    val loginError = remember { mutableStateOf<String?>(null) }
 
-    // Función de validación
     fun validateFields(): Boolean {
         var isValid = true
 
-        // Validar correo
         if (correo.value.isBlank()) {
             correoError.value = "El correo es obligatorio"
             isValid = false
@@ -83,7 +88,6 @@ fun LoginScreen(
             correoError.value = null
         }
 
-        // Validar clave
         if (clave.value.isBlank()) {
             claveError.value = "La clave es obligatoria"
             isValid = false
@@ -95,6 +99,34 @@ fun LoginScreen(
         }
 
         return isValid
+    }
+
+    fun login() {
+        if (!validateFields()) return
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Obtener todos los usuarios (no eficiente para login)
+                val usuarios = ApiModule.api.getAll()
+
+                // Buscar el usuario con las credenciales
+                val usuarioValido = usuarios.find { usuario ->
+                    usuario.correoInstitucional == correo.value && usuario.clave == clave.value
+                }
+
+                withContext(Dispatchers.Main) {
+                    if (usuarioValido != null) {
+                        onLoginSuccess()
+                    } else {
+                        loginError.value = "Usuario o clave incorrectos"
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    loginError.value = "Error: ${e.message}"
+                }
+            }
+        }
     }
 
     GradientBackground {
@@ -119,18 +151,9 @@ fun LoginScreen(
                     contentScale = ContentScale.Fit
                 )
 
-                // Campo Correo Institucional con validación
                 OutlinedTextField(
                     value = correo.value,
-                    onValueChange = {
-                        correo.value = it
-                        // Validación en tiempo real (opcional)
-                        if (it.isNotEmpty() && !it.matches(Regex("^[A-Za-z0-9+_.-]+@(.+)$"))) {
-                            correoError.value = "Formato de correo inválido"
-                        } else {
-                            correoError.value = null
-                        }
-                    },
+                    onValueChange = { correo.value = it },
                     label = { Text("Correo Institucional", color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -157,18 +180,9 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Campo Clave con validación
                 OutlinedTextField(
                     value = clave.value,
-                    onValueChange = {
-                        clave.value = it
-                        // Validación en tiempo real (opcional)
-                        if (it.isNotEmpty() && it.length < 6) {
-                            claveError.value = "Mínimo 6 caracteres"
-                        } else {
-                            claveError.value = null
-                        }
-                    },
+                    onValueChange = { clave.value = it },
                     label = { Text("Clave", color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -196,13 +210,17 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Botón Conectar con validación
+                loginError.value?.let {
+                    Text(
+                        text = it,
+                        color = Color(0xFFFF6D6D),
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
+
                 Button(
-                    onClick = {
-                        if (validateFields()) {
-                            onLoginClick(correo.value, clave.value)
-                        }
-                    },
+                    onClick = { login() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -217,8 +235,13 @@ fun LoginScreen(
         }
     }
 }
+
+class RetrofitInstance {
+
+}
+
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    LoginScreen(onLoginSuccess = {}) // Ahora cumple con la firma
 }
