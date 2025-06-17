@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
 
@@ -23,7 +24,17 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
         composable("Login") {
-            LoginScreen()
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate("Dashboard") {
+                        popUpTo("Login") { inclusive = true }
+                    }
+                },
+                apiUrl = ""
+            )
+        }
+        composable("Dashboard") {
+            DashboardScreen()
         }
     }
 }
