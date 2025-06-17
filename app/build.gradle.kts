@@ -60,6 +60,11 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation("androidx.compose.material3:material3:1.2.1")
+    // O si usas el BOM:
+    implementation(platform("androidx.compose:compose-bom:2024.02.01"))
+    implementation("androidx.compose.material3:material3")
+
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.8.0-rc01")
 
