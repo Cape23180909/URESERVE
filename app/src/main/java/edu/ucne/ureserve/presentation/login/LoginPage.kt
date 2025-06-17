@@ -61,8 +61,41 @@ fun GradientBackground(content: @Composable () -> Unit) {
 fun LoginScreen(
     onLoginClick: (String, String) -> Unit = { _, _ -> }
 ) {
-    val username = remember { mutableStateOf("") }
-    val password = remember { mutableStateOf("") }
+    val correo = remember { mutableStateOf("") }
+    val clave = remember { mutableStateOf("") }
+
+    // Estados para errores
+    val correoError = remember { mutableStateOf<String?>(null) }
+    val claveError = remember { mutableStateOf<String?>(null) }
+
+    // Función de validación
+    fun validateFields(): Boolean {
+        var isValid = true
+
+        // Validar correo
+        if (correo.value.isBlank()) {
+            correoError.value = "El correo es obligatorio"
+            isValid = false
+        } else if (!correo.value.matches(Regex("^[A-Za-z0-9+_.-]+@(.+)$"))) {
+            correoError.value = "Ingrese un correo válido"
+            isValid = false
+        } else {
+            correoError.value = null
+        }
+
+        // Validar clave
+        if (clave.value.isBlank()) {
+            claveError.value = "La clave es obligatoria"
+            isValid = false
+        } else if (clave.value.length < 6) {
+            claveError.value = "La clave debe tener al menos 6 caracteres"
+            isValid = false
+        } else {
+            claveError.value = null
+        }
+
+        return isValid
+    }
 
     GradientBackground {
         Surface(
@@ -73,27 +106,40 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 34.dp)
-                    .padding(top = 160.dp), // Padding superior aumentado
-                verticalArrangement = Arrangement.Top, // Cambiado de Center a Top
+                    .padding(top = 160.dp),
+                verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Logo de la aplicación
                 Image(
                     painter = painterResource(id = R.drawable.logo_reserve),
                     contentDescription = "Logo de RESERVE",
                     modifier = Modifier
                         .size(160.dp)
-                        .padding(bottom = 34.dp), // Espacio aumentado bajo el logo
+                        .padding(bottom = 34.dp),
                     contentScale = ContentScale.Fit
                 )
 
-                // Campo Usuario
+                // Campo Correo Institucional con validación
                 OutlinedTextField(
-                    value = username.value,
-                    onValueChange = { username.value = it },
-                    label = { Text("Usuario", color = Color.White) },
+                    value = correo.value,
+                    onValueChange = {
+                        correo.value = it
+                        // Validación en tiempo real (opcional)
+                        if (it.isNotEmpty() && !it.matches(Regex("^[A-Za-z0-9+_.-]+@(.+)$"))) {
+                            correoError.value = "Formato de correo inválido"
+                        } else {
+                            correoError.value = null
+                        }
+                    },
+                    label = { Text("Correo Institucional", color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    isError = correoError.value != null,
+                    supportingText = {
+                        correoError.value?.let {
+                            Text(text = it, color = Color(0xFFFF6D6D))
+                        }
+                    },
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
@@ -103,19 +149,36 @@ fun LoginScreen(
                         unfocusedLabelColor = Color.White.copy(alpha = 0.6f),
                         focusedIndicatorColor = Color.White,
                         unfocusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                        errorIndicatorColor = Color(0xFFFF6D6D),
+                        errorLabelColor = Color(0xFFFF6D6D),
+                        errorTextColor = Color(0xFFFF6D6D)
                     )
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Campo Contraseña
+                // Campo Clave con validación
                 OutlinedTextField(
-                    value = password.value,
-                    onValueChange = { password.value = it },
-                    label = { Text("Contraseña", color = Color.White) },
+                    value = clave.value,
+                    onValueChange = {
+                        clave.value = it
+                        // Validación en tiempo real (opcional)
+                        if (it.isNotEmpty() && it.length < 6) {
+                            claveError.value = "Mínimo 6 caracteres"
+                        } else {
+                            claveError.value = null
+                        }
+                    },
+                    label = { Text("Clave", color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
+                    isError = claveError.value != null,
+                    supportingText = {
+                        claveError.value?.let {
+                            Text(text = it, color = Color(0xFFFF6D6D))
+                        }
+                    },
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
@@ -125,17 +188,24 @@ fun LoginScreen(
                         unfocusedLabelColor = Color.White.copy(alpha = 0.6f),
                         focusedIndicatorColor = Color.White,
                         unfocusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                        errorIndicatorColor = Color(0xFFFF6D6D),
+                        errorLabelColor = Color(0xFFFF6D6D),
+                        errorTextColor = Color(0xFFFF6D6D)
                     )
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Botón Conectar
+                // Botón Conectar con validación
                 Button(
-                    onClick = { onLoginClick(username.value, password.value) },
+                    onClick = {
+                        if (validateFields()) {
+                            onLoginClick(correo.value, clave.value)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp), // Altura del botón ligeramente aumentada
+                        .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
                         contentColor = Color.Black
@@ -147,7 +217,6 @@ fun LoginScreen(
         }
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
