@@ -75,17 +75,17 @@ fun ProfileScreen(
 
                     // Información del usuario
                     UserInfoRow(
-                        icon = painterResource(id = R.drawable.icon_perfil),
+                        icon = painterResource(id = R.drawable.icon_mensaje),
                         label = "Correo Electrónico",
                         value = usuario.correoInstitucional
                     )
                     UserInfoRow(
-                        icon = painterResource(id = R.drawable.icon_proyector),
+                        icon = painterResource(id = R.drawable.icon_home),
                         label = "Carrera",
                         value = "Ingeniería en Sistemas"
                     )
                     UserInfoRow(
-                        icon = painterResource(id = R.drawable.icon_proyector),
+                        icon = painterResource(id = R.drawable.icon_number),
                         label = "Matrícula",
                         value = "2022-0465"
                     )
