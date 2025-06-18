@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 
 val Amarillo = Color(0xFFFFDF00)
@@ -29,6 +30,7 @@ val Azul = Color(0xFF154AD5)
 @Composable
 fun ProfileScreen(
     usuario: UsuarioDTO,
+    estudiante: EstudianteDto,
     onLogout: () -> Unit,
     onBottomNavClick: (String) -> Unit = {}) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -82,12 +84,12 @@ fun ProfileScreen(
                     UserInfoRow(
                         icon = painterResource(id = R.drawable.icon_home),
                         label = "Carrera",
-                        value = "Ingeniería en Sistemas"
+                        value = usuario.estudiante?.carrera?: ""
                     )
                     UserInfoRow(
                         icon = painterResource(id = R.drawable.icon_number),
                         label = "Matrícula",
-                        value = "2022-0465"
+                        value = usuario.estudiante?.matricula?: ""
                     )
 
                     Spacer(modifier = Modifier.height(122.dp))
@@ -219,17 +221,24 @@ fun BottomNavItem(
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
-    // Crea un usuario de prueba para el preview
     val usuarioPrueba = UsuarioDTO(
         usuarioId = 1,
         nombres = "Juan",
         apellidos = "Perez",
         correoInstitucional = "juan.perez@example.com",
-        clave = "123456"  // Aunque no se mostrará en el preview
+        clave = "123456"
+    )
+
+    val estudiantePrueba = EstudianteDto(
+        estudianteId = 1,
+        matricula = "",
+        facultad = "",
+        carrera = ""
     )
 
     ProfileScreen(
-        usuario = usuarioPrueba,  // Proporciona el usuario de prueba
+        usuario = usuarioPrueba,
+        estudiante = estudiantePrueba,  // Añade este parámetro
         onLogout = {}
     )
 }
