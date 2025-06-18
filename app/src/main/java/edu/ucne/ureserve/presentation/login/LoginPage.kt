@@ -65,7 +65,7 @@ fun GradientBackground(content: @Composable () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (UsuarioDTO) -> Unit,
     apiUrl: String = "https://ureserve-hghra5gdhzgzdghk.eastus2-01.azurewebsites.net/api/Usuarios" // Reemplaza con la URL de tu API
 ) {
     val correo = remember { mutableStateOf("") }
@@ -106,17 +106,15 @@ fun LoginScreen(
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Obtener todos los usuarios (no eficiente para login)
                 val usuarios = ApiModule.api.getAll()
-
-                // Buscar el usuario con las credenciales
                 val usuarioValido = usuarios.find { usuario ->
                     usuario.correoInstitucional == correo.value && usuario.clave == clave.value
                 }
 
                 withContext(Dispatchers.Main) {
                     if (usuarioValido != null) {
-                        onLoginSuccess()
+                        AuthManager.login(usuarioValido)  // Guarda el usuario
+                        onLoginSuccess(usuarioValido)     // Pasa el usuario
                     } else {
                         loginError.value = "Usuario o clave incorrectos"
                     }
@@ -244,4 +242,17 @@ class RetrofitInstance {
 @Composable
 fun LoginScreenPreview() {
     LoginScreen(onLoginSuccess = {}) // Ahora cumple con la firma
+}
+
+object AuthManager {
+    var currentUser: UsuarioDTO? = null
+        private set
+
+    fun login(usuario: UsuarioDTO) {
+        currentUser = usuario
+    }
+
+    fun logout() {
+        currentUser = null
+    }
 }
