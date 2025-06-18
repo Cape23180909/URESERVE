@@ -33,7 +33,7 @@ import edu.ucne.ureserve.R
 @Composable
 fun DashboardScreen(
     onCategoryClick: (String) -> Unit = {},
-    onBottomNavClick: (String) -> Unit = {}
+    onBottomNavClick: (String) -> Unit = {},
 ) {
     Column(
         modifier = Modifier
