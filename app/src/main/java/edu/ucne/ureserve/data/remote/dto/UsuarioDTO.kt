@@ -5,5 +5,7 @@ data class UsuarioDTO (
     val nombres: String = "",
     val apellidos: String = "",
      val correoInstitucional: String = "",
-    val clave: String = ""
+    val clave: String = "",
+    val estudianteId: Int = 0,
+    val estudiante: EstudianteDto? = null
 )
