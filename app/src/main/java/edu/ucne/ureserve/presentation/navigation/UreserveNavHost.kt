@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
 import edu.ucne.ureserve.presentation.login.AuthManager
@@ -58,10 +59,20 @@ fun UreserveNavHost(navController: NavHostController) {
         }
         composable("Profile") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
+            // Necesitas obtener el estudiante asociado al usuario
+            val estudiante = remember {
+                EstudianteDto(
+                    estudianteId = 1,  // Esto debería venir de tu backend
+                    matricula = "2022-0465",
+                    facultad = "Ingeniería",
+                    carrera = "Ingeniería en Sistemas"
+                )
+            }
             val currentRoute = navController.currentBackStackEntry?.destination?.route
 
             ProfileScreen(
                 usuario = usuario,
+                estudiante = estudiante,  // Añade este parámetro
                 onLogout = {
                     AuthManager.logout()
                     navController.navigate("LoadStart") {
