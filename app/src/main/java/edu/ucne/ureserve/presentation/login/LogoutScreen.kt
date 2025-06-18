@@ -21,12 +21,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 
 val Amarillo = Color(0xFFFFDF00)
 val Azul = Color(0xFF154AD5)
 
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onBottomNavClick: (String) -> Unit = {}) {
+fun ProfileScreen(
+    usuario: UsuarioDTO,
+    onLogout: () -> Unit,
+    onBottomNavClick: (String) -> Unit = {}) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Fondo superior amarillo
         Box(
@@ -56,13 +60,13 @@ fun ProfileScreen(onLogout: () -> Unit, onBottomNavClick: (String) -> Unit = {})
                 ) {
                     // Nombre
                     Text(
-                        text = "Juan Perez",
+                        text = "${usuario.nombres}",
                         fontSize = 18.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Fermin Gonzalez",
+                        text = "${usuario.apellidos}",
                         fontSize = 14.sp,
                         color = Color.White
                     )
@@ -73,7 +77,7 @@ fun ProfileScreen(onLogout: () -> Unit, onBottomNavClick: (String) -> Unit = {})
                     UserInfoRow(
                         icon = painterResource(id = R.drawable.icon_perfil),
                         label = "Correo Electrónico",
-                        value = "JuanPerez@gmail.com"
+                        value = usuario.correoInstitucional
                     )
                     UserInfoRow(
                         icon = painterResource(id = R.drawable.icon_proyector),
@@ -215,5 +219,17 @@ fun BottomNavItem(
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
-    ProfileScreen( onLogout = {})
+    // Crea un usuario de prueba para el preview
+    val usuarioPrueba = UsuarioDTO(
+        usuarioId = 1,
+        nombres = "Juan",
+        apellidos = "Perez",
+        correoInstitucional = "juan.perez@example.com",
+        clave = "123456"  // Aunque no se mostrará en el preview
+    )
+
+    ProfileScreen(
+        usuario = usuarioPrueba,  // Proporciona el usuario de prueba
+        onLogout = {}
+    )
 }
