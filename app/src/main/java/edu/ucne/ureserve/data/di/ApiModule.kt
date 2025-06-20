@@ -7,7 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import edu.ucne.ureserve.data.remote.UsuarioApi
+import edu.ucne.ureserve.data.remote.*
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -45,30 +45,12 @@ object ApiModule {
             .create(UsuarioApi::class.java)
     }
 
-    // Estas funciones seguirán disponibles si usas inyección con @Inject
-
     @Provides
     @Singleton
     fun provideMoshi(): Moshi =
         Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
             .build()
-
-    @Provides
-    @Singleton
-    fun provideRetrofit(moshi: Moshi, okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideUsuarioApi(retrofit: Retrofit): UsuarioApi {
-        return retrofit.create(UsuarioApi::class.java)
-    }
 
     @Provides
     @Singleton
@@ -84,6 +66,101 @@ object ApiModule {
             .build()
     }
 
+    @Provides
+    @Singleton
+    fun provideRetrofit(moshi: Moshi, okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+    }
+
+    // Usuarios
+    @Provides
+    @Singleton
+    fun provideUsuarioApi(retrofit: Retrofit): UsuarioApi {
+        return retrofit.create(UsuarioApi::class.java)
+    }
+
+    // Cubículos
+    @Provides
+    @Singleton
+    fun provideCubiculosApi(retrofit: Retrofit): CubiculosApi {
+        return retrofit.create(CubiculosApi::class.java)
+    }
+
+    // Laboratorios
+    @Provides
+    @Singleton
+    fun provideLaboratoriosApi(retrofit: Retrofit): LaboratoriosApi {
+        return retrofit.create(LaboratoriosApi::class.java)
+    }
+
+    // Proyectores
+    @Provides
+    @Singleton
+    fun provideProyectoresApi(retrofit: Retrofit): ProyectoresApi {
+        return retrofit.create(ProyectoresApi::class.java)
+    }
+
+    // Reportes
+    @Provides
+    @Singleton
+    fun provideReportesApi(retrofit: Retrofit): ReportesApi {
+        return retrofit.create(ReportesApi::class.java)
+    }
+
+    // Reservaciones
+    @Provides
+    @Singleton
+    fun provideReservacionesApi(retrofit: Retrofit): ReservacionesApi {
+        return retrofit.create(ReservacionesApi::class.java)
+    }
+
+    // Restaurantes
+    @Provides
+    @Singleton
+    fun provideRestaurantesApi(retrofit: Retrofit): RestaurantesApi {
+        return retrofit.create(RestaurantesApi::class.java)
+    }
+
+    // TipoCargoes
+    @Provides
+    @Singleton
+    fun provideTipoCargoesApi(retrofit: Retrofit): TipoCargoesApi {
+        return retrofit.create(TipoCargoesApi::class.java)
+    }
+
+    // DetalleReservaCubiculos
+    @Provides
+    @Singleton
+    fun provideDetalleReservaCubiculosApi(retrofit: Retrofit): DetalleReservaCubiculosApi {
+        return retrofit.create(DetalleReservaCubiculosApi::class.java)
+    }
+
+    // DetalleReservaLaboratorios
+    @Provides
+    @Singleton
+    fun provideDetalleReservaLaboratoriosApi(retrofit: Retrofit): DetalleReservaLaboratoriosApi {
+        return retrofit.create(DetalleReservaLaboratoriosApi::class.java)
+    }
+
+    // DetalleReservaProyectors
+    @Provides
+    @Singleton
+    fun provideDetalleReservaProyectorsApi(retrofit: Retrofit): DetalleReservaProyectorsApi {
+        return retrofit.create(DetalleReservaProyectorsApi::class.java)
+    }
+
+    // DetalleReservaRestaurantes
+    @Provides
+    @Singleton
+    fun provideDetalleReservaRestaurantesApi(retrofit: Retrofit): DetalleReservaRestaurantesApi {
+        return retrofit.create(DetalleReservaRestaurantesApi::class.java)
+    }
+
+    // Firebase
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
