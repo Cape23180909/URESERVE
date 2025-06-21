@@ -2,6 +2,7 @@ package edu.ucne.ureserve.presentation.proyectores
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,13 +34,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import java.util.Calendar
@@ -46,16 +52,13 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProjectorReservationScreen(
-    onBottomNavClick: (String) -> Unit = {}
+    onBottomNavClick: (String) -> Unit = {},
+    navController: NavController
 ) {
     val calendar = Calendar.getInstance()
     var selectedDate by remember { mutableStateOf<Calendar?>(null) }
 
-    val isSunday = selectedDate?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
-    val isDateValid = selectedDate != null && !isSunday
-
     Column(modifier = Modifier.fillMaxSize()) {
-        // TopAppBar con borde inferior
         Column {
             TopAppBar(
                 title = {
@@ -77,20 +80,16 @@ fun ProjectorReservationScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF6D87A4) // Color de fondo de la barra superior
+                    containerColor = Color(0xFF6D87A4)
                 )
             )
-
-            // Línea separadora (borde inferior)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
-                    .background(Color(0xFF023E8A)) // Color del borde
+                    .background(Color(0xFF023E8A))
             )
         }
-
-        // Contenido principal
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -104,16 +103,15 @@ fun ProjectorReservationScreen(
                 CalendarSection(
                     calendar = calendar,
                     selectedDate = selectedDate,
-                    onDateSelected = { date ->
-                        selectedDate = date
-                    }
+                    onDateSelected = { date -> selectedDate = date }
                 )
             }
             item {
                 Spacer(modifier = Modifier.height(24.dp))
-                if (isSunday) {
+
+                if (selectedDate?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
                     Text(
-                        text = "No se pueden hacer reservas los domingos",
+                        text = "La fecha seleccionada es domingo",
                         color = Color.Red,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -121,12 +119,18 @@ fun ProjectorReservationScreen(
                         textAlign = TextAlign.Center
                     )
                 }
+
                 ReservationButton(
-                    isEnabled = isDateValid,
+                    isEnabled = true,
                     onClick = {
-                        println("Reserva realizada para la fecha seleccionada")
+                        val autoDate = Calendar.getInstance()
+                        println("Reserva realizada automáticamente para: $autoDate")
                     },
-                    onBottomNavClick = onBottomNavClick
+                    onBottomNavClick = onBottomNavClick,
+                    onNavigateToReservaProyector = {
+                        navController.navigate("ReservaProyector")
+                    },
+                    navController = navController
                 )
             }
         }
@@ -177,22 +181,18 @@ private fun CalendarSection(
 ) {
     var currentMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
     var currentYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
-
     val tempCalendar = Calendar.getInstance().apply {
         set(Calendar.YEAR, currentYear)
         set(Calendar.MONTH, currentMonth)
         set(Calendar.DAY_OF_MONTH, 1)
     }
-
     val daysInMonth = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
     val firstDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK) - 1
-
     val monthName = tempCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
     val shortWeekdays = Array(7) { i ->
         tempCalendar.apply { set(Calendar.DAY_OF_WEEK, i + 1) }
             .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
     }
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -210,7 +210,6 @@ private fun CalendarSection(
                 tint = Color.White
             )
         }
-
         Text(
             text = monthName?.uppercase() ?: "",
             style = MaterialTheme.typography.titleMedium.copy(
@@ -220,7 +219,6 @@ private fun CalendarSection(
             ),
             modifier = Modifier.weight(1f)
         )
-
         IconButton(onClick = {
             currentMonth++
             if (currentMonth > 11) {
@@ -235,7 +233,6 @@ private fun CalendarSection(
             )
         }
     }
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -249,13 +246,10 @@ private fun CalendarSection(
             )
         }
     }
-
     Spacer(modifier = Modifier.height(8.dp))
-
     Column {
         var dayCounter = 1 - firstDayOfWeek
-
-        repeat(6) { week ->
+        repeat(6) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -270,17 +264,14 @@ private fun CalendarSection(
                             set(Calendar.DAY_OF_MONTH, day)
                         }
                     } else null
-
                     val today = Calendar.getInstance()
                     val isToday = date?.let {
                         it.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                                 it.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
                                 it.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH)
                     } ?: false
-
                     val isPastDate = date?.let { it.before(today) && !isToday } ?: false
                     val isSunday = date?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
-
                     CalendarDay(
                         day = if (isCurrentMonth) day.toString() else "",
                         isSelected = selectedDate?.let {
@@ -293,7 +284,6 @@ private fun CalendarSection(
                     )
                 }
             }
-
             dayCounter += 7
             if (dayCounter > daysInMonth) return@Column
         }
@@ -317,7 +307,6 @@ private fun CalendarDay(
         !isAvailable -> Color.White
         else -> Color.White
     }
-
     Box(
         modifier = Modifier
             .size(40.dp)
@@ -359,7 +348,9 @@ private fun CalendarDay(
 private fun ReservationButton(
     isEnabled: Boolean,
     onClick: () -> Unit,
-    onBottomNavClick: (String) -> Unit
+    onBottomNavClick: (String) -> Unit,
+    onNavigateToReservaProyector: () -> Unit,
+    navController: NavController
 ) {
     Button(
         onClick = onClick,
@@ -370,25 +361,23 @@ private fun ReservationButton(
             contentColor = Color.White
         )
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "¿Desea reservar ahora?",
                 color = Color.White
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                painter = painterResource(id = R.drawable.icon_clock),
-                contentDescription = "Reservar Ahora",
-                tint = Color.Unspecified,
-                modifier = Modifier.size(34.dp)
-            )
+            IconButton(onClick = { navController.navigate("ReservaProyector")}) {
+                Icon(
+                    painter = painterResource(id = R.drawable.icon_clock),
+                    contentDescription = "Reservar Ahora",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(34.dp)
+                )
+            }
         }
     }
-
     Spacer(modifier = Modifier.height(70.dp))
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -409,6 +398,9 @@ private fun ReservationButton(
 @Composable
 fun PreviewProjectorReservationScreen() {
     MaterialTheme {
-        ProjectorReservationScreen(onBottomNavClick = {})
+        ProjectorReservationScreen(
+            onBottomNavClick = {},
+            navController = NavController(LocalContext.current)
+        )
     }
 }
