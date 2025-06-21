@@ -19,6 +19,9 @@ import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
+import edu.ucne.ureserve.presentation.restaurantes.ConfirmacionReservaRestauranteScreen
+import edu.ucne.ureserve.presentation.restaurantes.ConfirmacionReservaReunionesScreen
+import edu.ucne.ureserve.presentation.restaurantes.ConfirmacionReservaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalaVipScreen
@@ -139,7 +142,9 @@ fun UreserveNavHost(navController: NavHostController) {
                     navController.popBackStack()
                 },
                 onConfirmClick = {
-                    // Acción al confirmar la reserva VIP
+                    if (terminosAceptados) {
+                        navController.navigate("ConfirmacionReservaVIP")
+                    }
                 },
                 onBottomNavClick = { destination ->
                     when (destination) {
@@ -153,6 +158,18 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+        composable("ConfirmacionReservaVIP") {
+            val usuario = AuthManager.currentUser ?: UsuarioDTO()
+            ConfirmacionReservaVipScreen(
+                nombreUsuario = usuario.nombres?: "Invitado",
+                onVolverClick = {
+                    navController.navigate("Dashboard") {
+                        popUpTo("ConfirmacionReservaVIP") { inclusive = true }
+                    }
+                }
+            )
+        }
+
 
         composable("Restaurante") { backStackEntry ->
             val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
@@ -167,7 +184,9 @@ fun UreserveNavHost(navController: NavHostController) {
                     navController.popBackStack()
                 },
                 onConfirmClick = {
-                    // Acción al confirmar
+                    if (terminosAceptados) {
+                        navController.navigate("ConfirmacionReservaRestaurante")
+                    }
                 },
                 onBottomNavClick = { destination ->
                     when (destination) {
@@ -179,6 +198,17 @@ fun UreserveNavHost(navController: NavHostController) {
                 ,
                 onExclamacionClick = {
                     navController.navigate("TerminosReservaRestaurante")
+                }
+            )
+        }
+        composable("ConfirmacionReservaRestaurante") {
+            val usuario = AuthManager.currentUser ?: UsuarioDTO()
+            ConfirmacionReservaRestauranteScreen(
+                nombreUsuario = usuario.nombres ?: "Invitado",
+                onVolverClick = {
+                    navController.navigate("Dashboard") {
+                        popUpTo("ConfirmacionReservaRestaurante") { inclusive = true }
+                    }
                 }
             )
         }
@@ -196,7 +226,9 @@ fun UreserveNavHost(navController: NavHostController) {
                     navController.popBackStack()
                 },
                 onConfirmClick = {
-                    // Acción al confirmar
+                    if (terminosAceptados) {
+                        navController.navigate("ConfirmacionReservaReuniones")
+                    }
                 },
                 onBottomNavClick = { destination ->
                     when (destination) {
@@ -210,6 +242,18 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+        composable("ConfirmacionReservaReuniones") {
+            val usuario = AuthManager.currentUser ?: UsuarioDTO()
+            ConfirmacionReservaReunionesScreen(
+                nombreUsuario = usuario.nombres ?: "Invitado",
+                onVolverClick = {
+                    navController.navigate("Dashboard") {
+                        popUpTo("ConfirmacionReservaReuniones") { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable("TerminosReserva") {
             TerminosReservaScreen(
                 onAceptarClick = {
