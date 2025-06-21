@@ -113,6 +113,8 @@ fun DashboardScreen(
                         iconRes = R.drawable.icon_laboratorio,
                         onClick = { onCategoryClick("Laboratorios") }
                     )
+
+
                 }
             }
         }
