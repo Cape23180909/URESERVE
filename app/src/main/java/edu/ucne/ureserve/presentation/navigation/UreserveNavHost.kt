@@ -19,6 +19,9 @@ import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalonReunionesScreen
+import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaRestauranteScreen
+import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaScreen
+import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaVipScreen
 
 @Composable
 fun UreserveNavHost(navController: NavHostController) {
@@ -133,6 +136,9 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Perfil" -> navController.navigate("Profile")
                         "Tutorial" -> {} // Si tienes esta pantalla
                     }
+                } ,
+                onExclamacionClick = {
+                    navController.navigate("TerminosReservaVip")
                 }
             )
         }
@@ -150,6 +156,10 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Perfil" -> navController.navigate("Profile")
                         "Tutorial" -> {} // Agrega aquí si tienes esa pantalla
                     }
+                }
+                ,
+                onExclamacionClick = {
+                    navController.navigate("TerminosReservaRestaurante")
                 }
             )
         }
@@ -169,9 +179,53 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Perfil" -> navController.navigate("Profile")
                         "Tutorial" -> {}
                     }
+                } ,
+                onExclamacionClick = {
+                    navController.navigate("TerminosReserva")
                 }
             )
         }
+        composable("TerminosReserva") {
+            TerminosReservaScreen(
+                onAceptarClick = {
+                    // Acción al aceptar
+                },
+                onCancelarClick = {
+                    navController.popBackStack() // Regresar
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable("TerminosReservaVip") {
+            TerminosReservaVipScreen(
+                onAceptarClick = {
+                    // Acción al aceptar (puedes navegar a otro lado si quieres)
+                },
+                onCancelarClick = {
+                    navController.popBackStack()
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("TerminosReservaRestaurante") {
+            TerminosReservaRestauranteScreen(
+                onAceptarClick = {
+                    // Acción al aceptar
+                },
+                onCancelarClick = {
+                    navController.popBackStack()
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
 
         composable("Profile") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
