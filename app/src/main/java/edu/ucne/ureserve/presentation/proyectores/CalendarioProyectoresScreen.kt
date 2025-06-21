@@ -51,6 +51,9 @@ fun ProjectorReservationScreen(
     val calendar = Calendar.getInstance()
     var selectedDate by remember { mutableStateOf<Calendar?>(null) }
 
+    val isSunday = selectedDate?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
+    val isDateValid = selectedDate != null && !isSunday
+
     Column(modifier = Modifier.fillMaxSize()) {
         // TopAppBar con borde inferior
         Column {
@@ -108,8 +111,18 @@ fun ProjectorReservationScreen(
             }
             item {
                 Spacer(modifier = Modifier.height(24.dp))
+                if (isSunday) {
+                    Text(
+                        text = "No se pueden hacer reservas los domingos",
+                        color = Color.Red,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
                 ReservationButton(
-                    isEnabled = selectedDate != null,
+                    isEnabled = isDateValid,
                     onClick = {
                         println("Reserva realizada para la fecha seleccionada")
                     },
@@ -266,6 +279,7 @@ private fun CalendarSection(
                     } ?: false
 
                     val isPastDate = date?.let { it.before(today) && !isToday } ?: false
+                    val isSunday = date?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
 
                     CalendarDay(
                         day = if (isCurrentMonth) day.toString() else "",
@@ -274,8 +288,8 @@ private fun CalendarSection(
                                     it.get(Calendar.MONTH) == date?.get(Calendar.MONTH) &&
                                     it.get(Calendar.DAY_OF_MONTH) == date?.get(Calendar.DAY_OF_MONTH)
                         } ?: false,
-                        isAvailable = isCurrentMonth && !isPastDate,
-                        onClick = { if (isCurrentMonth && date != null) onDateSelected(date) }
+                        isAvailable = isCurrentMonth && !isPastDate && !isSunday,
+                        onClick = { if (isCurrentMonth && date != null && !isSunday) onDateSelected(date) }
                     )
                 }
             }
