@@ -11,4 +11,10 @@ sealed  class Screen {
 
     @Serializable
     data object CalendarioProyector: Screen()
+
+    @Serializable
+    data object CalendarioCubiculo: Screen()
+
+    @Serializable
+    data object CalendarioLaboratorio: Screen()
 }

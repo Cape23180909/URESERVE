@@ -7,7 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
+import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
 import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
@@ -45,6 +47,8 @@ fun UreserveNavHost(navController: NavHostController) {
                 onCategoryClick = { category ->
                     when (category) {
                         "Proyectores" -> navController.navigate("ProjectorReservation")
+                        "Cubículos" -> navController.navigate("CubiculoReservation")
+                        "Laboratorios" -> navController.navigate("LaboratorioReservation")
                     }
                 },
                 onBottomNavClick = { destination ->
@@ -59,6 +63,26 @@ fun UreserveNavHost(navController: NavHostController) {
 
         composable("ProjectorReservation") {
             ProjectorReservationScreen(
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard")
+                    }
+                }
+            )
+        }
+
+        composable("CubiculoReservation") {
+            CubiculoReservationScreen(
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard")
+                    }
+                }
+            )
+        }
+
+        composable("LaboratorioReservation") {
+            LaboratorioReservationScreen(
                 onBottomNavClick = { destination ->
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
