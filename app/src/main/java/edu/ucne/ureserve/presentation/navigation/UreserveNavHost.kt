@@ -12,6 +12,7 @@ import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
+import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 
 @Composable
 fun UreserveNavHost(navController: NavHostController) {
@@ -40,23 +41,32 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
         composable("Dashboard") {
-            val currentRoute = navController.currentBackStackEntry?.destination?.route
-
             DashboardScreen(
+                onCategoryClick = { category ->
+                    when (category) {
+                        "Proyectores" -> navController.navigate("ProjectorReservation")
+                    }
+                },
                 onBottomNavClick = { destination ->
                     when(destination) {
                         "Perfil" -> navController.navigate("Profile")
-                        "Inicio" -> {
-                            // Ya estamos en Dashboard, puedes recargar si es necesario
-                            navController.navigate("Dashboard") {
-                                popUpTo("Dashboard") { inclusive = false }
-                            }
-                        }
-                        "Tutorial" -> navController.navigate("Tutorial")
+                        "Inicio" -> {} // Ya estás en Dashboard
+                        "Tutorial" -> {} // Agrega si tienes esa pantalla
                     }
                 }
             )
         }
+
+        composable("ProjectorReservation") {
+            ProjectorReservationScreen(
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard")
+                    }
+                }
+            )
+        }
+
         composable("Profile") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
             // Necesitas obtener el estudiante asociado al usuario
