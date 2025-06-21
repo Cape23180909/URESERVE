@@ -3,6 +3,7 @@ package edu.ucne.ureserve.presentation.restaurantes
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,7 +24,8 @@ import edu.ucne.ureserve.R
 fun SalonReunionesScreen(
     onCancelClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
-    onBottomNavClick: (String) -> Unit = {}
+    onBottomNavClick: (String) -> Unit = {},
+    onExclamacionClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -99,7 +101,8 @@ fun SalonReunionesScreen(
             Image(
                 painter = painterResource(id = R.drawable.esclamacion),
                 contentDescription = "Icono de exclamación",
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(32.dp)
+                .clickable { onExclamacionClick() }, // Aquí se navega
                 colorFilter = ColorFilter.tint(Color.White)
             )
             Spacer(modifier = Modifier.height(8.dp))
