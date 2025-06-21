@@ -8,4 +8,7 @@ sealed  class Screen {
 
     @Serializable
     data object Login : Screen()
+
+    @Serializable
+    data object CalendarioProyector: Screen()
 }
