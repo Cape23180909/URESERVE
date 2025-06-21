@@ -1,7 +1,11 @@
 package edu.ucne.ureserve.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -122,28 +126,43 @@ fun UreserveNavHost(navController: NavHostController) {
         }
 
 
-        composable("SalaVIP") {
+        composable("SalaVIP") { backStackEntry ->
+            val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+            val terminosAceptados by backStackEntry
+                .savedStateHandle
+                .getStateFlow("vip_terminos_aceptados", false)
+                .collectAsState()
+
             SalaVipScreen(
+                terminosAceptados = terminosAceptados,
                 onCancelClick = {
-                    navController.popBackStack() // Volver atrás
+                    navController.popBackStack()
                 },
                 onConfirmClick = {
-                    // Acción al confirmar
+                    // Acción al confirmar la reserva VIP
                 },
                 onBottomNavClick = { destination ->
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {} // Si tienes esta pantalla
+                        "Tutorial" -> {}
                     }
-                } ,
+                },
                 onExclamacionClick = {
                     navController.navigate("TerminosReservaVip")
                 }
             )
         }
-        composable("Restaurante") {
+
+        composable("Restaurante") { backStackEntry ->
+            val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+            val terminosAceptados by backStackEntry
+                .savedStateHandle
+                .getStateFlow("restaurantes_terminos_aceptados", false)
+                .collectAsState()
+
             RestauranteScreen(
+                terminosAceptados = terminosAceptados,
                 onCancelClick = {
                     navController.popBackStack()
                 },
@@ -165,8 +184,14 @@ fun UreserveNavHost(navController: NavHostController) {
         }
 
 
-        composable("SalonReuniones") {
+        composable("SalonReuniones") { backStackEntry ->
+            val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+            val terminosAceptados by backStackEntry
+                .savedStateHandle
+                .getStateFlow("reuniones_terminos_aceptados", false)
+                .collectAsState()
             SalonReunionesScreen(
+                terminosAceptados = terminosAceptados,
                 onCancelClick = {
                     navController.popBackStack()
                 },
@@ -188,7 +213,11 @@ fun UreserveNavHost(navController: NavHostController) {
         composable("TerminosReserva") {
             TerminosReservaScreen(
                 onAceptarClick = {
-                    // Acción al aceptar
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("reuniones_terminos_aceptados", true)
+
+                    navController.popBackStack()
                 },
                 onCancelarClick = {
                     navController.popBackStack() // Regresar
@@ -201,7 +230,11 @@ fun UreserveNavHost(navController: NavHostController) {
         composable("TerminosReservaVip") {
             TerminosReservaVipScreen(
                 onAceptarClick = {
-                    // Acción al aceptar (puedes navegar a otro lado si quieres)
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("vip_terminos_aceptados", true)
+
+                    navController.popBackStack()
                 },
                 onCancelarClick = {
                     navController.popBackStack()
@@ -215,7 +248,11 @@ fun UreserveNavHost(navController: NavHostController) {
         composable("TerminosReservaRestaurante") {
             TerminosReservaRestauranteScreen(
                 onAceptarClick = {
-                    // Acción al aceptar
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("restaurantes_terminos_aceptados", true)
+
+                    navController.popBackStack()
                 },
                 onCancelarClick = {
                     navController.popBackStack()
