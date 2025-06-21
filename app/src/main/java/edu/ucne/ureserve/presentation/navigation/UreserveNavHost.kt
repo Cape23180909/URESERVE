@@ -16,6 +16,9 @@ import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteScreen
+import edu.ucne.ureserve.presentation.restaurantes.RestauranteScreen
+import edu.ucne.ureserve.presentation.restaurantes.SalaVipScreen
+import edu.ucne.ureserve.presentation.restaurantes.SalonReunionesScreen
 
 @Composable
 fun UreserveNavHost(navController: NavHostController) {
@@ -50,7 +53,8 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Proyectores" -> navController.navigate("ProjectorReservation")
                         "Cubículos" -> navController.navigate("CubiculoReservation")
                         "Laboratorios" -> navController.navigate("LaboratorioReservation")
-                        "Restaurante" -> navController.navigate("RestauranteReservation") // NUEVA RUTA
+                        "Restaurante" -> navController.navigate("RestauranteReservation") // NUEVA
+
                         "Mis Reservas" -> {
                             // Agrega aquí si tienes una pantalla para "Mis Reservas"
                         }
@@ -96,15 +100,78 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
         composable("RestauranteReservation") {
-            ReservaRestauranteScreen( // LLAMA A LA PANTALLA DEL RESTAURANTE
+            ReservaRestauranteScreen(
+                onOptionClick = { option ->
+                    when(option) {
+                        "Sala VIP" -> navController.navigate("SalaVIP")
+                        "Salón de reuniones" -> navController.navigate("SalonReuniones")
+                        "Restaurante" -> navController.navigate("Restaurante")
+                    }
+                },
                 onBottomNavClick = { destination ->
-                    when (destination) {
+                    when(destination) {
                         "Inicio" -> navController.navigate("Dashboard")
+                        "Perfil" -> navController.navigate("Profile")
+                        "Tutorial" -> { /* ... */ }
                     }
                 }
             )
         }
 
+
+        composable("SalaVIP") {
+            SalaVipScreen(
+                onCancelClick = {
+                    navController.popBackStack() // Volver atrás
+                },
+                onConfirmClick = {
+                    // Acción al confirmar
+                },
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard")
+                        "Perfil" -> navController.navigate("Profile")
+                        "Tutorial" -> {} // Si tienes esta pantalla
+                    }
+                }
+            )
+        }
+        composable("Restaurante") {
+            RestauranteScreen(
+                onCancelClick = {
+                    navController.popBackStack()
+                },
+                onConfirmClick = {
+                    // Acción al confirmar
+                },
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard")
+                        "Perfil" -> navController.navigate("Profile")
+                        "Tutorial" -> {} // Agrega aquí si tienes esa pantalla
+                    }
+                }
+            )
+        }
+
+
+        composable("SalonReuniones") {
+            SalonReunionesScreen(
+                onCancelClick = {
+                    navController.popBackStack()
+                },
+                onConfirmClick = {
+                    // Acción al confirmar
+                },
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard")
+                        "Perfil" -> navController.navigate("Profile")
+                        "Tutorial" -> {}
+                    }
+                }
+            )
+        }
 
         composable("Profile") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
