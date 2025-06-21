@@ -25,7 +25,8 @@ fun SalonReunionesScreen(
     onCancelClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onBottomNavClick: (String) -> Unit = {},
-    onExclamacionClick: () -> Unit = {}
+    onExclamacionClick: () -> Unit = {},
+    terminosAceptados: Boolean = false
 ) {
     Column(
         modifier = Modifier
@@ -134,7 +135,9 @@ fun SalonReunionesScreen(
 
             Button(
                 onClick = onConfirmClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (terminosAceptados) Color(0xFF388E3C) else Color(0xFF2196F3) // Verde si aceptó
+                )
             ) {
                 Text(text = "CONFIRMAR", color = Color.White)
             }
