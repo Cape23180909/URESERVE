@@ -23,7 +23,8 @@ import edu.ucne.ureserve.R
 fun SalaVipScreen(
     onCancelClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
-    onBottomNavClick: (String) -> Unit = {}
+    onBottomNavClick: (String) -> Unit = {},
+    onExclamacionClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -100,7 +101,8 @@ fun SalaVipScreen(
             Image(
                 painter = painterResource(id = R.drawable.esclamacion),
                 contentDescription = "Icono de exclamación",
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(32.dp)
+                    .clickable { onExclamacionClick() }, // Aquí se navega
                 colorFilter = ColorFilter.tint(Color.White)
             )
             Spacer(modifier = Modifier.height(8.dp))
