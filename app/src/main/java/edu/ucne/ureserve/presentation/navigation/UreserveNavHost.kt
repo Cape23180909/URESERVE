@@ -15,6 +15,7 @@ import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
+import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteScreen
 
 @Composable
 fun UreserveNavHost(navController: NavHostController) {
@@ -49,6 +50,10 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Proyectores" -> navController.navigate("ProjectorReservation")
                         "Cubículos" -> navController.navigate("CubiculoReservation")
                         "Laboratorios" -> navController.navigate("LaboratorioReservation")
+                        "Restaurante" -> navController.navigate("RestauranteReservation") // NUEVA RUTA
+                        "Mis Reservas" -> {
+                            // Agrega aquí si tienes una pantalla para "Mis Reservas"
+                        }
                     }
                 },
                 onBottomNavClick = { destination ->
@@ -90,6 +95,16 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+        composable("RestauranteReservation") {
+            ReservaRestauranteScreen( // LLAMA A LA PANTALLA DEL RESTAURANTE
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard")
+                    }
+                }
+            )
+        }
+
 
         composable("Profile") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
