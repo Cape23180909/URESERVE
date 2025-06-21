@@ -19,6 +19,7 @@ import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
+import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
 import edu.ucne.ureserve.presentation.restaurantes.ConfirmacionReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.ConfirmacionReservaReunionesScreen
 import edu.ucne.ureserve.presentation.restaurantes.ConfirmacionReservaVipScreen
@@ -45,6 +46,7 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+
         composable("Login") {
             LoginScreen(
                 onLoginSuccess = { usuario ->
@@ -56,6 +58,7 @@ fun UreserveNavHost(navController: NavHostController) {
                 apiUrl = ""
             )
         }
+
         composable("Dashboard") {
             DashboardScreen(
                 onCategoryClick = { category ->
@@ -86,7 +89,8 @@ fun UreserveNavHost(navController: NavHostController) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                     }
-                }
+                },
+                navController = navController
             )
         }
 
@@ -109,6 +113,18 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+
+        composable("ReservaProyector") {
+            ReservaProyectorScreen(
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard")
+                    }
+                },
+                navController = navController
+            )
+        }
+
         composable("RestauranteReservation") {
             ReservaRestauranteScreen(
                 onOptionClick = { option ->
@@ -127,7 +143,6 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
-
 
         composable("SalaVIP") { backStackEntry ->
             val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
@@ -158,6 +173,7 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+
         composable("ConfirmacionReservaVIP") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
             ConfirmacionReservaVipScreen(
@@ -169,7 +185,6 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
-
 
         composable("Restaurante") { backStackEntry ->
             val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
@@ -201,6 +216,7 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+
         composable("ConfirmacionReservaRestaurante") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
             ConfirmacionReservaRestauranteScreen(
@@ -212,7 +228,6 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
-
 
         composable("SalonReuniones") { backStackEntry ->
             val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
@@ -242,6 +257,7 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+
         composable("ConfirmacionReservaReuniones") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
             ConfirmacionReservaReunionesScreen(
@@ -271,6 +287,7 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+
         composable("TerminosReservaVip") {
             TerminosReservaVipScreen(
                 onAceptarClick = {
@@ -307,7 +324,6 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
 
-
         composable("Profile") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
             // Necesitas obtener el estudiante asociado al usuario
@@ -343,6 +359,5 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
-        // Agrega aquí la pantalla de Tutorial si existe
     }
 }
