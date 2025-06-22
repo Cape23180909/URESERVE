@@ -1,5 +1,7 @@
 package edu.ucne.ureserve.data.remote
 
+
+import edu.ucne.ureserve.data.remote.dto.CreateDetalleReservaProyectorDto
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaCubiculosDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaLaboratoriosDto
@@ -12,6 +14,7 @@ import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.RestaurantesDto
 import edu.ucne.ureserve.data.remote.dto.TipoCargoesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import retrofit2.Response
 import javax.inject.Inject
 
 class RemoteDataSource @Inject constructor(
@@ -46,49 +49,73 @@ class RemoteDataSource @Inject constructor(
     suspend fun getCubiculos(): List<CubiculosDto> = apicubiculo.getAll()
     suspend fun createCubiculo(cubiculo: CubiculosDto): CubiculosDto = apicubiculo.insert(cubiculo)
     suspend fun getCubiculo(id: Int): CubiculosDto = apicubiculo.getById(id)
-    suspend fun updateCubiculo(id: Int, cubiculo: CubiculosDto): CubiculosDto = apicubiculo.update(id, cubiculo)
+    suspend fun updateCubiculo(id: Int, cubiculo: CubiculosDto): CubiculosDto =
+        apicubiculo.update(id, cubiculo)
+
     suspend fun deleteCubiculo(id: Int) = apicubiculo.delete(id)
 
     // Laboratorios
     suspend fun getLaboratorios(): List<LaboratoriosDto> = apilaboratorio.getAll()
-    suspend fun createLaboratorio(laboratorio: LaboratoriosDto): LaboratoriosDto = apilaboratorio.insert(laboratorio)
+    suspend fun createLaboratorio(laboratorio: LaboratoriosDto): LaboratoriosDto =
+        apilaboratorio.insert(laboratorio)
+
     suspend fun getLaboratorio(id: Int): LaboratoriosDto = apilaboratorio.getById(id)
-    suspend fun updateLaboratorio(id: Int, laboratorio: LaboratoriosDto): LaboratoriosDto = apilaboratorio.update(id, laboratorio)
+    suspend fun updateLaboratorio(id: Int, laboratorio: LaboratoriosDto): LaboratoriosDto =
+        apilaboratorio.update(id, laboratorio)
+
     suspend fun deleteLaboratorio(id: Int) = apilaboratorio.delete(id)
 
     // Proyectores
     suspend fun getProyectores(): List<ProyectoresDto> = apiproyector.getAll()
-    suspend fun createProyector(proyector: ProyectoresDto): ProyectoresDto = apiproyector.insert(proyector)
+    suspend fun createProyector(proyector: ProyectoresDto): ProyectoresDto =
+        apiproyector.insert(proyector)
+
     suspend fun getProyector(id: Int): ProyectoresDto = apiproyector.getById(id)
-    suspend fun updateProyector(id: Int, proyector: ProyectoresDto): ProyectoresDto = apiproyector.update(id, proyector)
+    suspend fun updateProyector(id: Int, proyector: ProyectoresDto): ProyectoresDto =
+        apiproyector.update(id, proyector)
+
     suspend fun deleteProyector(id: Int) = apiproyector.delete(id)
 
     // Reportes
     suspend fun getReportes(): List<ReportesDto> = apiReportes.getAll()
     suspend fun getReporte(id: Int): ReportesDto = apiReportes.getById(id)
     suspend fun createReporte(reporte: ReportesDto): ReportesDto = apiReportes.insert(reporte)
-    suspend fun updateReporte(id: Int, reporte: ReportesDto): ReportesDto = apiReportes.update(id, reporte)
+    suspend fun updateReporte(id: Int, reporte: ReportesDto): ReportesDto =
+        apiReportes.update(id, reporte)
+
     suspend fun deleteReporte(id: Int) = apiReportes.delete(id)
 
     // Reservaciones
     suspend fun getReservaciones(): List<ReservacionesDto> = apiReservaciones.getAll()
     suspend fun getReservacion(id: Int): ReservacionesDto = apiReservaciones.getById(id)
-    suspend fun createReservacion(reservacion: ReservacionesDto): ReservacionesDto = apiReservaciones.insert(reservacion)
-    suspend fun updateReservacion(id: Int, reservacion: ReservacionesDto): ReservacionesDto = apiReservaciones.update(id, reservacion)
+    suspend fun createReservacion(reservacion: ReservacionesDto): ReservacionesDto =
+        apiReservaciones.insert(reservacion)
+
+    suspend fun updateReservacion(id: Int, reservacion: ReservacionesDto): ReservacionesDto =
+        apiReservaciones.update(id, reservacion)
+
     suspend fun deleteReservacion(id: Int) = apiReservaciones.delete(id)
 
     // Restaurantes
     suspend fun getRestaurantes(): List<RestaurantesDto> = apiRestaurantes.getAll()
-    suspend fun createRestaurante(restaurante: RestaurantesDto): RestaurantesDto = apiRestaurantes.insert(restaurante)
+    suspend fun createRestaurante(restaurante: RestaurantesDto): RestaurantesDto =
+        apiRestaurantes.insert(restaurante)
+
     suspend fun getRestaurante(id: Int): RestaurantesDto = apiRestaurantes.getById(id)
-    suspend fun updateRestaurante(id: Int, restaurante: RestaurantesDto): RestaurantesDto = apiRestaurantes.update(id, restaurante)
+    suspend fun updateRestaurante(id: Int, restaurante: RestaurantesDto): RestaurantesDto =
+        apiRestaurantes.update(id, restaurante)
+
     suspend fun deleteRestaurante(id: Int) = apiRestaurantes.delete(id)
 
     // TipoCargoes
     suspend fun getTipoCargoes(): List<TipoCargoesDto> = apiTipoCargoes.getAll()
     suspend fun getTipoCargo(id: Int): TipoCargoesDto = apiTipoCargoes.getById(id)
-    suspend fun createTipoCargo(tipoCargo: TipoCargoesDto): TipoCargoesDto = apiTipoCargoes.insert(tipoCargo)
-    suspend fun updateTipoCargo(id: Int, tipoCargo: TipoCargoesDto): TipoCargoesDto = apiTipoCargoes.update(id, tipoCargo)
+    suspend fun createTipoCargo(tipoCargo: TipoCargoesDto): TipoCargoesDto =
+        apiTipoCargoes.insert(tipoCargo)
+
+    suspend fun updateTipoCargo(id: Int, tipoCargo: TipoCargoesDto): TipoCargoesDto =
+        apiTipoCargoes.update(id, tipoCargo)
+
     suspend fun deleteTipoCargo(id: Int) = apiTipoCargoes.delete(id)
 
     // DetalleReservaCubiculos
@@ -101,7 +128,10 @@ class RemoteDataSource @Inject constructor(
     suspend fun createDetalleReservaCubiculo(detalle: DetalleReservaCubiculosDto): DetalleReservaCubiculosDto =
         apiDetalleReservaCubiculos.insert(detalle)
 
-    suspend fun updateDetalleReservaCubiculo(id: Int, detalle: DetalleReservaCubiculosDto): DetalleReservaCubiculosDto =
+    suspend fun updateDetalleReservaCubiculo(
+        id: Int,
+        detalle: DetalleReservaCubiculosDto
+    ): DetalleReservaCubiculosDto =
         apiDetalleReservaCubiculos.update(id, detalle)
 
     suspend fun deleteDetalleReservaCubiculo(id: Int) =
@@ -117,42 +147,61 @@ class RemoteDataSource @Inject constructor(
     suspend fun createDetalleReservaLaboratorio(detalle: DetalleReservaLaboratoriosDto): DetalleReservaLaboratoriosDto =
         apiDetalleReservaLaboratorios.insert(detalle)
 
-    suspend fun updateDetalleReservaLaboratorio(id: Int, detalle: DetalleReservaLaboratoriosDto): DetalleReservaLaboratoriosDto =
+    suspend fun updateDetalleReservaLaboratorio(
+        id: Int,
+        detalle: DetalleReservaLaboratoriosDto
+    ): DetalleReservaLaboratoriosDto =
         apiDetalleReservaLaboratorios.update(id, detalle)
 
     suspend fun deleteDetalleReservaLaboratorio(id: Int) =
         apiDetalleReservaLaboratorios.delete(id)
 
     // DetalleReservaProyectors
-    suspend fun getDetalleReservaProyectors(): List<DetalleReservaProyectorsDto> =
-        apiDetalleReservaProyectors.getAll()
+    suspend fun insertDetalleReservaProyector(
+        detalle: CreateDetalleReservaProyectorDto
+    ): Response<DetalleReservaProyectorsDto> {
+        return apiDetalleReservaProyectors.insert(detalle)
+    }
 
-    suspend fun getDetalleReservaProyector(id: Int): DetalleReservaProyectorsDto =
-        apiDetalleReservaProyectors.getById(id)
+    suspend fun getAllDetalleReservaProyector(): List<DetalleReservaProyectorsDto> {
+        return apiDetalleReservaProyectors.getAll()
+    }
 
-    suspend fun createDetalleReservaProyector(detalle: DetalleReservaProyectorsDto): DetalleReservaProyectorsDto =
-        apiDetalleReservaProyectors.insert(detalle)
+    suspend fun getDetalleReservaProyector(id: Int): DetalleReservaProyectorsDto {
+        return apiDetalleReservaProyectors.getById(id)
+    }
 
-    suspend fun updateDetalleReservaProyector(id: Int, detalle: DetalleReservaProyectorsDto): DetalleReservaProyectorsDto =
-        apiDetalleReservaProyectors.update(id, detalle)
+    suspend fun updateDetalleReservaProyector(
+        id: Int,
+        detalle: DetalleReservaProyectorsDto
+    ): DetalleReservaProyectorsDto {
+        return apiDetalleReservaProyectors.update(id, detalle)
+    }
 
-    suspend fun deleteDetalleReservaProyector(id: Int) =
-        apiDetalleReservaProyectors.delete(id)
+    suspend fun createDetalleReservaProyector(
+        detalle: CreateDetalleReservaProyectorDto
+    ): Response<DetalleReservaProyectorsDto> {
+        return apiDetalleReservaProyectors.insert(detalle)
+    }
 
-    // DetalleReservaRestaurantes
-    suspend fun getDetalleReservaRestaurantes(): List<DetalleReservaRestaurantesDto> =
-        apiDetalleReservaRestaurantes.getAll()
+    suspend fun deleteDetalleReservaProyector(id: Int) {}
 
-    suspend fun getDetalleReservaRestaurante(id: Int): DetalleReservaRestaurantesDto =
-        apiDetalleReservaRestaurantes.getById(id)
+        // DetalleReservaRestaurantes
+        suspend fun getDetalleReservaRestaurantes(): List<DetalleReservaRestaurantesDto> =
+            apiDetalleReservaRestaurantes.getAll()
 
-    suspend fun createDetalleReservaRestaurante(detalle: DetalleReservaRestaurantesDto): DetalleReservaRestaurantesDto =
-        apiDetalleReservaRestaurantes.insert(detalle)
+        suspend fun getDetalleReservaRestaurante(id: Int): DetalleReservaRestaurantesDto =
+            apiDetalleReservaRestaurantes.getById(id)
 
-    suspend fun updateDetalleReservaRestaurante(id: Int, detalle: DetalleReservaRestaurantesDto): DetalleReservaRestaurantesDto =
-        apiDetalleReservaRestaurantes.update(id, detalle)
+        suspend fun createDetalleReservaRestaurante(detalle: DetalleReservaRestaurantesDto): DetalleReservaRestaurantesDto =
+            apiDetalleReservaRestaurantes.insert(detalle)
 
-    suspend fun deleteDetalleReservaRestaurante(id: Int) =
-        apiDetalleReservaRestaurantes.delete(id)
+        suspend fun updateDetalleReservaRestaurante(
+            id: Int,
+            detalle: DetalleReservaRestaurantesDto
+        ): DetalleReservaRestaurantesDto =
+            apiDetalleReservaRestaurantes.update(id, detalle)
 
+        suspend fun deleteDetalleReservaRestaurante(id: Int) =
+            apiDetalleReservaRestaurantes.delete(id)
 }
