@@ -7,8 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
@@ -18,6 +20,7 @@ import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
+import edu.ucne.ureserve.presentation.proyectores.PrevisualizacionProyectorScreen
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
 import edu.ucne.ureserve.presentation.restaurantes.ConfirmacionReservaRestauranteScreen
@@ -357,6 +360,27 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Tutorial" -> navController.navigate("Tutorial")
                     }
                 }
+            )
+        }
+
+        composable(
+            route = "previsualizacion/{fecha}/{horaInicio}/{horaFin}",
+            arguments = listOf(
+                navArgument("fecha") { type = NavType.StringType; nullable = true },
+                navArgument("horaInicio") { type = NavType.StringType; nullable = false },
+                navArgument("horaFin") { type = NavType.StringType; nullable = false }
+            )
+        ) {
+            val fecha = it.arguments?.getString("fecha")
+            val horaInicio = it.arguments?.getString("horaInicio")
+            val horaFin = it.arguments?.getString("horaFin")
+
+            PrevisualizacionProyectorScreen(
+                onBack = { navController.navigate("ProjectorReservation") { popUpTo("ProjectorReservation") { inclusive = false } } },
+                onFinish = { /* Acción finalizar reserva */ },
+                fecha = fecha,
+                horaInicio = horaInicio ?: "08:00 AM",
+                horaFin = horaFin ?: "09:00 AM"
             )
         }
     }
