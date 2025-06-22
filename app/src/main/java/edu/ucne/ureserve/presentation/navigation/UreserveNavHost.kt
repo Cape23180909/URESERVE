@@ -22,6 +22,7 @@ import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
 import edu.ucne.ureserve.presentation.proyectores.PrevisualizacionProyectorScreen
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
+import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
 import edu.ucne.ureserve.presentation.restaurantes.ConfirmacionReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.ConfirmacionReservaReunionesScreen
@@ -380,7 +381,21 @@ fun UreserveNavHost(navController: NavHostController) {
                 onFinish = { /* Acción finalizar reserva */ },
                 fecha = fecha,
                 horaInicio = horaInicio ?: "08:00 AM",
-                horaFin = horaFin ?: "09:00 AM"
+                horaFin = horaFin ?: "09:00 AM",
+                navController = navController
+            )
+        }
+
+        composable("ReservaExitosa") {
+            ReservaExitosaScreen(
+                navController = navController,
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard")
+                        "Proyectores" -> navController.navigate("ProjectorReservation")
+                        "Perfil" -> navController.navigate("Profile")
+                    }
+                }
             )
         }
     }
