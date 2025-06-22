@@ -12,4 +12,3 @@ data class DetalleReservaProyectorsDto(
     val proyector: ProyectoresDto = ProyectoresDto(),
     val estudiante: EstudianteDto = EstudianteDto()
 )
-
