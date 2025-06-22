@@ -130,7 +130,8 @@ fun ProjectorReservationScreen(
                     onNavigateToReservaProyector = {
                         navController.navigate("ReservaProyector")
                     },
-                    navController = navController
+                    navController = navController,
+                    selectedDate = calendar
                 )
             }
         }
@@ -350,7 +351,8 @@ private fun ReservationButton(
     onClick: () -> Unit,
     onBottomNavClick: (String) -> Unit,
     onNavigateToReservaProyector: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    selectedDate: Calendar?
 ) {
     Button(
         onClick = onClick,
@@ -367,7 +369,12 @@ private fun ReservationButton(
                 color = Color.White
             )
             Spacer(modifier = Modifier.width(8.dp))
-            IconButton(onClick = { navController.navigate("ReservaProyector")}) {
+            IconButton(
+                onClick = {
+                    val fechaSeleccionada = selectedDate?.time?.toString() ?: "Hoy"
+                    navController.navigate("ReservaProyector?fecha=$fechaSeleccionada")
+                }
+            ) {
                 Icon(
                     painter = painterResource(id = R.drawable.icon_clock),
                     contentDescription = "Reservar Ahora",
