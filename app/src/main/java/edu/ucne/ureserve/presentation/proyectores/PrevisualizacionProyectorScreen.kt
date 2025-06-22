@@ -19,6 +19,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import edu.ucne.ureserve.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,7 +31,8 @@ fun PrevisualizacionProyectorScreen(
     onFinish: () -> Unit = {},
     fecha: String? = null,
     horaInicio: String? = null,
-    horaFin: String? = null
+    horaFin: String? = null,
+    navController: NavController
 ) {
     val horariosDisponibles = listOf(
         "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
@@ -226,7 +230,9 @@ fun PrevisualizacionProyectorScreen(
                         )
                     }
                     Button(
-                        onClick = onFinish,
+                        onClick = {
+                            navController.navigate("ReservaExitosa")
+                        },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF6895D2),
@@ -264,7 +270,8 @@ fun PreviewPrevisualizacionProyectorScreen() {
             onFinish = {},
             fecha = "2023-11-15",
             horaInicio = "10:00 AM",
-            horaFin = "12:00 PM"
+            horaFin = "12:00 PM",
+            navController = rememberNavController()
         )
     }
 }
