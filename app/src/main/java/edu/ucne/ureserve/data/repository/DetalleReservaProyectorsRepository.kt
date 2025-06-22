@@ -3,10 +3,12 @@ package edu.ucne.ureserve.data.repository
 import android.util.Log
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.Resource
+import edu.ucne.ureserve.data.remote.dto.CreateDetalleReservaProyectorDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
+import retrofit2.Response
 import javax.inject.Inject
 
 class DetalleReservaProyectorsRepository @Inject constructor(
@@ -15,7 +17,7 @@ class DetalleReservaProyectorsRepository @Inject constructor(
     fun getDetalleReservaProyectors(): Flow<Resource<List<DetalleReservaProyectorsDto>>> = flow {
         try {
             emit(Resource.Loading())
-            val detalles = remoteDataSource.getDetalleReservaProyectors()
+            val detalles = remoteDataSource.getAllDetalleReservaProyector()
             emit(Resource.Success(detalles))
         } catch (e: HttpException) {
             Log.e("Retrofit", "HTTP error: ${e.message}", e)
@@ -29,8 +31,11 @@ class DetalleReservaProyectorsRepository @Inject constructor(
     suspend fun getDetalleReservaProyector(id: Int): DetalleReservaProyectorsDto =
         remoteDataSource.getDetalleReservaProyector(id)
 
-    suspend fun createDetalleReservaProyector(detalle: DetalleReservaProyectorsDto): DetalleReservaProyectorsDto =
-        remoteDataSource.createDetalleReservaProyector(detalle)
+    suspend fun createDetalleReservaProyector(
+        detalle: CreateDetalleReservaProyectorDto
+    ): Response<DetalleReservaProyectorsDto> {
+        return remoteDataSource.createDetalleReservaProyector(detalle)
+    }
 
     suspend fun updateDetalleReservaProyector(detalle: DetalleReservaProyectorsDto): DetalleReservaProyectorsDto =
         remoteDataSource.updateDetalleReservaProyector(detalle.detalleReservaProyectorId, detalle)
