@@ -3,33 +3,14 @@ package edu.ucne.ureserve.presentation.proyectores
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,57 +25,58 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
-import java.util.Calendar
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservaProyectorScreen(
     onBottomNavClick: (String) -> Unit = {},
-    navController: NavController
+    navController: NavController,
+    fecha: String? = null
 ) {
-    val calendar = Calendar.getInstance()
-    var selectedDate by remember { mutableStateOf<Calendar?>(null) }
-    var selectedTime by remember { mutableStateOf("04:30") } // Hora por defecto
+    var expandedInicio by remember { mutableStateOf(false) }
+    var expandedFin by remember { mutableStateOf(false) }
+    var horaInicio by remember { mutableStateOf("08:00 AM") }
+    var horaFin by remember { mutableStateOf("09:00 AM") }
 
-    val isSunday = selectedDate?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
-    val isDateValid = selectedDate != null && !isSunday
+    val horas = listOf(
+        "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
+        "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
+        "04:00 PM", "05:00 PM"
+    )
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // TopAppBar con borde inferior
-        Column {
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.logo_reserve),
-                            contentDescription = "Logo",
-                            modifier = Modifier.size(60.dp)
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.icon_proyector),
-                            contentDescription = "Proyector",
-                            modifier = Modifier.size(60.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF6D87A4)
-                )
+        TopAppBar(
+            title = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_reserve),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(60.dp)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.icon_proyector),
+                        contentDescription = "Proyector",
+                        modifier = Modifier.size(60.dp)
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color(0xFF6D87A4)
             )
+        )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .background(Color(0xFF023E8A))
-            )
-        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .background(Color(0xFF023E8A))
+        )
 
-        // Contenido principal
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -102,7 +84,6 @@ fun ReservaProyectorScreen(
                 .padding(14.dp)
         ) {
             item {
-                // Título "Reserve Ahora!!"
                 Text(
                     text = "Reserve Ahora!!",
                     modifier = Modifier
@@ -115,31 +96,26 @@ fun ReservaProyectorScreen(
                     )
                 )
 
-                // Estado "DISPONIBLE"
-                // Estado "DISPONIBLE" personalizado
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
                         .border(
-                            width = 2.dp, // Grosor del borde
-                            color = Color(0xFF023E8A), // Color azul del borde
-                            shape = RoundedCornerShape(12.dp) // Forma redondeada del borde
+                            width = 2.dp,
+                            color = Color(0xFF023E8A),
+                            shape = RoundedCornerShape(12.dp)
                         )
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                         .padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Círculo verde (indicador de estado)
                     Box(
                         modifier = Modifier
                             .size(26.dp)
                             .clip(CircleShape)
                             .background(Color.Green)
                     )
-
-                    // Texto DISPONIBLE centrado
                     Text(
                         text = "DISPONIBLE",
                         style = MaterialTheme.typography.titleLarge.copy(
@@ -148,8 +124,6 @@ fun ReservaProyectorScreen(
                             textAlign = TextAlign.Center
                         )
                     )
-
-                    // Icono de proyector en la derecha
                     Image(
                         painter = painterResource(id = R.drawable.icon_proyector),
                         contentDescription = "Proyector",
@@ -157,19 +131,23 @@ fun ReservaProyectorScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.padding(60.dp))
+                if (fecha != null) {
+                    Text(
+                        text = "Fecha Seleccionada: $fecha",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
 
-                // Selector de horario
                 Text(
                     text = "Seleccione el horario:",
                     color = Color.White,
                     fontSize = 18.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Fila de selección de hora
+                // Selector de hora de inicio
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -181,16 +159,76 @@ fun ReservaProyectorScreen(
                         modifier = Modifier.width(80.dp)
                     )
 
-                    Text(
-                        text = "Ahora",
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
                         color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
+                        modifier = Modifier.width(100.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .clickable { expandedInicio = true }
+                                .padding(4.dp)
+                        ) {
+                            Text(
+                                text = horaInicio,
+                                color = Color.Black,
+                                fontSize = 18.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
 
-                    Spacer(modifier = Modifier.width(32.dp))
+                if (expandedInicio) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
+                            .padding(top = 8.dp)
+                    ) {
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            items(horas.size) { index ->
+                                val time = horas[index]
+                                Button(
+                                    onClick = {
+                                        horaInicio = time
+                                        expandedInicio = false
+                                        // Asegurar que horaFin sea después de horaInicio
+                                        if (index >= horas.indexOf(horaFin)) {
+                                            horaFin = horas.getOrElse(index + 1) { horas.last() }
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .width(100.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (horaInicio == time) Color(0xFF6895D2) else Color.White,
+                                        contentColor = if (horaInicio == time) Color.White else Color.Black
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        text = time,
+                                        fontSize = 16.sp,
+                                        modifier = Modifier.padding(8.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Selector de hora de fin
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = "Hasta:",
                         color = Color.White,
@@ -203,19 +241,65 @@ fun ReservaProyectorScreen(
                         color = Color.White,
                         modifier = Modifier.width(100.dp)
                     ) {
-//                        Text(
-//                            text = selectedTime.value,
-//                            color = Color.Black,
-//                            fontSize = 18.sp,
-//                            modifier = Modifier.padding(8.dp),
-//                            textAlign = TextAlign.Center
-//                        )
+                        Box(
+                            modifier = Modifier
+                                .clickable { expandedFin = true }
+                                .padding(4.dp)
+                        ) {
+                            Text(
+                                text = horaFin,
+                                color = Color.Black,
+                                fontSize = 18.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+
+                if (expandedFin) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
+                            .padding(top = 8.dp)
+                    ) {
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            items(horas.size) { index ->
+                                val time = horas[index]
+                                // Solo permitir seleccionar horas después de la hora de inicio
+                                if (index > horas.indexOf(horaInicio)) {
+                                    Button(
+                                        onClick = {
+                                            horaFin = time
+                                            expandedFin = false
+                                        },
+                                        modifier = Modifier
+                                            .padding(end = 8.dp)
+                                            .width(100.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (horaFin == time) Color(0xFF6895D2) else Color.White,
+                                            contentColor = if (horaFin == time) Color.White else Color.Black
+                                        ),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text(
+                                            text = time,
+                                            fontSize = 16.sp,
+                                            modifier = Modifier.padding(8.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(92.dp))
 
-                // Botones de acción
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -239,7 +323,15 @@ fun ReservaProyectorScreen(
                     }
 
                     Button(
-                        onClick = { /* Acción confirmar */ },
+                        onClick = {
+                            // Navegar a la pantalla de previsualización con los datos
+                            if (horaInicio < horaFin) {
+                                navController.navigate("previsualizacion/${fecha}/${horaInicio}/${horaFin}")
+                            } else {
+                                // Opcional: Mostrar mensaje de error si la hora de inicio es mayor
+                                println("La hora de inicio debe ser menor que la hora de fin")
+                            }
+                        },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF6895D2),
@@ -254,6 +346,7 @@ fun ReservaProyectorScreen(
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(70.dp))
 
                 Row(
@@ -279,6 +372,10 @@ fun ReservaProyectorScreen(
 @Composable
 fun PreviewReservaProyectorScreen() {
     MaterialTheme {
-        ReservaProyectorScreen(onBottomNavClick = {}, navController = rememberNavController())
+        ReservaProyectorScreen(
+            onBottomNavClick = {},
+            navController = rememberNavController(),
+            fecha = "2023-11-15"
+        )
     }
 }
