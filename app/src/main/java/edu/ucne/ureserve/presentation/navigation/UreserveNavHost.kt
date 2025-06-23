@@ -35,6 +35,7 @@ import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaVipScreen
 import edu.ucne.ureserve.presentation.salareuniones.SalonReunionesReservationScreen
 import edu.ucne.ureserve.presentation.salavip.SalaVipReservationScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaExitosaScreen
+import edu.ucne.ureserve.presentation.restaurantes.TarjetaCreditoSalaVipScreen
 
 
 @Composable
@@ -144,6 +145,20 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
 
+
+        composable(
+            route = "TarjetaCreditoSalaVip?fecha={fecha}",
+            arguments = listOf(
+                navArgument("fecha") {
+                    type = NavType.StringType
+                    defaultValue = "Fecha no especificada"
+                    nullable = true
+                }
+            )
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: "Fecha no especificada"
+            TarjetaCreditoSalaVipScreen(navController = navController)
+        }
         composable("RestauranteReservation") {
             ReservaRestauranteScreen(
                 onOptionClick = { option ->
