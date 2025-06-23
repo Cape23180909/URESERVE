@@ -23,6 +23,7 @@ import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoSalaVipScreen
+import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteReservationcalendarioScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteScreen
@@ -403,11 +404,11 @@ fun UreserveNavHost(navController: NavHostController) {
                     nullable = true
                 }
             )
-        ) {  backStackEntry ->
+        ) { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: "Fecha no especificada"
             PagoSalaVipScreen(
                 fecha = fecha,
-                navController = navController // ✅ Se pasa aquí
+                navController = navController
             )
         }
 
@@ -425,12 +426,46 @@ fun UreserveNavHost(navController: NavHostController) {
                 fecha = fecha,
                 onCancelarClick = { navController.popBackStack() },
                 onConfirmarClick = {
-                    navController.navigate("ReservaExitosa")
+                    navController.navigate("PagoSalaVip?fecha=$fecha")
                 }
             )
         }
 
-
+//        composable(
+//            route = "PagoSalaVip?fecha={fecha}",
+//            arguments = listOf(
+//                navArgument("fecha") {
+//                    type = NavType.StringType
+//                    defaultValue = "Fecha no especificada"
+//                    nullable = true
+//                }
+//            )
+//        ) {  backStackEntry ->
+//            val fecha = backStackEntry.arguments?.getString("fecha") ?: "Fecha no especificada"
+//            PagoSalaVipScreen(
+//                fecha = fecha,
+//                navController = navController // ✅ Se pasa aquí
+//            )
+//        }
+//
+//        composable(
+//            route = "RegistroReserva?fecha={fecha}",
+//            arguments = listOf(
+//                navArgument("fecha") {
+//                    type = NavType.StringType
+//                    defaultValue = "Fecha no especificada"
+//                }
+//            )
+//        ) { backStackEntry ->
+//            val fecha = backStackEntry.arguments?.getString("fecha") ?: "Fecha no especificada"
+//            RegistroReservaScreen(
+//                fecha = fecha,
+//                onCancelarClick = { navController.popBackStack() },
+//                onConfirmarClick = {
+//                    navController.navigate("ReservaExitosa")
+//                }
+//            )
+//        }
 
 
         composable("ReservaExitosa") {
@@ -448,11 +483,3 @@ fun UreserveNavHost(navController: NavHostController) {
     }
 }
 
-@Composable
-fun RegistroReservaScreen(
-    fecha: String,
-    onCancelarClick: () -> Boolean,
-    onConfirmarClick: () -> Unit
-) {
-    TODO("Not yet implemented")
-}
