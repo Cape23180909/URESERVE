@@ -205,10 +205,11 @@ fun PagoSalaVipScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Botón completar
         Button(
             onClick = {
-                // Aquí podrías hacer una acción final, como enviar a una pantalla de confirmación
+                val numeroReserva = (1000..9999).random().toString()
+                DatosPersonalesStore.lista.clear()
+                navController.navigate("ReservaExitosa?numeroReserva=$numeroReserva")
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -220,6 +221,9 @@ fun PagoSalaVipScreen(
         ) {
             Text(text = "COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
+
+
+
     }
 }
 
