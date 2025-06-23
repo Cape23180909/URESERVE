@@ -6,7 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +24,11 @@ fun PagoSalaVipScreen(
     fecha: String,
     navController: NavController
 ) {
+    // OPCIONAL: Limpiar lista cada vez que entras
+    // LaunchedEffect(Unit) {
+    //     DatosPersonalesStore.lista.clear()
+    // }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -80,15 +85,15 @@ fun PagoSalaVipScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 MetodoPagoItem("Efectivo", R.drawable.dinero) {
-                    navController.navigate("RegistroReserva?fecha=$fecha")
+                    navController.navigate("RegistroReserva?fecha=${fecha}")
                 }
 
                 MetodoPagoItem("Tarjeta de crédito", R.drawable.credito) {
-                    navController.navigate("RegistroReserva?fecha=$fecha")
+                    navController.navigate("RegistroReserva?fecha=${fecha}")
                 }
 
                 MetodoPagoItem("Transferencia bancaria", R.drawable.trasnferencia) {
-                    navController.navigate("RegistroReserva?fecha=$fecha")
+                    navController.navigate("RegistroReserva?fecha=${fecha}")
                 }
             }
         }
@@ -138,11 +143,73 @@ fun PagoSalaVipScreen(
             }
         }
 
+        /// Mostrar lista de datos personales guardados
+        if (DatosPersonalesStore.lista.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "DATOS PERSONALES REGISTRADOS",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            DatosPersonalesStore.lista.forEach { persona ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Nombre: ${persona.nombres} ${persona.apellidos}",
+                            fontSize = 14.sp,
+                            color = Color(0xFF023E8A),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Correo: ${persona.correo}",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
+                        )
+                        Text(
+                            text = "Celular: ${persona.celular}",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
+                        )
+                        Text(
+                            text = "Matrícula: ${persona.matricula}",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
+                        )
+                        Text(
+                            text = "Cédula: ${persona.cedula}",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
+                        )
+                        Text(
+                            text = "Dirección: ${persona.direccion}",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
+                        )
+                    }
+                }
+            }
+        }
+
+
         Spacer(modifier = Modifier.height(24.dp))
 
         // Botón completar
         Button(
-            onClick = { /* Acción al completar reserva */ },
+            onClick = {
+                // Aquí podrías hacer una acción final, como enviar a una pantalla de confirmación
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
@@ -181,4 +248,18 @@ fun MetodoPagoItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
 fun PreviewPagoSalaVipScreen() {
     val navController = rememberNavController()
     PagoSalaVipScreen(fecha = "15/06/2025", navController = navController)
+}
+
+data class DatosPersonales(
+    val correo: String,
+    val nombres: String,
+    val apellidos: String,
+    val celular: String,
+    val matricula: String,
+    val cedula: String,
+    val direccion: String
+)
+
+object DatosPersonalesStore {
+    val lista = mutableStateListOf<DatosPersonales>()
 }
