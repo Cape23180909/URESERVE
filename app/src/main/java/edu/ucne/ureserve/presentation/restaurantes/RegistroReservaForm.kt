@@ -92,6 +92,14 @@ fun RegistroReservaForm(
     var cedula by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
 
+    // Lista de registros confirmados
+    val registrosConfirmados = remember { mutableStateListOf<String>() }
+
+    // Habilita botón si todos están llenos
+    val formularioCompleto = listOf(
+        correo, nombres, apellidos, celular, matricula, cedula, direccion
+    ).all { it.isNotBlank() }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -174,13 +182,30 @@ fun RegistroReservaForm(
 
             Button(
                 onClick = {
+                    // Guardar los datos en la lista global
+                    DatosPersonalesStore.lista.add(
+                        DatosPersonales(
+                            correo = correo,
+                            nombres = nombres,
+                            apellidos = apellidos,
+                            celular = celular,
+                            matricula = matricula,
+                            cedula = cedula,
+                            direccion = direccion
+                        )
+                    )
                     onConfirmarClick(correo, nombres, apellidos, celular, matricula, cedula, direccion)
                 },
+                enabled = formularioCompleto,
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0077B6))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (formularioCompleto) Color(0xFF388E3C) else Color.Gray
+                )
             ) {
-                Text("CONFIRMAR")
+                Text("CONFIRMAR", color = Color.White)
             }
+
+
         }
     }
 }
