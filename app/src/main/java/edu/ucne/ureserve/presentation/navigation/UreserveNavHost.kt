@@ -34,6 +34,8 @@ import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaScreen
 import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaVipScreen
 import edu.ucne.ureserve.presentation.salareuniones.SalonReunionesReservationScreen
 import edu.ucne.ureserve.presentation.salavip.SalaVipReservationScreen
+import edu.ucne.ureserve.presentation.restaurantes.ReservaExitosaScreen
+
 
 @Composable
 fun UreserveNavHost(navController: NavHostController) {
@@ -431,55 +433,19 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
 
-//        composable(
-//            route = "PagoSalaVip?fecha={fecha}",
-//            arguments = listOf(
-//                navArgument("fecha") {
-//                    type = NavType.StringType
-//                    defaultValue = "Fecha no especificada"
-//                    nullable = true
-//                }
-//            )
-//        ) {  backStackEntry ->
-//            val fecha = backStackEntry.arguments?.getString("fecha") ?: "Fecha no especificada"
-//            PagoSalaVipScreen(
-//                fecha = fecha,
-//                navController = navController // ✅ Se pasa aquí
-//            )
-//        }
-//
-//        composable(
-//            route = "RegistroReserva?fecha={fecha}",
-//            arguments = listOf(
-//                navArgument("fecha") {
-//                    type = NavType.StringType
-//                    defaultValue = "Fecha no especificada"
-//                }
-//            )
-//        ) { backStackEntry ->
-//            val fecha = backStackEntry.arguments?.getString("fecha") ?: "Fecha no especificada"
-//            RegistroReservaScreen(
-//                fecha = fecha,
-//                onCancelarClick = { navController.popBackStack() },
-//                onConfirmarClick = {
-//                    navController.navigate("ReservaExitosa")
-//                }
-//            )
-//        }
-
-
-        composable("ReservaExitosa") {
-            ReservaExitosaScreen(
-                navController = navController,
-                onBottomNavClick = { destination ->
-                    when (destination) {
-                        "Inicio" -> navController.navigate("Dashboard")
-                        "Proyectores" -> navController.navigate("ProjectorReservation")
-                        "Perfil" -> navController.navigate("Profile")
-                    }
+        composable(
+            route = "ReservaExitosa?numeroReserva={numeroReserva}",
+            arguments = listOf(
+                navArgument("numeroReserva") {
+                    type = NavType.StringType
+                    defaultValue = "0000"
                 }
             )
+        ) { backStackEntry ->
+            val numeroReserva = backStackEntry.arguments?.getString("numeroReserva") ?: "0000"
+            ReservaExitosaScreen(numeroReserva = numeroReserva, navController = navController)
         }
+
     }
 }
 
