@@ -17,11 +17,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalonReunionesScreen(
+    navController: NavHostController,
     onCancelClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onBottomNavClick: (String) -> Unit = {},
@@ -175,5 +178,10 @@ fun SalonReunionesScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSalonReunionesScreen() {
-    SalonReunionesScreen()
+    // Necesitarás un NavController mock para la vista previa
+    val navController = rememberNavController()
+    SalonReunionesScreen(
+        navController = navController,
+        onBottomNavClick = {}
+    )
 }
