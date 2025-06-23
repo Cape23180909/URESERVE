@@ -103,8 +103,10 @@ fun RestauranteReservationcalendarioScreen(
                     },
                     onBottomNavClick = onBottomNavClick,
                     onNavigateToReservaRestaurante = {
-                        val fechaSeleccionada = selectedDate?.time?.toString() ?: "Hoy"
-                        navController?.navigate("ConfirmacionReservaRestaurante?fecha=$fechaSeleccionada")
+                        val fechaFormateada = "${selectedDate!!.get(Calendar.DAY_OF_MONTH)}/" +
+                                "${selectedDate!!.get(Calendar.MONTH) + 1}/" +
+                                "${selectedDate!!.get(Calendar.YEAR)}"
+                        navController?.navigate("ConfirmacionReservaRestaurante?fecha=$fechaFormateada")
                     },
                     navController = navController,
                     selectedDate = selectedDate ?: calendar
@@ -330,24 +332,49 @@ private fun ReservationButtonRestaurante(
     navController: NavController?,
     selectedDate: Calendar
 ) {
-    Spacer(modifier = Modifier.height(70.dp))
-
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF2E5C94))
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceAround
+            .padding(horizontal = 16.dp)
     ) {
-        BottomNavItem(
-            iconRes = R.drawable.icon_inicio,
-            label = "Inicio",
-            isSelected = true,
-            onClick = { onBottomNavClick("Inicio") }
-        )
+        if (isEnabled) {
+            Button(
+                onClick = {
+                    val fechaFormateada = "${selectedDate.get(Calendar.DAY_OF_MONTH)}/" +
+                            "${selectedDate.get(Calendar.MONTH) + 1}/" +
+                            "${selectedDate.get(Calendar.YEAR)}"
+                    navController?.navigate("ConfirmacionReservaRestaurante?fecha=$fechaFormateada")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF0077B6),
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Reservar ahora", fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(70.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF2E5C94))
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            BottomNavItem(
+                iconRes = R.drawable.icon_inicio,
+                label = "Inicio",
+                isSelected = true,
+                onClick = { onBottomNavClick("Inicio") }
+            )
+        }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
