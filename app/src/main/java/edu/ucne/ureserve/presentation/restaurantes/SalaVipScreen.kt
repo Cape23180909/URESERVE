@@ -16,11 +16,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalaVipScreen(
+    navController: NavHostController,
     onCancelClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onBottomNavClick: (String) -> Unit = {},
@@ -178,5 +181,10 @@ fun SalaVipScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSalaVipScreen() {
-    SalaVipScreen()
+    // Necesitarás un NavController mock para la vista previa
+    val navController = rememberNavController()
+    SalaVipScreen(
+        navController = navController,
+        onBottomNavClick = {}
+    )
 }
