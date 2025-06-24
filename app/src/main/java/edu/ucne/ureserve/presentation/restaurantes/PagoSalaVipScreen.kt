@@ -82,8 +82,9 @@ fun PagoSalaVipScreen(
                     navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
                 }
                 MetodoPagoSalaVipItem("Tarjeta de crédito", R.drawable.credito) {
-                    // Opcional: navController.navigate("TarjetaCreditoSalaVip?fecha=$fecha")
+                    navController.navigate("TarjetaCreditoSalaVip?fecha=$fecha")
                 }
+
                 MetodoPagoSalaVipItem("Transferencia bancaria", R.drawable.trasnferencia) {
                     navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
                 }
