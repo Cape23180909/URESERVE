@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 
+
 @Composable
 fun ReservaSalaVipExitosaScreen(
     numeroReserva: String,
