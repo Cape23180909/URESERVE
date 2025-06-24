@@ -27,9 +27,9 @@ import edu.ucne.ureserve.presentation.restaurantes.PagoSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaSalonScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaScreen
+import edu.ucne.ureserve.presentation.restaurantes.ReservaExitosaSalonScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteExitosaScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteScreen
-import edu.ucne.ureserve.presentation.restaurantes.ReservaSalonExitosaScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteReservationcalendarioScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalaVipScreen
@@ -531,19 +531,6 @@ fun UreserveNavHost(navController: NavHostController) {
 
 
         composable(
-            route = "ReservaExitosa?numeroReserva={numeroReserva}",
-            arguments = listOf(
-                navArgument("numeroReserva") {
-                    type = NavType.StringType
-                    defaultValue = "0000"
-                }
-            )
-        ) { backStackEntry ->
-            val numeroReserva = backStackEntry.arguments?.getString("numeroReserva") ?: "0000"
-            ReservaSalonExitosaScreen(numeroReserva = numeroReserva, navController = navController)
-        }
-
-        composable(
             route = "ReservaRestauranteExitosa?numeroReserva={numeroReserva}",
             arguments = listOf(
                 navArgument("numeroReserva") {
@@ -555,6 +542,20 @@ fun UreserveNavHost(navController: NavHostController) {
             val numeroReserva = backStackEntry.arguments?.getString("numeroReserva") ?: "0000"
             ReservaRestauranteExitosaScreen(numeroReserva = numeroReserva, navController = navController)
         }
+
+        composable(
+            route = "ReservaExitosaSalon?numeroReserva={numeroReserva}",
+            arguments = listOf(
+                navArgument("numeroReserva") {
+                    type = NavType.StringType
+                    defaultValue = "0000"
+                }
+            )
+        ) { backStackEntry ->
+            val numeroReserva = backStackEntry.arguments?.getString("numeroReserva") ?: "0000"
+            ReservaExitosaSalonScreen(numeroReserva = numeroReserva, navController = navController)
+        }
+
         composable(
             route = "ReservaSalaVipExitosa?numeroReserva={numeroReserva}",
             arguments = listOf(
@@ -567,7 +568,6 @@ fun UreserveNavHost(navController: NavHostController) {
             val numeroReserva = backStackEntry.arguments?.getString("numeroReserva") ?: "0000"
             ReservaSalaVipExitosaScreen(numeroReserva = numeroReserva, navController = navController)
         }
-
 
 
     }
