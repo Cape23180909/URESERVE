@@ -34,6 +34,7 @@ import edu.ucne.ureserve.presentation.restaurantes.RestauranteReservationcalenda
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalonReunionesScreen
+import edu.ucne.ureserve.presentation.restaurantes.TarjetaCreditoRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.TarjetaCreditoSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaScreen
@@ -42,6 +43,7 @@ import edu.ucne.ureserve.presentation.salareuniones.SalonReunionesReservationScr
 import edu.ucne.ureserve.presentation.salavip.ReservaSalaVipExitosaScreen
 import edu.ucne.ureserve.presentation.salavip.SalaVipReservationScreen
 import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
+import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
 
 @Composable
 fun UreserveNavHost(navController: NavHostController) {
@@ -150,20 +152,6 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
 
-
-        composable(
-            route = "TarjetaCreditoSalaVip?fecha={fecha}",
-            arguments = listOf(
-                navArgument("fecha") {
-                    type = NavType.StringType
-                    defaultValue = "Fecha no especificada"
-                    nullable = true
-                }
-            )
-        ) { backStackEntry ->
-            val fecha = backStackEntry.arguments?.getString("fecha") ?: "Fecha no especificada"
-            TarjetaCreditoSalaVipScreen(navController = navController)
-        }
         composable("RestauranteReservation") {
             ReservaRestauranteScreen(
                 onOptionClick = { option ->
@@ -567,6 +555,47 @@ fun UreserveNavHost(navController: NavHostController) {
         ) { backStackEntry ->
             val numeroReserva = backStackEntry.arguments?.getString("numeroReserva") ?: "0000"
             ReservaSalaVipExitosaScreen(numeroReserva = numeroReserva, navController = navController)
+        }
+
+        composable(
+            route = "TarjetaCreditoSalaVip?fecha={fecha}",
+            arguments = listOf(
+                navArgument("fecha") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            TarjetaCreditoSalaVipScreen(
+                fecha = fecha,
+                navController = navController
+            )
+        }
+
+        composable(
+            "TarjetaCreditoRestaurante?fecha={fecha}",
+            arguments = listOf(navArgument("fecha") {
+                type = NavType.StringType
+                defaultValue = ""
+            })
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            TarjetaCreditoRestauranteScreen(fecha = fecha, navController = navController)
+        }
+
+        composable(
+            route = "TarjetaCreditoSalon?fecha={fecha}",
+            arguments = listOf(navArgument("fecha") {
+                type = NavType.StringType
+                defaultValue = "Fecha no especificada"
+            })
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: "Fecha no especificada"
+            TarjetaCreditoSalonScreen(
+                fecha = fecha,
+                navController = navController
+            )
         }
 
 
