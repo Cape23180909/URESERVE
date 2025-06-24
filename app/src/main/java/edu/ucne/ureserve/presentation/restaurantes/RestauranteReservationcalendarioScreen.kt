@@ -343,7 +343,7 @@ private fun ReservationButtonRestaurante(
                     val fechaFormateada = "${selectedDate.get(Calendar.DAY_OF_MONTH)}/" +
                             "${selectedDate.get(Calendar.MONTH) + 1}/" +
                             "${selectedDate.get(Calendar.YEAR)}"
-                    navController?.navigate("ConfirmacionReservaRestaurante?fecha=$fechaFormateada")
+                    navController?.navigate("PagoRestaurante?fecha=$fechaFormateada")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
