@@ -151,13 +151,8 @@ fun PagoRestauranteScreen(
 
         Button(
             onClick = {
-                // Limpiar datos personales del restaurante
                 DatosPersonalesRestauranteStore.lista.clear()
-
-                // Generar número de reserva aleatorio
-                val numeroReserva = (1000..9999).random()
-
-                // Navegar a la pantalla de éxito de reserva del restaurante
+                val numeroReserva = (1000..9999).random().toString()
                 navController.navigate("ReservaRestauranteExitosa?numeroReserva=$numeroReserva")
             },
             modifier = Modifier
@@ -170,6 +165,7 @@ fun PagoRestauranteScreen(
         ) {
             Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
+
 
     }
 }
