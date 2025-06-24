@@ -182,6 +182,7 @@ fun PagoSalonScreen(
         ) {
             Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
+
     }
 }
 
