@@ -151,8 +151,7 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Inicio" -> navController.navigate("Dashboard")
                     }
                 },
-                navController = navController,
-                fecha = String()
+                navController = navController
             )
         }
 
