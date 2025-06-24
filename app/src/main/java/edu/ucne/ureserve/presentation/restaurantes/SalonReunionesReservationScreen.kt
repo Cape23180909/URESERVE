@@ -338,6 +338,7 @@ private fun ReservationButtonReuniones(
                             "${selectedDate.get(Calendar.MONTH) + 1}/" +
                             "${selectedDate.get(Calendar.YEAR)}"
                     navController?.navigate("PagoSalon?fecha=$fechaFormateada")
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
