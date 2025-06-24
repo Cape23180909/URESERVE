@@ -18,6 +18,7 @@ class ReservaProyectorViewModel @Inject constructor(
         onResult: (Boolean) -> Unit
     ) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null)
             try {
                 val response = repository.createDetalleReservaProyector(reservaDto)
                 onResult(response.isSuccessful)
