@@ -16,7 +16,7 @@ import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 
 @Composable
-fun ReservaSalonExitosaScreen(
+fun ReservaExitosaSalonScreen(
     numeroReserva: String,
     navController: NavController
 ) {
