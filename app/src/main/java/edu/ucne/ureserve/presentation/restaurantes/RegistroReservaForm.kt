@@ -1,11 +1,30 @@
+// Archivo: RegistroReservaScreen.kt
 package edu.ucne.ureserve.presentation.restaurantes
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,7 +46,6 @@ fun RegistroReservaScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Header Row con logo, título y sala
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -53,7 +71,6 @@ fun RegistroReservaScreen(
             )
         }
 
-        // Título formulario con fecha
         Text(
             text = "Formulario para $fecha",
             style = MaterialTheme.typography.headlineSmall,
@@ -63,10 +80,7 @@ fun RegistroReservaScreen(
 
         RegistroReservaForm(
             onCancelarClick = onCancelarClick,
-            onConfirmarClick = { correo, nombres, apellidos, celular, matricula, cedula, direccion ->
-                // Aquí puedes validar, guardar o enviar datos si necesitas
-                onConfirmarClick()
-            }
+            onConfirmarClick = onConfirmarClick
         )
     }
 }
@@ -74,15 +88,7 @@ fun RegistroReservaScreen(
 @Composable
 fun RegistroReservaForm(
     onCancelarClick: () -> Unit,
-    onConfirmarClick: (
-        correo: String,
-        nombres: String,
-        apellidos: String,
-        celular: String,
-        matricula: String,
-        cedula: String,
-        direccion: String
-    ) -> Unit
+    onConfirmarClick: () -> Unit
 ) {
     var correo by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
@@ -92,10 +98,6 @@ fun RegistroReservaForm(
     var cedula by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
 
-    // Lista de registros confirmados
-    val registrosConfirmados = remember { mutableStateListOf<String>() }
-
-    // Habilita botón si todos están llenos
     val formularioCompleto = listOf(
         correo, nombres, apellidos, celular, matricula, cedula, direccion
     ).all { it.isNotBlank() }
@@ -122,42 +124,36 @@ fun RegistroReservaForm(
             label = { Text("Correo electrónico *") },
             modifier = Modifier.fillMaxWidth()
         )
-
         OutlinedTextField(
             value = nombres,
             onValueChange = { nombres = it },
             label = { Text("Nombres *") },
             modifier = Modifier.fillMaxWidth()
         )
-
         OutlinedTextField(
             value = apellidos,
             onValueChange = { apellidos = it },
             label = { Text("Apellidos *") },
             modifier = Modifier.fillMaxWidth()
         )
-
         OutlinedTextField(
             value = celular,
             onValueChange = { celular = it },
             label = { Text("Número de celular *") },
             modifier = Modifier.fillMaxWidth()
         )
-
         OutlinedTextField(
             value = matricula,
             onValueChange = { matricula = it },
             label = { Text("Matrícula *") },
             modifier = Modifier.fillMaxWidth()
         )
-
         OutlinedTextField(
             value = cedula,
             onValueChange = { cedula = it },
             label = { Text("Cédula *") },
             modifier = Modifier.fillMaxWidth()
         )
-
         OutlinedTextField(
             value = direccion,
             onValueChange = { direccion = it },
@@ -182,7 +178,6 @@ fun RegistroReservaForm(
 
             Button(
                 onClick = {
-                    // Guardar los datos en la lista global
                     DatosPersonalesStore.lista.add(
                         DatosPersonales(
                             correo = correo,
@@ -194,7 +189,7 @@ fun RegistroReservaForm(
                             direccion = direccion
                         )
                     )
-                    onConfirmarClick(correo, nombres, apellidos, celular, matricula, cedula, direccion)
+                    onConfirmarClick()
                 },
                 enabled = formularioCompleto,
                 modifier = Modifier.weight(1f),
@@ -204,8 +199,6 @@ fun RegistroReservaForm(
             ) {
                 Text("CONFIRMAR", color = Color.White)
             }
-
-
         }
     }
 }
