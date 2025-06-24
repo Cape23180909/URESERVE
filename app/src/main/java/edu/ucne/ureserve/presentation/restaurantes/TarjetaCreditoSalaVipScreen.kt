@@ -23,6 +23,7 @@ import java.util.*
 
 @Composable
 fun TarjetaCreditoSalaVipScreen(
+    fecha: String,
     navController: NavController
 ) {
     var numeroTarjeta by remember { mutableStateOf("") }
@@ -33,7 +34,7 @@ fun TarjetaCreditoSalaVipScreen(
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
-    val datePickerDialog = remember(context) {
+    val datePickerDialog = remember {
         DatePickerDialog(
             context,
             { _, selectedYear, selectedMonth, _ ->
@@ -53,29 +54,26 @@ fun TarjetaCreditoSalaVipScreen(
         object : VisualTransformation {
             override fun filter(text: AnnotatedString): TransformedText {
                 val numericText = text.text.filter { it.isDigit() }
-                val trimmed = if (numericText.length >= 4) numericText.substring(0..3) else numericText
-                var out = ""
-                for (i in trimmed.indices) {
-                    out += trimmed[i]
-                    if (i == 1 && trimmed.length > 2) out += "/"
+                val trimmed = numericText.take(4)
+                val out = buildString {
+                    for (i in trimmed.indices) {
+                        append(trimmed[i])
+                        if (i == 1 && trimmed.length > 2) append("/")
+                    }
                 }
                 return TransformedText(
                     AnnotatedString(out),
                     object : OffsetMapping {
-                        override fun originalToTransformed(offset: Int): Int {
-                            return when {
-                                offset <= 1 -> offset
-                                offset <= 3 -> offset + 1
-                                else -> 5
-                            }
+                        override fun originalToTransformed(offset: Int) = when {
+                            offset <= 1 -> offset
+                            offset <= 3 -> offset + 1
+                            else -> 5
                         }
 
-                        override fun transformedToOriginal(offset: Int): Int {
-                            return when {
-                                offset <= 2 -> offset
-                                offset <= 5 -> offset - 1
-                                else -> 4
-                            }
+                        override fun transformedToOriginal(offset: Int) = when {
+                            offset <= 2 -> offset
+                            offset <= 5 -> offset - 1
+                            else -> 4
                         }
                     }
                 )
@@ -83,7 +81,6 @@ fun TarjetaCreditoSalaVipScreen(
         }
     }
 
-    // ✅ Validaciones corregidas
     val isCardNumberValid = numeroTarjeta.length == 16
     val isNameValid = nombreTitular.isNotBlank()
     val isFechaValid = fechaVencimiento.length == 4 && fechaVencimiento.take(2).toIntOrNull() in 1..12
@@ -95,48 +92,30 @@ fun TarjetaCreditoSalaVipScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "SALA VIP",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color(0xFF023E8A),
-                fontWeight = FontWeight.Bold
-            )
-        }
+        Text(
+            text = "SALA VIP",
+            style = MaterialTheme.typography.headlineMedium,
+            color = Color(0xFF023E8A),
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "Datos de pago",
-            style = MaterialTheme.typography.titleLarge,
-            color = Color(0xFF023E8A),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Text("Datos de pago", style = MaterialTheme.typography.titleLarge, color = Color(0xFF023E8A))
+        Text("Tarjeta de crédito", style = MaterialTheme.typography.titleMedium, color = Color.Gray)
 
-        Text(
-            text = "Tarjeta de crédito",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Número de tarjeta con color verde si tiene 14+ dígitos
         OutlinedTextField(
             value = numeroTarjeta,
-            onValueChange = { input ->
-                val digitsOnly = input.filter { it.isDigit() }
-                numeroTarjeta = if (digitsOnly.length <= 16) digitsOnly else digitsOnly.take(16)
+            onValueChange = {
+                val digitsOnly = it.filter { ch -> ch.isDigit() }
+                numeroTarjeta = digitsOnly.take(16)
             },
             label = { Text("Número de Tarjeta") },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Next
-            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             visualTransformation = CreditCardFilter,
             textStyle = TextStyle(
                 color = if (numeroTarjeta.length >= 14) Color(0xFF2E7D32) else Color.Unspecified
@@ -167,9 +146,7 @@ fun TarjetaCreditoSalaVipScreen(
                 value = fechaVencimiento,
                 onValueChange = {
                     val filtered = it.filter { c -> c.isDigit() }
-                    if (filtered.length <= 4) {
-                        fechaVencimiento = filtered
-                    }
+                    fechaVencimiento = filtered.take(4)
                 },
                 label = { Text("Fecha de vencimiento") },
                 placeholder = { Text("MM/AA") },
@@ -178,10 +155,7 @@ fun TarjetaCreditoSalaVipScreen(
                 visualTransformation = dateFilter,
                 trailingIcon = {
                     IconButton(onClick = { datePickerDialog.show() }) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = "Seleccionar fecha"
-                        )
+                        Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
                     }
                 }
             )
@@ -190,9 +164,7 @@ fun TarjetaCreditoSalaVipScreen(
                 value = codigoSeguridad,
                 onValueChange = {
                     val filtered = it.filter { ch -> ch.isDigit() }
-                    if (filtered.length <= 4) {
-                        codigoSeguridad = filtered
-                    }
+                    codigoSeguridad = filtered.take(4)
                 },
                 label = { Text("Código de seguridad") },
                 modifier = Modifier.weight(1f),
@@ -227,7 +199,9 @@ fun TarjetaCreditoSalaVipScreen(
             Button(
                 onClick = {
                     if (isFormValid) {
-                        navController.navigate("ReservaExitosa/${generateReservationNumber()}")
+                        val numeroReserva = (1000..9999).random().toString()
+                        DatosPersonalesStore.lista.clear()
+                        navController.navigate("ReservaSalaVipExitosa?numeroReserva=$numeroReserva")
                     }
                 },
                 enabled = isFormValid,
@@ -243,38 +217,31 @@ fun TarjetaCreditoSalaVipScreen(
     }
 }
 
-private fun generateReservationNumber(): String {
-    return "EB" + (10000000..99999999).random().toString()
-}
-
 val CreditCardFilter = VisualTransformation { text ->
-    val trimmed = if (text.text.length >= 16) text.text.substring(0..15) else text.text
-    var out = ""
-    for (i in trimmed.indices) {
-        out += trimmed[i]
-        if (i == 3 || i == 7 || i == 11) out += " "
+    val trimmed = text.text.take(16)
+    val spaced = buildString {
+        for (i in trimmed.indices) {
+            append(trimmed[i])
+            if (i == 3 || i == 7 || i == 11) append(" ")
+        }
     }
     TransformedText(
-        text = AnnotatedString(out),
-        offsetMapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int {
-                return when (offset) {
-                    in 0..3 -> offset
-                    in 4..7 -> offset + 1
-                    in 8..11 -> offset + 2
-                    in 12..15 -> offset + 3
-                    else -> offset + 4
-                }
+        AnnotatedString(spaced),
+        object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int = when (offset) {
+                in 0..3 -> offset
+                in 4..7 -> offset + 1
+                in 8..11 -> offset + 2
+                in 12..15 -> offset + 3
+                else -> offset + 4
             }
 
-            override fun transformedToOriginal(offset: Int): Int {
-                return when (offset) {
-                    in 0..4 -> offset
-                    in 5..9 -> offset - 1
-                    in 10..14 -> offset - 2
-                    in 15..19 -> offset - 3
-                    else -> offset - 4
-                }
+            override fun transformedToOriginal(offset: Int): Int = when (offset) {
+                in 0..4 -> offset
+                in 5..9 -> offset - 1
+                in 10..14 -> offset - 2
+                in 15..19 -> offset - 3
+                else -> offset - 4
             }
         }
     )
@@ -285,6 +252,9 @@ val CreditCardFilter = VisualTransformation { text ->
 fun PreviewTarjetaCreditoSalaVipScreen() {
     val navController = rememberNavController()
     MaterialTheme {
-        TarjetaCreditoSalaVipScreen(navController = navController)
+        TarjetaCreditoSalaVipScreen(
+            fecha = "23/06/2025",
+            navController = navController
+        )
     }
 }
