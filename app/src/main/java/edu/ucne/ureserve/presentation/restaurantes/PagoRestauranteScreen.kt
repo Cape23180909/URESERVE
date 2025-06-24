@@ -111,8 +111,10 @@ fun PagoRestauranteScreen(
                 }
                 Divider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray)
                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                    Text("TOTAL", fontWeight = FontWeight.Bold)
-                    Text("RD$ 2,500", fontWeight = FontWeight.Bold)
+                    Text("TOTAL", fontWeight = FontWeight.Bold,fontSize = 14.sp,
+                        color = Color.Black)
+                    Text("RD$ 2,500", fontWeight = FontWeight.Bold, fontSize = 14.sp,
+                        color = Color.Black)
                 }
             }
         }
@@ -133,14 +135,14 @@ fun PagoRestauranteScreen(
                         .padding(vertical = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Nombre: ${persona.nombres} ${persona.apellidos}", fontSize = 14.sp, color = Color(0xFF023E8A))
-                        Text("Correo: ${persona.correo}", fontSize = 14.sp)
-                        Text("Celular: ${persona.celular}", fontSize = 14.sp)
-                        Text("Matrícula: ${persona.matricula}", fontSize = 14.sp)
-                        Text("Cédula: ${persona.cedula}", fontSize = 14.sp)
-                        Text("Dirección: ${persona.direccion}", fontSize = 14.sp)
-                    }
+                    Text("Nombre: ${persona.nombres} ${persona.apellidos}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Correo: ${persona.correo}", fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                        color = Color.Black)
+                    Text("Celular: ${persona.celular}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Matrícula: ${persona.matricula}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Cédula: ${persona.cedula}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Dirección: ${persona.direccion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+
                 }
             }
         }
@@ -149,9 +151,14 @@ fun PagoRestauranteScreen(
 
         Button(
             onClick = {
+                // Limpiar datos personales del restaurante
                 DatosPersonalesRestauranteStore.lista.clear()
+
+                // Generar número de reserva aleatorio
                 val numeroReserva = (1000..9999).random()
-                navController.navigate("ReservaExitosaRestaurante?numeroReserva=$numeroReserva")
+
+                // Navegar a la pantalla de éxito de reserva del restaurante
+                navController.navigate("ReservaRestauranteExitosa?numeroReserva=$numeroReserva")
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -163,6 +170,7 @@ fun PagoRestauranteScreen(
         ) {
             Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
+
     }
 }
 
