@@ -149,8 +149,9 @@ fun PagoSalaVipScreen(
 
         Button(
             onClick = {
+                val numeroReserva = (1000..9999).random().toString()
                 DatosPersonalesStore.lista.clear()
-                navController.navigate("ReservaExitosaSalaVip?numeroReserva=${(1000..9999).random()}")
+                navController.navigate("ReservaSalaVipExitosa?numeroReserva=$numeroReserva")
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -162,6 +163,8 @@ fun PagoSalaVipScreen(
         ) {
             Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
+
+
     }
 }
 
