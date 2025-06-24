@@ -1,6 +1,8 @@
 package edu.ucne.ureserve.presentation.navigation
 
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,6 +47,7 @@ import edu.ucne.ureserve.presentation.salavip.SalaVipReservationScreen
 import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
 import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UreserveNavHost(navController: NavHostController) {
     NavHost(
@@ -148,7 +151,8 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Inicio" -> navController.navigate("Dashboard")
                     }
                 },
-                navController = navController
+                navController = navController,
+                fecha = String()
             )
         }
 
