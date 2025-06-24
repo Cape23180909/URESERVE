@@ -1,5 +1,7 @@
 package edu.ucne.ureserve.presentation.proyectores
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,23 +23,45 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
-import java.util.*
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun parseFecha(fechaStr: String): LocalDate {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    return LocalDate.parse(fechaStr, formatter)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun parseHora(horaStr: String): LocalTime {
+    val formatter = DateTimeFormatter.ofPattern("hh:mm a")
+    return LocalTime.parse(horaStr, formatter)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ReservaProyectorScreen(
-    onBottomNavClick: (String) -> Unit = {},
+    viewModel: ReservaProyectorViewModel = hiltViewModel(),
     navController: NavController,
-    fecha: String? = null
+    onBottomNavClick: (String) -> Unit = {},
+    fecha: String?
 ) {
-    var expandedInicio by remember { mutableStateOf(false) }
-    var expandedFin by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Estados locales para los selectores de hora
     var horaInicio by remember { mutableStateOf("08:00 AM") }
     var horaFin by remember { mutableStateOf("09:00 AM") }
+    var expandedInicio by remember { mutableStateOf(false) }
+    var expandedFin by remember { mutableStateOf(false) }
 
     val horas = listOf(
         "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
@@ -45,92 +69,110 @@ fun ReservaProyectorScreen(
         "04:00 PM", "05:00 PM"
     )
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo_reserve),
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(60.dp)
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.icon_proyector),
-                        contentDescription = "Proyector",
-                        modifier = Modifier.size(60.dp)
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFF6D87A4)
+    // Efecto para verificar disponibilidad cuando cambian los parámetros
+    LaunchedEffect(fecha, horaInicio, horaFin) {
+        if (fecha != null) {
+            println("Verificando disponibilidad para $horaInicio - $horaFin")
+            viewModel.verificarDisponibilidad(fecha, horaInicio, horaFin)
+        }
+    }
+
+    // Mostrar errores
+    LaunchedEffect(state.error) {
+        state.error?.let { error ->
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = error,
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.limpiarError()
+            }
+        }
+    }
+
+    // Determinar texto y color de disponibilidad
+    val (disponibilidadText, disponibilidadColor) = when {
+        state.isLoading -> Pair("VERIFICANDO...", Color.Yellow)
+        state.disponibilidadVerificada && state.proyectores.isNotEmpty() -> Pair("DISPONIBLE", Color.Green)
+        else -> Pair("NO DISPONIBLE", Color.Red)
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo_reserve),
+                            contentDescription = "Logo",
+                            modifier = Modifier.size(60.dp)
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.icon_proyector),
+                            contentDescription = "Proyector",
+                            modifier = Modifier.size(60.dp)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF6D87A4)
+                )
             )
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .background(Color(0xFF023E8A))
-        )
-
-        LazyColumn(
+        }
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFF023E8A))
-                .padding(14.dp)
+                .padding(paddingValues)
         ) {
-            item {
-                Text(
-                    text = "Reserve Ahora!!",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                )
-
+            // Sección de disponibilidad
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-                        .border(
-                            width = 2.dp,
-                            color = Color(0xFF023E8A),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .background(Color.LightGray, RoundedCornerShape(8.dp))
+                        .border(2.dp, disponibilidadColor, RoundedCornerShape(8.dp))
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(26.dp)
+                            .size(24.dp)
                             .clip(CircleShape)
-                            .background(Color.Green)
+                            .background(disponibilidadColor)
                     )
+
                     Text(
-                        text = "DISPONIBLE",
+                        text = disponibilidadText,
                         style = MaterialTheme.typography.titleLarge.copy(
-                            color = Color.Black,
                             fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
+                            color = Color.Black
                         )
                     )
-                    Image(
-                        painter = painterResource(id = R.drawable.icon_proyector),
-                        contentDescription = "Proyector",
-                        modifier = Modifier.size(60.dp)
+
+                    Icon(
+                        painter = painterResource(R.drawable.icon_proyector),
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp)
                     )
                 }
+            }
 
+            // Selectores de hora
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
                 if (fecha != null) {
                     Text(
                         text = "Fecha Seleccionada: $fecha",
@@ -197,7 +239,6 @@ fun ReservaProyectorScreen(
                                     onClick = {
                                         horaInicio = time
                                         expandedInicio = false
-                                        // Asegurar que horaFin sea después de horaInicio
                                         if (index >= horas.indexOf(horaFin)) {
                                             horaFin = horas.getOrElse(index + 1) { horas.last() }
                                         }
@@ -270,7 +311,6 @@ fun ReservaProyectorScreen(
                         ) {
                             items(horas.size) { index ->
                                 val time = horas[index]
-                                // Solo permitir seleccionar horas después de la hora de inicio
                                 if (index > horas.indexOf(horaInicio)) {
                                     Button(
                                         onClick = {
@@ -297,83 +337,77 @@ fun ReservaProyectorScreen(
                         }
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(92.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+            // Botones de acción
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF004BBB)
+                    )
                 ) {
-                    Button(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF004BBB),
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = "CANCELAR",
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    }
-
-                    Button(
-                        onClick = {
-                            // Navegar a la pantalla de previsualización con los datos
-                            if (horaInicio < horaFin) {
-                                navController.navigate("previsualizacion/${fecha}/${horaInicio}/${horaFin}")
-                            } else {
-                                // Opcional: Mostrar mensaje de error si la hora de inicio es mayor
-                                println("La hora de inicio debe ser menor que la hora de fin")
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF6895D2),
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = "CONFIRMAR",
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    }
+                    Text("CANCELAR")
                 }
 
-                Spacer(modifier = Modifier.height(70.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFF2E5C94))
-                        .padding(vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    BottomNavItem(
-                        iconRes = R.drawable.icon_inicio,
-                        label = "Inicio",
-                        isSelected = true,
-                        onClick = { onBottomNavClick("Inicio") }
+                Button(
+                    onClick = {
+                        if (state.proyectores.isNotEmpty()) {
+                            coroutineScope.launch {
+                                try {
+                                    val reservaExitosa = viewModel.crearReserva(
+                                        fecha = fecha ?: "",
+                                        horaInicio = horaInicio,
+                                        horaFin = horaFin,
+                                        proyectorId = state.proyectores.first().proyectorId
+                                    )
+
+                                    if (reservaExitosa) {
+                                        navController.navigate("previsualizacion/${fecha}/${horaInicio}/${horaFin}")
+                                    }
+                                } catch (e: Exception) {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Error al crear reserva: ${e.message}",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    enabled = state.disponibilidadVerificada && state.proyectores.isNotEmpty(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (state.disponibilidadVerificada && state.proyectores.isNotEmpty())
+                            Color(0xFF6895D2)
+                        else
+                            Color.Gray
                     )
+                ) {
+                    Text("CONFIRMAR")
                 }
             }
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun PreviewReservaProyectorScreen() {
     MaterialTheme {
         ReservaProyectorScreen(
-            onBottomNavClick = {},
             navController = rememberNavController(),
             fecha = "2023-11-15"
         )
