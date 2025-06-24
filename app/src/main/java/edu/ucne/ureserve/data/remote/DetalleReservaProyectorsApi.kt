@@ -1,7 +1,7 @@
 package edu.ucne.ureserve.data.remote
 
-import edu.ucne.ureserve.data.remote.dto.CreateDetalleReservaProyectorDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
+import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -14,7 +14,7 @@ interface DetalleReservaProyectorsApi {
 
     @POST("api/DetalleReservaProyectors")
     suspend fun insert(
-        @Body detalle: CreateDetalleReservaProyectorDto
+        @Body detalle: ProyectoresDto
     ): Response<DetalleReservaProyectorsDto>
 
     @PUT("api/DetalleReservaProyectors/{id}")
