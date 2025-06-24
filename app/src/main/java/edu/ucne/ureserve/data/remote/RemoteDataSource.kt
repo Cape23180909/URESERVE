@@ -1,7 +1,6 @@
 package edu.ucne.ureserve.data.remote
 
 
-import edu.ucne.ureserve.data.remote.dto.CreateDetalleReservaProyectorDto
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaCubiculosDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaLaboratoriosDto
@@ -158,7 +157,7 @@ class RemoteDataSource @Inject constructor(
 
     // DetalleReservaProyectors
     suspend fun insertDetalleReservaProyector(
-        detalle: CreateDetalleReservaProyectorDto
+        detalle: ProyectoresDto
     ): Response<DetalleReservaProyectorsDto> {
         return apiDetalleReservaProyectors.insert(detalle)
     }
@@ -179,7 +178,7 @@ class RemoteDataSource @Inject constructor(
     }
 
     suspend fun createDetalleReservaProyector(
-        detalle: CreateDetalleReservaProyectorDto
+        detalle: ProyectoresDto
     ): Response<DetalleReservaProyectorsDto> {
         return apiDetalleReservaProyectors.insert(detalle)
     }
