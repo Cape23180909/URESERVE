@@ -24,11 +24,6 @@ fun PagoSalaVipScreen(
     fecha: String,
     navController: NavController
 ) {
-    // OPCIONAL: Limpiar lista cada vez que entras
-    // LaunchedEffect(Unit) {
-    //     DatosPersonalesStore.lista.clear()
-    // }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,8 +50,8 @@ fun PagoSalaVipScreen(
                 fontWeight = FontWeight.Bold
             )
             Image(
-                painter = painterResource(id = R.drawable.sala),
-                contentDescription = "Sala",
+                painter = painterResource(id = R.drawable.comer),
+                contentDescription = "Sala VIP",
                 modifier = Modifier.size(40.dp)
             )
         }
@@ -81,20 +76,16 @@ fun PagoSalaVipScreen(
                     color = Color(0xFF023E8A),
                     fontSize = 14.sp
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
 
-                MetodoPagoItem("Efectivo", R.drawable.dinero) {
-                    navController.navigate("RegistroReserva?fecha=${fecha}")
+                MetodoPagoSalaVipItem("Efectivo", R.drawable.dinero) {
+                    navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
                 }
-
-                MetodoPagoItem("Tarjeta de crédito", R.drawable.credito) {
-                    // Aquí navegas a la pantalla de tarjeta de crédito
-                    navController.navigate("TarjetaCreditoSalaVip?fecha=$fecha")
+                MetodoPagoSalaVipItem("Tarjeta de crédito", R.drawable.credito) {
+                    // Opcional: navController.navigate("TarjetaCreditoSalaVip?fecha=$fecha")
                 }
-
-                MetodoPagoItem("Transferencia bancaria", R.drawable.trasnferencia) {
-                    navController.navigate("RegistroReserva?fecha=${fecha}")
+                MetodoPagoSalaVipItem("Transferencia bancaria", R.drawable.trasnferencia) {
+                    navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
                 }
             }
         }
@@ -107,55 +98,34 @@ fun PagoSalaVipScreen(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "RESUMEN DE PEDIDO",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF023E8A),
-                    fontSize = 14.sp
-                )
-
+                Text("RESUMEN DE PEDIDO", fontWeight = FontWeight.Bold, color = Color(0xFF023E8A), fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                     Text("Reserva Sala VIP", color = Color.Black)
-                    Text("RD$ 15,000", color = Color.Black)
+                    Text("RD$ 4,000", color = Color.Black)
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                     Text("Fecha:", color = Color.Black)
                     Text(fecha, color = Color.Black)
                 }
-
                 Divider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray)
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                     Text("TOTAL", fontWeight = FontWeight.Bold, color = Color.Black)
-                    Text("RD$ 15,000", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("RD$ 4,000", fontWeight = FontWeight.Bold, color = Color.Black)
                 }
             }
         }
 
-        /// Mostrar lista de datos personales guardados
-        if (DatosPersonalesStore.lista.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        if (DatosPersonalesStore.lista.isNotEmpty()) {
             Text(
                 text = "DATOS PERSONALES REGISTRADOS",
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(vertical = 8.dp)
             )
-
             DatosPersonalesStore.lista.forEach { persona ->
                 Card(
                     modifier = Modifier
@@ -163,54 +133,24 @@ fun PagoSalaVipScreen(
                         .padding(vertical = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Nombre: ${persona.nombres} ${persona.apellidos}",
-                            fontSize = 14.sp,
-                            color = Color(0xFF023E8A),
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = "Correo: ${persona.correo}",
-                            fontSize = 14.sp,
-                            color = Color.DarkGray
-                        )
-                        Text(
-                            text = "Celular: ${persona.celular}",
-                            fontSize = 14.sp,
-                            color = Color.DarkGray
-                        )
-                        Text(
-                            text = "Matrícula: ${persona.matricula}",
-                            fontSize = 14.sp,
-                            color = Color.DarkGray
-                        )
-                        Text(
-                            text = "Cédula: ${persona.cedula}",
-                            fontSize = 14.sp,
-                            color = Color.DarkGray
-                        )
-                        Text(
-                            text = "Dirección: ${persona.direccion}",
-                            fontSize = 14.sp,
-                            color = Color.DarkGray
-                        )
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Nombre: ${persona.nombres} ${persona.apellidos}", color = Color(0xFF023E8A), fontSize = 14.sp)
+                        Text("Correo: ${persona.correo}", fontSize = 14.sp, color = Color.DarkGray)
+                        Text("Celular: ${persona.celular}", fontSize = 14.sp, color = Color.DarkGray)
+                        Text("Matrícula: ${persona.matricula}", fontSize = 14.sp, color = Color.DarkGray)
+                        Text("Cédula: ${persona.cedula}", fontSize = 14.sp, color = Color.DarkGray)
+                        Text("Dirección: ${persona.direccion}", fontSize = 14.sp, color = Color.DarkGray)
                     }
                 }
             }
         }
 
-
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
-                val numeroReserva = (1000..9999).random().toString()
                 DatosPersonalesStore.lista.clear()
-                navController.navigate("ReservaExitosa?numeroReserva=$numeroReserva")
+                navController.navigate("ReservaExitosaSalaVip?numeroReserva=${(1000..9999).random()}")
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -220,16 +160,13 @@ fun PagoSalaVipScreen(
                 contentColor = Color.White
             )
         ) {
-            Text(text = "COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
+            Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
-
-
-
     }
 }
 
 @Composable
-fun MetodoPagoItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
+fun MetodoPagoSalaVipItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -255,6 +192,7 @@ fun PreviewPagoSalaVipScreen() {
     PagoSalaVipScreen(fecha = "15/06/2025", navController = navController)
 }
 
+// Modelo de datos para guardar info globalmente
 data class DatosPersonales(
     val correo: String,
     val nombres: String,
