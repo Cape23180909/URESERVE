@@ -3,8 +3,8 @@ package edu.ucne.ureserve.data.repository
 import android.util.Log
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.Resource
-import edu.ucne.ureserve.data.remote.dto.CreateDetalleReservaProyectorDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
+import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
@@ -32,7 +32,7 @@ class DetalleReservaProyectorsRepository @Inject constructor(
         remoteDataSource.getDetalleReservaProyector(id)
 
     suspend fun createDetalleReservaProyector(
-        detalle: CreateDetalleReservaProyectorDto
+        detalle: ProyectoresDto
     ): Response<DetalleReservaProyectorsDto> {
         return remoteDataSource.createDetalleReservaProyector(detalle)
     }
