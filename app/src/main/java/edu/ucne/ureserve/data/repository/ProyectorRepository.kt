@@ -3,7 +3,6 @@ package edu.ucne.ureserve.data.repository
 import android.util.Log
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.Resource
-import edu.ucne.ureserve.data.remote.dto.CreateDetalleReservaProyectorDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import kotlinx.coroutines.flow.Flow
@@ -15,9 +14,21 @@ import javax.inject.Inject
 class ProyectorRepository @Inject constructor(
     private val remoteDataSource: RemoteDataSource
 ) {
+
+    suspend fun getProyectoresDisponibles(
+        fecha: String,
+        horaInicio: String,
+        horaFin: String
+    ): List<ProyectoresDto> {
+        // Implementar lógica para obtener proyectores disponibles
+        // Esto puede variar según tu API real
+        val todosProyectores = remoteDataSource.getProyectores()
+        return todosProyectores.filter { it.estado == 0 } // Filtra los disponibles
+    }
+
     // Métodos para DetalleReservaProyector
     suspend fun createDetalleReservaProyector(
-        reservaDto: CreateDetalleReservaProyectorDto
+        reservaDto: ProyectoresDto
     ): Response<DetalleReservaProyectorsDto> {
         return remoteDataSource.insertDetalleReservaProyector(reservaDto)
     }
