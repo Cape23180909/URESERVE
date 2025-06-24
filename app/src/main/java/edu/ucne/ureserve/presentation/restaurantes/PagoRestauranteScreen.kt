@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ fun PagoRestauranteScreen(
             .background(Color(0xFF023E8A))
             .padding(16.dp)
     ) {
+        // Top Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -48,7 +50,7 @@ fun PagoRestauranteScreen(
                 fontWeight = FontWeight.Bold
             )
             Image(
-                painter = painterResource(id = R.drawable.comer), // Asegúrate de tener este drawable
+                painter = painterResource(id = R.drawable.comer),
                 contentDescription = "Restaurante",
                 modifier = Modifier.size(40.dp)
             )
@@ -62,6 +64,7 @@ fun PagoRestauranteScreen(
                 .padding(bottom = 16.dp)
         )
 
+        // Método de pago
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -73,17 +76,15 @@ fun PagoRestauranteScreen(
                     color = Color(0xFF023E8A),
                     fontSize = 14.sp
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 MetodoPagoItem("Efectivo", R.drawable.dinero) {
                     navController.navigate("RegistroReservaRestaurante?fecha=$fecha")
                 }
-
                 MetodoPagoItem("Tarjeta de crédito", R.drawable.credito) {
-                    navController.navigate("TarjetaCreditoRestaurante?fecha=$fecha")
+                    // Si implementas una pantalla de tarjeta, navega a ella
+                    navController.navigate("RegistroReservaRestaurante?fecha=$fecha")
                 }
-
                 MetodoPagoItem("Transferencia bancaria", R.drawable.trasnferencia) {
                     navController.navigate("RegistroReservaRestaurante?fecha=$fecha")
                 }
@@ -92,59 +93,39 @@ fun PagoRestauranteScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Resumen
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "RESUMEN DE PEDIDO",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF023E8A),
-                    fontSize = 14.sp
-                )
-
+                Text("RESUMEN DE PEDIDO", fontWeight = FontWeight.Bold, color = Color(0xFF023E8A))
                 Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                     Text("Reserva Restaurante", color = Color.Black)
                     Text("RD$ 2,500", color = Color.Black)
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                     Text("Fecha:", color = Color.Black)
                     Text(fecha, color = Color.Black)
                 }
-
                 Divider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray)
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("TOTAL", fontWeight = FontWeight.Bold, color = Color.Black)
-                    Text("RD$ 25,000", fontWeight = FontWeight.Bold, color = Color.Black)
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                    Text("TOTAL", fontWeight = FontWeight.Bold)
+                    Text("RD$ 2,500", fontWeight = FontWeight.Bold)
                 }
             }
         }
 
         if (DatosPersonalesRestauranteStore.lista.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(
                 text = "DATOS PERSONALES REGISTRADOS",
                 color = Color.White,
-                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-
             DatosPersonalesRestauranteStore.lista.forEach { persona ->
                 Card(
                     modifier = Modifier
@@ -153,12 +134,12 @@ fun PagoRestauranteScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Nombre: ${persona.nombres} ${persona.apellidos}", color = Color(0xFF023E8A), fontSize = 14.sp)
-                        Text("Correo: ${persona.correo}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Celular: ${persona.celular}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Matrícula: ${persona.matricula}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Cédula: ${persona.cedula}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Dirección: ${persona.direccion}", fontSize = 14.sp, color = Color.DarkGray)
+                        Text("Nombre: ${persona.nombres} ${persona.apellidos}", fontSize = 14.sp, color = Color(0xFF023E8A))
+                        Text("Correo: ${persona.correo}", fontSize = 14.sp)
+                        Text("Celular: ${persona.celular}", fontSize = 14.sp)
+                        Text("Matrícula: ${persona.matricula}", fontSize = 14.sp)
+                        Text("Cédula: ${persona.cedula}", fontSize = 14.sp)
+                        Text("Dirección: ${persona.direccion}", fontSize = 14.sp)
                     }
                 }
             }
@@ -168,8 +149,8 @@ fun PagoRestauranteScreen(
 
         Button(
             onClick = {
-                val numeroReserva = (1000..9999).random().toString()
                 DatosPersonalesRestauranteStore.lista.clear()
+                val numeroReserva = (1000..9999).random()
                 navController.navigate("ReservaExitosaRestaurante?numeroReserva=$numeroReserva")
             },
             modifier = Modifier
@@ -186,25 +167,32 @@ fun PagoRestauranteScreen(
 }
 
 @Composable
-fun MetodoPagosItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
+fun MetodoPagoItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
+        Icon(
             painter = painterResource(id = iconRes),
             contentDescription = titulo,
+            tint = Color(0xFF023E8A),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text = titulo, fontSize = 16.sp, color = Color.Black)
+        Text(text = titulo, fontSize = 16.sp)
     }
 }
 
-// Modelo de datos personales para restaurante
+@Preview(showBackground = true)
+@Composable
+fun PreviewPagoRestauranteScreen() {
+    val navController = rememberNavController()
+    PagoRestauranteScreen(fecha = "15/06/2025", navController = navController)
+}
+
 data class DatosPersonalesRestaurante(
     val correo: String,
     val nombres: String,
@@ -217,11 +205,4 @@ data class DatosPersonalesRestaurante(
 
 object DatosPersonalesRestauranteStore {
     val lista = mutableStateListOf<DatosPersonalesRestaurante>()
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewPagoRestauranteScreen() {
-    val navController = rememberNavController()
-    PagoRestauranteScreen(fecha = "15/06/2025", navController = navController)
 }
