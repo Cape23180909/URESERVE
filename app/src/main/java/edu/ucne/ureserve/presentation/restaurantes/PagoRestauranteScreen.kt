@@ -82,9 +82,9 @@ fun PagoRestauranteScreen(
                     navController.navigate("RegistroReservaRestaurante?fecha=$fecha")
                 }
                 MetodoPagoItem("Tarjeta de crédito", R.drawable.credito) {
-                    // Si implementas una pantalla de tarjeta, navega a ella
-                    navController.navigate("RegistroReservaRestaurante?fecha=$fecha")
+                    navController.navigate("TarjetaCreditoRestaurante?fecha=$fecha")
                 }
+
                 MetodoPagoItem("Transferencia bancaria", R.drawable.trasnferencia) {
                     navController.navigate("RegistroReservaRestaurante?fecha=$fecha")
                 }
