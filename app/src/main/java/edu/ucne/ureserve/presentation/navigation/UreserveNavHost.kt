@@ -25,14 +25,19 @@ import edu.ucne.ureserve.presentation.proyectores.PrevisualizacionProyectorScree
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
+import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesRestaurante
+import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesRestauranteStore
+import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesStore
 import edu.ucne.ureserve.presentation.restaurantes.PagoRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaSalonScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaScreen
+import edu.ucne.ureserve.presentation.restaurantes.RegistrosReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaExitosaSalonScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteExitosaScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteScreen
+import edu.ucne.ureserve.presentation.restaurantes.ReservaSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteReservationcalendarioScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalaVipScreen
@@ -45,7 +50,10 @@ import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaVipScreen
 import edu.ucne.ureserve.presentation.salareuniones.SalonReunionesReservationScreen
 import edu.ucne.ureserve.presentation.salavip.ReservaSalaVipExitosaScreen
 import edu.ucne.ureserve.presentation.salavip.SalaVipReservationScreen
+import edu.ucne.ureserve.presentation.salones.DatosPersonalesSalon
+import edu.ucne.ureserve.presentation.salones.DatosPersonalesSalonStore
 import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
+import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -592,6 +600,59 @@ fun UreserveNavHost(navController: NavHostController) {
         }
 
 
+
+        composable("ReservaSalaVip?fecha={fecha}") { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            ReservaSalaVipScreen(
+                onCancelarClick = { navController.popBackStack() },
+                onConfirmarClick = { datos ->
+                    DatosPersonalesStore.lista.add(datos)
+                    navController.navigate("PagoSalaVip?fecha=$fecha")
+                }
+            )
+        }
+        composable("RegistroReservaRestaurante?fecha={fecha}") { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            RegistrosReservaRestauranteScreen(
+                onCancelarClick = { navController.popBackStack() },
+                onConfirmarClick = { datos ->
+                    DatosPersonalesRestauranteStore.lista.add(
+                        DatosPersonalesRestaurante(
+                            correo = datos.correo,
+                            nombres = datos.nombres,
+                            apellidos = datos.apellidos,
+                            celular = datos.celular,
+                            matricula = datos.matricula,
+                            cedula = datos.cedula,
+                            direccion = datos.direccion
+                        )
+                    )
+                    navController.navigate("PagoRestaurante?fecha=$fecha")
+                }
+            )
+        }
+        composable("ReservaSalon?fecha={fecha}") { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            ReservaSalonScreen(
+                onCancelarClick = { navController.popBackStack() },
+                onConfirmarClick = { datos ->
+                    // Guardar los datos en la lista global
+                    DatosPersonalesSalonStore.lista.add(
+                        DatosPersonalesSalon(
+                            correo = datos.correo,
+                            nombres = datos.nombres,
+                            apellidos = datos.apellidos,
+                            celular = datos.celular,
+                            matricula = datos.matricula,
+                            cedula = datos.cedula,
+                            direccion = datos.direccion
+                        )
+                    )
+                    // Navegar a la pantalla de pago con la fecha
+                    navController.navigate("PagoSalon?fecha=$fecha")
+                }
+            )
+        }
         composable(
             "TarjetaCreditoRestaurante?fecha={fecha}",
             arguments = listOf(navArgument("fecha") {
