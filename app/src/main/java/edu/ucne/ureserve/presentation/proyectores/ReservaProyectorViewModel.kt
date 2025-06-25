@@ -2,8 +2,10 @@ package edu.ucne.ureserve.presentation.proyectores
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
@@ -12,12 +14,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale // Import Locale
 import javax.inject.Inject
+import androidx.compose.runtime.State
 
 @HiltViewModel
 class ReservaProyectorViewModel @Inject constructor(
@@ -65,6 +69,26 @@ class ReservaProyectorViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private val _proyectorSeleccionado = MutableStateFlow<ProyectoresDto?>(null)
+    val proyectorSeleccionado: StateFlow<ProyectoresDto?> = _proyectorSeleccionado.asStateFlow()
+
+    fun seleccionarProyector(proyector: ProyectoresDto) {
+        _proyectorSeleccionado.value = proyector
+        // Guardar también en el estado actual para persistencia
+        _state.value = _state.value.copy(
+            reservaActual = _state.value.reservaActual?.horario?.let {
+                DetalleReservaProyectorsDto(
+                    codigoReserva = (100000..999999).random(),
+                    idProyector = proyector.proyectorId,
+                    fecha = _state.value.reservaActual?.fecha,
+                    horario = it,
+                    estado = 1,
+                    proyector = proyector
+                )
+            }
+        )
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -134,18 +158,51 @@ class ReservaProyectorViewModel @Inject constructor(
         _state.value = _state.value.copy(error = null)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O) // Add this annotation
+    private val _errorMessage = mutableStateOf<String?>(null)
+    val errorMessage: State<String?> = _errorMessage
+
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun confirmarReserva(dto: ProyectoresDto): Boolean {
-        // Ensure that the DTO you receive here already has the correctly formatted `horario` string.
-        // The DTO's `fecha` should also be in the format the API expects.
+        _errorMessage.value = null
+        _state.value = _state.value.copy(isLoading = true, error = null)
+
         return try {
+            // Validaciones
+            if (proyectorSeleccionado.value == null) {
+                val msg = "No se ha seleccionado un proyector"
+                _errorMessage.value = msg
+                _state.value = _state.value.copy(error = msg, isLoading = false)
+                return false
+            }
+            if (dto.fecha.isBlank()) throw IllegalArgumentException("Fecha no especificada")
+            if (dto.horario.isBlank()) throw IllegalArgumentException("Horario no especificado")
+            if (dto.codigoReserva == 0) throw IllegalArgumentException("Código de reserva no generado")
+
+            // Llamada a la API
             val response = repository.createDetalleReservaProyector(dto)
-            response.isSuccessful
+            if (!response.isSuccessful) {
+                val errorBody = response.errorBody()?.string() ?: response.message()
+                val msg = "Error del servidor (${response.code()}): $errorBody"
+                _errorMessage.value = msg
+                _state.value = _state.value.copy(error = msg, isLoading = false)
+                return false
+            }
+
+            _state.value = _state.value.copy(isLoading = false)
+            true
         } catch (e: Exception) {
-            _state.value = _state.value.copy(error = "Error al confirmar reserva: ${e.message}")
+            val msg = when (e) {
+                is IOException -> "Error de conexión"
+                is HttpException -> "Error del servidor"
+                is IllegalArgumentException -> e.message ?: "Error de validación"
+                else -> "Error desconocido: ${e.message}"
+            }
+            _errorMessage.value = msg
+            _state.value = _state.value.copy(error = msg, isLoading = false)
             false
         }
     }
+
 }
 
 data class ReservaProyectorState(
