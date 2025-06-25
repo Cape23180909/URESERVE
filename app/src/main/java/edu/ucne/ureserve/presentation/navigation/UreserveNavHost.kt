@@ -23,6 +23,7 @@ import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
 import edu.ucne.ureserve.presentation.proyectores.PrevisualizacionProyectorScreen
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
+import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoSalaVipScreen
@@ -387,27 +388,39 @@ fun UreserveNavHost(navController: NavHostController) {
                 navController = navController
             )
         }
+
         composable(
-            route = "previsualizacion/{fecha}/{horaInicio}/{horaFin}",
+            route = "previsualizacion/{fecha}/{horaInicio}/{horaFin}/{proyectorJson}",
             arguments = listOf(
-                navArgument("fecha") { type = NavType.StringType; nullable = true },
-                navArgument("horaInicio") { type = NavType.StringType; nullable = false }, // Correct
-                navArgument("horaFin") { type = NavType.StringType; nullable = false }    // Correct
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("proyectorJson") { type = NavType.StringType }
             )
-        ) {
-            val fecha = it.arguments?.getString("fecha")
-            val horaInicio = it.arguments?.getString("horaInicio") ?: "08:00 AM" // Good defaults
-            val horaFin = it.arguments?.getString("horaFin") ?: "09:00 AM"       // Good defaults
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: "08:00 AM"
+            val horaFin = backStackEntry.arguments?.getString("horaFin") ?: "09:00 AM"
+            val proyectorJson = backStackEntry.arguments?.getString("proyectorJson") ?: ""
 
             PrevisualizacionProyectorScreen(
-                onFinish = { /* Acción finalizar reserva */ },
-                fecha = fecha.toString(),
+                navController = navController,
+                fecha = fecha,
                 horaInicio = horaInicio,
                 horaFin = horaFin,
-                navController = navController
-
+                proyectorJson = proyectorJson
             )
         }
+
+        composable(
+            "ReservaExitosa/{codigoReserva}",
+            arguments = listOf(navArgument("codigoReserva") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getString("codigoReserva") ?: ""
+            ReservaExitosaScreen(navController, codigoReserva)
+        }
+
+
 // En tu NavHost o NavController setup:
         composable(
             route = "RegistroReservaSalon?fecha={fecha}",
