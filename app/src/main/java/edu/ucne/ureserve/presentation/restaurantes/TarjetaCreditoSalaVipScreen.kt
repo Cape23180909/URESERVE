@@ -174,8 +174,7 @@ fun TarjetaCreditoSalaVipScreen(
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(
                     onClick = {
-                        val numeroReserva = (1000..9999).random()
-                        navController.navigate("ReservaSalaVipExitosa?numeroReserva=$numeroReserva")
+                        navController.navigate("ReservaSalaVip")
                     },
                     enabled = isFormValid,
                     colors = ButtonDefaults.buttonColors(
@@ -185,6 +184,7 @@ fun TarjetaCreditoSalaVipScreen(
                 ) {
                     Text("CONFIRMAR")
                 }
+
             }
         }
     }
