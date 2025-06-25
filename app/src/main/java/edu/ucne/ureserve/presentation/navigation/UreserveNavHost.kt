@@ -391,21 +391,21 @@ fun UreserveNavHost(navController: NavHostController) {
             route = "previsualizacion/{fecha}/{horaInicio}/{horaFin}",
             arguments = listOf(
                 navArgument("fecha") { type = NavType.StringType; nullable = true },
-                navArgument("horaInicio") { type = NavType.StringType; nullable = false },
-                navArgument("horaFin") { type = NavType.StringType; nullable = false }
+                navArgument("horaInicio") { type = NavType.StringType; nullable = false }, // Correct
+                navArgument("horaFin") { type = NavType.StringType; nullable = false }    // Correct
             )
         ) {
             val fecha = it.arguments?.getString("fecha")
-            val horaInicio = it.arguments?.getString("horaInicio")
-            val horaFin = it.arguments?.getString("horaFin")
+            val horaInicio = it.arguments?.getString("horaInicio") ?: "08:00 AM" // Good defaults
+            val horaFin = it.arguments?.getString("horaFin") ?: "09:00 AM"       // Good defaults
 
             PrevisualizacionProyectorScreen(
-                onBack = { navController.navigate("ProjectorReservation") { popUpTo("ProjectorReservation") { inclusive = false } } },
                 onFinish = { /* Acción finalizar reserva */ },
-                fecha = fecha,
-                horaInicio = horaInicio ?: "08:00 AM",
-                horaFin = horaFin ?: "09:00 AM",
+                fecha = fecha.toString(),
+                horaInicio = horaInicio,
+                horaFin = horaFin,
                 navController = navController
+
             )
         }
 // En tu NavHost o NavController setup:
