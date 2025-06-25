@@ -1,17 +1,47 @@
 package edu.ucne.ureserve.presentation.proyectores
 
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,43 +57,19 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.util.Locale
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun parseFecha(fechaStr: String): LocalDate {
-    val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-    return LocalDate.parse(fechaStr, formatter)
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-fun parseHora(horaStr: String): LocalTime {
-    // Aceptar formato de 12 horas con AM/PM
-    val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US) // Usar Locale.US para robustez
-    return try {
-        LocalTime.parse(horaStr.uppercase(), formatter) // Asegurar mayúsculas para AM/PM
-    } catch (e: DateTimeParseException) {
-        throw DateTimeParseException("Formato de hora no válido. Use hh:mm AM/PM. Ejemplo: 02:30 PM", horaStr, 0)
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-fun formatHora(hora: LocalTime): String {
-    return hora.format(DateTimeFormatter.ofPattern("hh:mm a"))
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ReservaProyectorScreen(
     viewModel: ReservaProyectorViewModel = hiltViewModel(),
     navController: NavController,
     onBottomNavClick: (String) -> Unit = {}
 ) {
-    // Obtener fecha automáticamente
     val fechaActual by remember { mutableStateOf(viewModel.obtenerFechaActual()) }
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -73,7 +79,7 @@ fun ReservaProyectorScreen(
     var expandedInicio by remember { mutableStateOf(false) }
     var expandedFin by remember { mutableStateOf(false) }
 
-    // Reglas de Horario
+    // Horario disponible
     val horas = listOf(
         "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
         "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
@@ -84,7 +90,6 @@ fun ReservaProyectorScreen(
 
     LaunchedEffect(horaInicio, horaFin, fechaParaVerificacion) {
         if (fechaParaVerificacion.isNotBlank()) {
-            // Pasar las cadenas "hh:mm AM/PM" para verificación; el ViewModel las parseará
             viewModel.verificarDisponibilidad(fechaParaVerificacion, horaInicio, horaFin)
         } else {
             viewModel.limpiarError()
@@ -370,38 +375,73 @@ fun ReservaProyectorScreen(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
+
                 Button(
                     onClick = {
                         if (state.proyectores.isNotEmpty()) {
                             coroutineScope.launch {
                                 try {
-                                    // Parsear y validar las horas
-                                    val horaInicioParsed = parseHora(horaInicio)
-                                    val horaFinParsed = parseHora(horaFin)
-
-                                    // Verificar que la hora de fin sea posterior a la hora de inicio
-                                    if (horaInicioParsed.isAfter(horaFinParsed)) {
-                                        snackbarHostState.showSnackbar("La hora final debe ser después de la hora inicial")
+                                    // Validar hora de inicio
+                                    val horaInicioParsed = try {
+                                        parseHora(horaInicio)
+                                    } catch (e: Exception) {
+                                        snackbarHostState.showSnackbar("Hora inicio inválida: ${e.message}")
                                         return@launch
                                     }
 
-                                    // Navegar a la pantalla de previsualización
+                                    // Validar hora de fin
+                                    val horaFinParsed = try {
+                                        parseHora(horaFin)
+                                    } catch (e: Exception) {
+                                        snackbarHostState.showSnackbar("Hora fin inválida: ${e.message}")
+                                        return@launch
+                                    }
+
+                                    // Validar orden de horas
+                                    if (horaInicioParsed.isAfter(horaFinParsed)) {
+                                        snackbarHostState.showSnackbar("La hora final debe ser después de la inicial")
+                                        return@launch
+                                    }
+
+                                    // Seleccionar proyector
+                                    val proyectorSeleccionado = state.proyectores.first()
+                                    viewModel.seleccionarProyector(proyectorSeleccionado)
+
+                                    // Verificar que se haya seleccionado correctamente
+                                    if (viewModel.proyectorSeleccionado.value == null) {
+                                        snackbarHostState.showSnackbar("Error al seleccionar el proyector")
+                                        return@launch
+                                    }
+
+                                    // Formatear fecha
                                     val fechaParseada = parseFecha(fechaActual)
                                     val fechaStrFormatted = fechaParseada.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
-                                    val horaInicioFormatted = horaInicioParsed.format(DateTimeFormatter.ofPattern("hh:mm a"))
-                                    val horaFinFormatted = horaFinParsed.format(DateTimeFormatter.ofPattern("hh:mm a"))
 
-                                    navController.navigate("previsualizacion/${fechaStrFormatted}/${horaInicioFormatted}/${horaFinFormatted}")
+                                    // Codificar proyector como JSON
+                                    val proyectorJson = Uri.encode(Json.encodeToString(proyectorSeleccionado))
+
+                                    // Navegar a previsualización con parámetros
+                                    navController.navigate(
+                                        "previsualizacion/${fechaStrFormatted}/" +
+                                                "${formatHora(horaInicioParsed)}/${formatHora(horaFinParsed)}/$proyectorJson"
+                                    ) {
+                                        launchSingleTop = true
+                                    }
                                 } catch (e: Exception) {
-                                    snackbarHostState.showSnackbar("Error: ${e.message ?: "Formato inválido"}")
+                                    snackbarHostState.showSnackbar("Error: ${e.message ?: "Ocurrió un error"}")
                                 }
+                            }
+                        } else {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("No hay proyectores disponibles")
                             }
                         }
                     },
                     modifier = Modifier.weight(1f),
                     enabled = state.proyectores.isNotEmpty() && horas.indexOf(horaInicio) < horas.indexOf(horaFin),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.proyectores.isNotEmpty() && horas.indexOf(horaInicio) < horas.indexOf(horaFin)) Color(0xFF6895D2) else Color.Gray,
+                        containerColor = if (state.proyectores.isNotEmpty() && horas.indexOf(horaInicio) < horas.indexOf(horaFin))
+                            Color(0xFF6895D2) else Color.Gray,
                         contentColor = Color.White
                     ),
                     shape = RoundedCornerShape(8.dp)
