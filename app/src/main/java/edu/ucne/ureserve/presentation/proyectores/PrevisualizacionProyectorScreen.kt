@@ -27,7 +27,10 @@ import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,9 +38,9 @@ import java.time.format.DateTimeFormatter
 fun PrevisualizacionProyectorScreen(
     viewModel: ReservaProyectorViewModel = hiltViewModel(),
     navController: NavController,
-    fecha: String?,
-    horaInicio: String?,
-    horaFin: String?,
+    fecha: String,
+    horaInicio: String,
+    horaFin: String,
     onBack: () -> Unit = {},
     onFinish: () -> Unit = {}
 ) {
@@ -51,30 +54,57 @@ fun PrevisualizacionProyectorScreen(
         "04:00 PM", "05:00 PM"
     )
 
-    // Formateador para fecha en formato yyyy-MM-dd
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    val fechaLocalDate = fecha?.let {
+    // Formateador para fechas
+    val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault())
+
+    // Parsear la fecha desde String a LocalDate
+    val fechaLocalDate = try {
+        LocalDate.parse(fecha, dateFormatter)
+    } catch (e: DateTimeParseException) {
+        null
+    }
+
+    // Formateador robusto para hora con Locale.US
+    val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+
+    // Parsear las horas de inicio y fin
+    val horaInicioParsed = remember(horaInicio) {
         try {
-            LocalDate.parse(it, formatter)
-        } catch (e: Exception) {
+            LocalTime.parse(horaInicio.uppercase(), timeFormatter)
+        } catch (e: DateTimeParseException) {
             null
         }
     }
 
+    val horaFinParsed = remember(horaFin) {
+        try {
+            LocalTime.parse(horaFin.uppercase(), timeFormatter)
+        } catch (e: DateTimeParseException) {
+            null
+        }
+    }
+
+    // Validar que ambas horas sean válidas antes de usarlas
+    val formattedHorarioForApi = when {
+        horaInicioParsed != null && horaFinParsed != null -> {
+            "${horaInicioParsed.format(timeFormatter)} - ${horaFinParsed.format(timeFormatter)}"
+        }
+        else -> null
+    }
+
     // Obtener o crear reserva actual
-    val reservaActual = state.reservaActual ?: DetalleReservaProyectorsDto(
-        codigoReserva = (100000..999999).random(),
-        idProyector = state.proyectores.firstOrNull()?.proyectorId ?: 0,
-        fecha = fechaLocalDate,
-        horario = horaInicio ?: "",
-        estado = 1,
-        proyector = state.proyectores.firstOrNull()
-    )
+    val reservaActual = remember(state.reservaActual, state.proyectores, fechaLocalDate, formattedHorarioForApi) {
+        state.reservaActual ?: DetalleReservaProyectorsDto(
+            codigoReserva = (100000..999999).random(),
+            idProyector = state.proyectores.firstOrNull()?.proyectorId ?: 0,
+            fecha = fechaLocalDate,
+            horario = formattedHorarioForApi ?: "$horaInicio - $horaFin", // Fallback
+            estado = 1,
+            proyector = state.proyectores.firstOrNull()
+        )
+    }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -153,7 +183,7 @@ fun PrevisualizacionProyectorScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                         }
 
-                        // Detalles de la reserva
+                        // Fecha
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -165,7 +195,7 @@ fun PrevisualizacionProyectorScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Fecha: ${fechaLocalDate?.format(formatter) ?: "--"}",
+                                text = "Fecha: ${fechaLocalDate?.format(dateFormatter) ?: "--"}",
                                 color = Color.Black,
                                 fontSize = 16.sp
                             )
@@ -173,6 +203,7 @@ fun PrevisualizacionProyectorScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
+                        // Horario
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -184,7 +215,7 @@ fun PrevisualizacionProyectorScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Horario: ${reservaActual.horario} - ${horaFin ?: "--"}",
+                                text = "Horario: $horaInicio - $horaFin",
                                 color = Color.Black,
                                 fontSize = 16.sp
                             )
@@ -192,7 +223,7 @@ fun PrevisualizacionProyectorScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Estado de la reserva
+                        // Estado
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -215,6 +246,7 @@ fun PrevisualizacionProyectorScreen(
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
+
                         Text(
                             text = "Código de reserva:",
                             color = Color.Gray,
@@ -246,23 +278,17 @@ fun PrevisualizacionProyectorScreen(
                             .padding(horizontal = 16.dp)
                     ) {
                         horariosDisponibles.forEach { horario ->
-                            val isReserved = horaInicio != null && horaFin != null &&
-                                    isWithinReservation(horario, horaInicio, horaFin, horariosDisponibles)
-
+                            val isReserved = isWithinReservation(horario, horaInicio, horaFin, horariosDisponibles)
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(48.dp)
-                                    .background(
-                                        if (isReserved) Color(0xFFBDECB6) else Color.White
-                                    )
+                                    .background(if (isReserved) Color(0xFFBDECB6) else Color.White)
                                     .border(width = 1.dp, color = Color.LightGray)
                                     .padding(horizontal = 16.dp),
                                 contentAlignment = Alignment.CenterStart
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = horario,
                                         color = Color.Black,
@@ -307,14 +333,24 @@ fun PrevisualizacionProyectorScreen(
                                 modifier = Modifier.padding(8.dp)
                             )
                         }
+
                         Button(
                             onClick = {
                                 coroutineScope.launch {
                                     try {
+                                        if (fechaLocalDate == null || formattedHorarioForApi == null || reservaActual.idProyector == 0) {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Error: Faltan datos para confirmar la reserva.",
+                                                duration = SnackbarDuration.Long
+                                            )
+                                            return@launch
+                                        }
+
+                                        val fechaStringForApi = fechaLocalDate.format(dateFormatter)
                                         val reservaDto = ProyectoresDto(
                                             proyectorId = reservaActual.idProyector,
-                                            fecha = fechaLocalDate.toString(),
-                                            horario = reservaActual.horario,
+                                            fecha = fechaStringForApi,
+                                            horario = formattedHorarioForApi,
                                             estado = 1,
                                             codigoReserva = reservaActual.codigoReserva
                                         )
@@ -359,12 +395,15 @@ fun PrevisualizacionProyectorScreen(
 }
 
 // Función auxiliar para determinar si un horario está dentro del rango reservado
-fun isWithinReservation(horario: String, horaInicio: String?, horaFin: String?, horarios: List<String>): Boolean {
-    if (horaInicio == null || horaFin == null) return false
+fun isWithinReservation(horario: String, horaInicio: String, horaFin: String, horarios: List<String>): Boolean {
     val inicioIndex = horarios.indexOf(horaInicio)
     val finIndex = horarios.indexOf(horaFin)
     val currentIndex = horarios.indexOf(horario)
-    return currentIndex in inicioIndex..finIndex
+    return if (inicioIndex == -1 || finIndex == -1 || currentIndex == -1) {
+        false
+    } else {
+        currentIndex in inicioIndex..finIndex
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -374,9 +413,9 @@ fun PreviewPrevisualizacionProyectorScreen() {
     MaterialTheme {
         PrevisualizacionProyectorScreen(
             navController = rememberNavController(),
-            fecha = "2023-11-15",
-            horaInicio = "10:00 AM",
-            horaFin = "12:00 PM"
+            fecha = "24-06-2025",
+            horaInicio = "12:00 PM",
+            horaFin = "01:00 PM"
         )
     }
 }
