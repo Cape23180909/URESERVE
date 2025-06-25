@@ -169,8 +169,8 @@ fun TarjetaCreditoRestauranteScreen(
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(
                     onClick = {
-                        val numeroReserva = (1000..9999).random()
-                        navController.navigate("ReservaRestauranteExitosa?numeroReserva=$numeroReserva")
+                        // Navegar a Registro de Reserva
+                        navController.navigate("RegistroReservaRestaurante")
                     },
                     enabled = isFormValid,
                     colors = ButtonDefaults.buttonColors(
