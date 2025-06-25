@@ -39,24 +39,24 @@ import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 @Composable
 fun ReservaExitosaScreen(
     navController: NavController,
+    codigoReserva: String,  // Añadir parámetro para el código de reserva
     onBottomNavClick: (String) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF023E8A)), // Fondo principal
+            .background(Color(0xFF023E8A)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Contenedor principal centrado verticalmente
         Box(
             modifier = Modifier
-                .weight(1f) // Ocupa todo el espacio disponible
+                .weight(1f)
                 .fillMaxWidth(),
-            contentAlignment = Alignment.Center // Centra el contenido
+            contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
-                    .widthIn(max = 350.dp) // Limitar ancho máximo
+                    .widthIn(max = 350.dp)
                     .padding(horizontal = 16.dp)
                     .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
                     .padding(16.dp)
@@ -83,7 +83,7 @@ fun ReservaExitosaScreen(
                     )
 
                     Text(
-                        text = "No. de Reserva: 1BD78413ABC",
+                        text = "No. de Reserva: $codigoReserva",  // Usar el código real
                         color = Color.Black,
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center
@@ -91,10 +91,12 @@ fun ReservaExitosaScreen(
 
                     Button(
                         onClick = {
-                            navController.navigate("Dashboard")
+                            navController.navigate("Dashboard") {
+                                popUpTo(0)  // Limpiar el back stack
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF6895D2), // Azul claro
+                            containerColor = Color(0xFF6895D2),
                             contentColor = Color.White
                         ),
                         shape = RoundedCornerShape(8.dp),
@@ -112,12 +114,12 @@ fun ReservaExitosaScreen(
             }
         }
 
-        // Barra inferior de navegación
+        // Barra inferior de navegación (sin cambios)
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF023E8A)) // Fondo de la barra inferior
+                .background(Color(0xFF023E8A))
                 .padding(vertical = 12.dp)
         ) {
             BottomNavItem(
@@ -146,6 +148,9 @@ fun ReservaExitosaScreen(
 @Composable
 fun PreviewReservaExitosaScreen() {
     MaterialTheme {
-        ReservaExitosaScreen(navController = rememberNavController())
+        ReservaExitosaScreen(
+            navController = rememberNavController(),
+            codigoReserva = "ABC123" // Valor de ejemplo
+        )
     }
 }
