@@ -31,15 +31,32 @@ class ReservaProyectorViewModel @Inject constructor(
         return LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
     }
 
+    @RequiresApi(Build.VERSION_CODES.O) // Add this annotation as we're using LocalDate/LocalTime
     fun verificarDisponibilidad(fecha: String, horaInicio: String, horaFin: String) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
-                val proyectores = repository.getProyectoresDisponibles(fecha, horaInicio, horaFin)
+                // Ensure the date formatter is consistent
+                val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+                val fechaFormatted = LocalDate.parse(fecha, dateFormatter).format(dateFormatter)
+
+                // Ensure time formatter with Locale.US for both parsing and formatting
+                val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+
+                // Parse and re-format horaInicio and horaFin to ensure consistency
+                val horaInicioFormatted = LocalTime.parse(horaInicio, timeFormatter).format(timeFormatter)
+                val horaFinFormatted = LocalTime.parse(horaFin, timeFormatter).format(timeFormatter)
+
+                val proyectores = repository.getProyectoresDisponibles(fechaFormatted, horaInicioFormatted, horaFinFormatted)
                 _state.value = _state.value.copy(
                     proyectores = proyectores,
                     isLoading = false,
                     disponibilidadVerificada = true
+                )
+            } catch (e: DateTimeParseException) {
+                _state.value = _state.value.copy(
+                    error = "Error de formato de fecha/hora al verificar disponibilidad: Asegúrate de que las fechas estén en 'dd-MM-yyyy' y las horas en 'hh:mm AM/PM'. Detalle: ${e.message}",
+                    isLoading = false
                 )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
@@ -52,14 +69,13 @@ class ReservaProyectorViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun crearReserva(
-        fecha: String, // Expected: "yyyy-MM-dd"
+        fecha: String, // Expected: "dd-MM-yyyy" (as per previous logic)
         horaInicio: String, // Expected from UI: "hh:mm AM/PM"
         horaFin: String,    // Expected from UI: "hh:mm AM/PM"
         proyectorId: Int,
         usuarioId: Int
     ): Boolean {
         return try {
-            // Validate and parse the date string
             if (fecha.isBlank()) {
                 throw IllegalArgumentException("La fecha no puede estar vacía.")
             }
@@ -70,10 +86,8 @@ class ReservaProyectorViewModel @Inject constructor(
                 throw IllegalArgumentException("Formato de fecha inválido. Use dd-MM-yyyy. Detalle: ${e.message}")
             }
 
-            // Define the time formatter with Locale.US for robustness when parsing/formatting "hh:mm AM/PM"
-            val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US) // <-- CRITICAL: Added Locale.US
+            val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
 
-            // Parse horaInicio and horaFin from the "hh:mm AM/PM" strings received from the UI
             val horaInicioLocalTime = try {
                 LocalTime.parse(horaInicio, timeFormatter)
             } catch (e: DateTimeParseException) {
@@ -86,21 +100,20 @@ class ReservaProyectorViewModel @Inject constructor(
                 throw IllegalArgumentException("Formato de hora fin inválido. Use hh:mm AM/PM. Detalle: ${e.message}")
             }
 
-            // **CRITICAL FIX HERE:**
-            // Construct the 'horario' string exactly as the API expects: "hh:mm AM/PM - hh:mm AM/PM"
             val horarioForApi = "${horaInicioLocalTime.format(timeFormatter)} - ${horaFinLocalTime.format(timeFormatter)}"
 
-            // Create the DTO using the combined 'horario' string
+            // The date for ProyectoresDto should be formatted as "dd-MM-yyyy" if that's what the API expects for this specific field.
+            // If the API for ProyectoresDto expects "yyyy-MM-dd", then change dateFormatter pattern to "yyyy-MM-dd" or create another formatter.
+            // Based on your previous code, "dd-MM-yyyy" was used, so keeping that.
             val reservaDto = ProyectoresDto(
-                fecha = fechaLocalDate.format(dateFormatter), // Format LocalDate back to string "yyyy-MM-dd"
-                horario = horarioForApi, // This is the combined "hh:mm AM/PM - hh:mm AM/PM" string
+                fecha = fechaLocalDate.format(dateFormatter),
+                horario = horarioForApi,
                 estado = 1,
                 codigoReserva = generarCodigoReserva(),
                 proyectorId = proyectorId,
                 usuarioId = usuarioId
             )
 
-            // Send to repository
             val response = repository.createDetalleReservaProyector(reservaDto)
             if (!response.isSuccessful) {
                 val errorBody = response.errorBody()?.string() ?: response.message()
@@ -121,7 +134,10 @@ class ReservaProyectorViewModel @Inject constructor(
         _state.value = _state.value.copy(error = null)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O) // Add this annotation
     suspend fun confirmarReserva(dto: ProyectoresDto): Boolean {
+        // Ensure that the DTO you receive here already has the correctly formatted `horario` string.
+        // The DTO's `fecha` should also be in the format the API expects.
         return try {
             val response = repository.createDetalleReservaProyector(dto)
             response.isSuccessful
@@ -132,7 +148,6 @@ class ReservaProyectorViewModel @Inject constructor(
     }
 }
 
-// Keep your ReservaProyectorState as is.
 data class ReservaProyectorState(
     val proyectores: List<ProyectoresDto> = emptyList(),
     val isLoading: Boolean = false,

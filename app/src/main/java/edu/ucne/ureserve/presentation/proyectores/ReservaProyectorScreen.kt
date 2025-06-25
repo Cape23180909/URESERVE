@@ -30,7 +30,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException // Import for catching parse errors
+import java.time.format.DateTimeParseException
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun parseFecha(fechaStr: String): LocalDate {
@@ -41,18 +42,17 @@ fun parseFecha(fechaStr: String): LocalDate {
 @RequiresApi(Build.VERSION_CODES.O)
 fun parseHora(horaStr: String): LocalTime {
     // Aceptar formato de 12 horas con AM/PM
-    val formatter = DateTimeFormatter.ofPattern("hh:mm a")
+    val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US) // Usar Locale.US para robustez
     return try {
-        LocalTime.parse(horaStr, formatter)
+        LocalTime.parse(horaStr.uppercase(), formatter) // Asegurar mayúsculas para AM/PM
     } catch (e: DateTimeParseException) {
-        throw DateTimeParseException("Formato de hora no válido. Use hh:mm AM/PM", horaStr, 0)
+        throw DateTimeParseException("Formato de hora no válido. Use hh:mm AM/PM. Ejemplo: 02:30 PM", horaStr, 0)
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatHora(hora: LocalTime): String {
-    // Siempre formatear a 12 horas con AM/PM
-    return hora.format(DateTimeFormatter.ofPattern("hh:mm "))
+    return hora.format(DateTimeFormatter.ofPattern("hh:mm a"))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,21 +65,18 @@ fun ReservaProyectorScreen(
 ) {
     // Obtener fecha automáticamente
     val fechaActual by remember { mutableStateOf(viewModel.obtenerFechaActual()) }
-
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-
-
     var horaInicio by remember { mutableStateOf("08:00 AM") }
     var horaFin by remember { mutableStateOf("09:00 AM") }
     var expandedInicio by remember { mutableStateOf(false) }
     var expandedFin by remember { mutableStateOf(false) }
 
-   //Reglas de Horario
+    // Reglas de Horario
     val horas = listOf(
         "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
-        "12:00 AM", "01:00 PM", "02:00 PM", "03:00 PM",
+        "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
         "04:00 PM", "05:00 PM"
     )
 
@@ -87,7 +84,7 @@ fun ReservaProyectorScreen(
 
     LaunchedEffect(horaInicio, horaFin, fechaParaVerificacion) {
         if (fechaParaVerificacion.isNotBlank()) {
-            // Pass the "hh:mm AM/PM" strings for verification, viewModel will parse them
+            // Pasar las cadenas "hh:mm AM/PM" para verificación; el ViewModel las parseará
             viewModel.verificarDisponibilidad(fechaParaVerificacion, horaInicio, horaFin)
         } else {
             viewModel.limpiarError()
@@ -169,7 +166,6 @@ fun ReservaProyectorScreen(
                             .clip(CircleShape)
                             .background(disponibilidadColor)
                     )
-
                     Text(
                         text = disponibilidadText,
                         style = MaterialTheme.typography.titleLarge.copy(
@@ -177,7 +173,6 @@ fun ReservaProyectorScreen(
                             color = Color.Black
                         )
                     )
-
                     Icon(
                         painter = painterResource(R.drawable.icon_proyector),
                         contentDescription = null,
@@ -205,6 +200,7 @@ fun ReservaProyectorScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
+                // Campo de selección de hora de inicio
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -215,7 +211,6 @@ fun ReservaProyectorScreen(
                         fontSize = 18.sp,
                         modifier = Modifier.width(80.dp)
                     )
-
                     Surface(
                         shape = RoundedCornerShape(4.dp),
                         color = Color.White,
@@ -226,7 +221,6 @@ fun ReservaProyectorScreen(
                                 .clickable { expandedInicio = true }
                                 .padding(4.dp)
                         ) {
-                            // Display the selected "hh:mm AM/PM" string directly
                             Text(
                                 text = horaInicio,
                                 color = Color.Black,
@@ -255,7 +249,7 @@ fun ReservaProyectorScreen(
                                     onClick = {
                                         horaInicio = timeAmPm
                                         expandedInicio = false
-                                        // Ensure horaFin is after horaInicio if horaInicio changes
+                                        // Asegurar que horaFin sea posterior a horaInicio
                                         if (horas.indexOf(horaFin) <= index) {
                                             horaFin = horas.getOrElse(index + 1) { horas.last() }
                                         }
@@ -269,7 +263,6 @@ fun ReservaProyectorScreen(
                                     ),
                                     shape = RoundedCornerShape(8.dp)
                                 ) {
-                                    // Display the "hh:mm AM/PM" string directly
                                     Text(
                                         text = timeAmPm,
                                         fontSize = 16.sp,
@@ -283,6 +276,7 @@ fun ReservaProyectorScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Campo de selección de hora de fin
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -293,7 +287,6 @@ fun ReservaProyectorScreen(
                         fontSize = 18.sp,
                         modifier = Modifier.width(80.dp)
                     )
-
                     Surface(
                         shape = RoundedCornerShape(4.dp),
                         color = Color.White,
@@ -304,7 +297,6 @@ fun ReservaProyectorScreen(
                                 .clickable { expandedFin = true }
                                 .padding(4.dp)
                         ) {
-                            // Display the selected "hh:mm AM/PM" string directly
                             Text(
                                 text = horaFin,
                                 color = Color.Black,
@@ -344,7 +336,6 @@ fun ReservaProyectorScreen(
                                         ),
                                         shape = RoundedCornerShape(8.dp)
                                     ) {
-                                        // Display the "hh:mm AM/PM" string directly
                                         Text(
                                             text = timeAmPm,
                                             fontSize = 16.sp,
@@ -360,6 +351,7 @@ fun ReservaProyectorScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Botones inferiores
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -383,47 +375,25 @@ fun ReservaProyectorScreen(
                         if (state.proyectores.isNotEmpty()) {
                             coroutineScope.launch {
                                 try {
-                                    // Parse horaInicio and horaFin from the selected "hh:mm AM/PM" strings
+                                    // Parsear y validar las horas
                                     val horaInicioParsed = parseHora(horaInicio)
                                     val horaFinParsed = parseHora(horaFin)
 
-                                    val fechaParseada = parseFecha(fechaActual)
-                                    val fechaStrFormatted = fechaParseada.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")) // nuevo
-
-                                    // **CRITICAL CHANGE:** Format LocalTime back to "hh:mm a" for the API call
-                                    val apiTimeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
-                                    val horaInicioApiFormat = horaInicioParsed.format(apiTimeFormatter)
-                                    val horaFinApiFormat = horaFinParsed.format(apiTimeFormatter)
-
-
-                                    val primerProyector = state.proyectores.firstOrNull()
-                                    if (primerProyector != null) {
-                                        val reservaExitosa = viewModel.crearReserva(
-                                            fecha = fechaStrFormatted,
-                                            horaInicio = horaInicioApiFormat, // Pass formatted "hh:mm AM/PM" string
-                                            horaFin = horaFinApiFormat,       // Pass formatted "hh:mm AM/PM" string
-                                            proyectorId = primerProyector.proyectorId,
-                                            usuarioId = 123
-                                        )
-                                        if (reservaExitosa) {
-                                            // Pass the original "hh:mm AM/PM" strings for UI navigation if needed
-                                            navController.navigate("previsualizacion/${fechaStrFormatted}/${horaInicio}/${horaFin}")
-                                        }
-                                    } else {
-                                        coroutineScope.launch {
-                                            snackbarHostState.showSnackbar("No hay proyectores disponibles para reservar.")
-                                        }
+                                    // Verificar que la hora de fin sea posterior a la hora de inicio
+                                    if (horaInicioParsed.isAfter(horaFinParsed)) {
+                                        snackbarHostState.showSnackbar("La hora final debe ser después de la hora inicial")
+                                        return@launch
                                     }
-                                } catch (e: DateTimeParseException) {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Error en el formato de hora/fecha: ${e.message}. Asegúrate de seleccionar horarios válidos.",
-                                        duration = SnackbarDuration.Long
-                                    )
+
+                                    // Navegar a la pantalla de previsualización
+                                    val fechaParseada = parseFecha(fechaActual)
+                                    val fechaStrFormatted = fechaParseada.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+                                    val horaInicioFormatted = horaInicioParsed.format(DateTimeFormatter.ofPattern("hh:mm a"))
+                                    val horaFinFormatted = horaFinParsed.format(DateTimeFormatter.ofPattern("hh:mm a"))
+
+                                    navController.navigate("previsualizacion/${fechaStrFormatted}/${horaInicioFormatted}/${horaFinFormatted}")
                                 } catch (e: Exception) {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Error al procesar la reserva: ${e.message}",
-                                        duration = SnackbarDuration.Short
-                                    )
+                                    snackbarHostState.showSnackbar("Error: ${e.message ?: "Formato inválido"}")
                                 }
                             }
                         }
