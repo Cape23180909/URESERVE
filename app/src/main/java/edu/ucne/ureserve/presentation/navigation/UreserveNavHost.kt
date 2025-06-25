@@ -573,6 +573,7 @@ fun UreserveNavHost(navController: NavHostController) {
             ReservaSalaVipExitosaScreen(numeroReserva = numeroReserva, navController = navController)
         }
 
+
         composable(
             route = "TarjetaCreditoSalaVip?fecha={fecha}",
             arguments = listOf(
@@ -583,11 +584,13 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         ) { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+
             TarjetaCreditoSalaVipScreen(
                 fecha = fecha,
                 navController = navController
             )
         }
+
 
         composable(
             "TarjetaCreditoRestaurante?fecha={fecha}",
