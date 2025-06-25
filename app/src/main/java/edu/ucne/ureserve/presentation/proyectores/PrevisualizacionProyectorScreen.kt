@@ -25,7 +25,10 @@ import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
+import edu.ucne.ureserve.presentation.login.AuthManager
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -41,12 +44,47 @@ fun PrevisualizacionProyectorScreen(
     fecha: String,
     horaInicio: String,
     horaFin: String,
+    proyectorJson: String? = null,
     onBack: () -> Unit = {},
     onFinish: () -> Unit = {}
 ) {
+    // Procesar el proyector desde el JSON
+    val proyectorSeleccionadoFromJson = remember(proyectorJson) {
+        try {
+            proyectorJson?.let { Json.decodeFromString<ProyectoresDto>(it) }?.also {
+                viewModel.seleccionarProyector(it)
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    // Obtener también del ViewModel por si acaso
+    val proyectorSeleccionado by viewModel.proyectorSeleccionado.collectAsState()
+
+    // Usar el proyector de cualquiera de las dos fuentes
+    val proyectorFinal = proyectorSeleccionadoFromJson ?: proyectorSeleccionado
+
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+
+    // Verificar que tenemos un proyector
+    LaunchedEffect(Unit) {
+        if (proyectorFinal == null) {
+            // Intentar recuperar del estado si no está en el flow directo
+            val proyectorFromState = state.reservaActual?.proyector
+            if (proyectorFromState == null) {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("No se encontró proyector seleccionado")
+                    navController.popBackStack()
+                }
+            } else {
+                // Si está en el estado pero no en el flow, resincronizar
+                viewModel.seleccionarProyector(proyectorFromState)
+            }
+        }
+    }
 
     val horariosDisponibles = listOf(
         "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
@@ -64,43 +102,44 @@ fun PrevisualizacionProyectorScreen(
         null
     }
 
-    // Formateador robusto para hora con Locale.US
-    val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
-
-    // Parsear las horas de inicio y fin
-    val horaInicioParsed = remember(horaInicio) {
-        try {
-            LocalTime.parse(horaInicio.uppercase(), timeFormatter)
-        } catch (e: DateTimeParseException) {
-            null
+    val (horaInicioParsed, horaFinParsed) = try {
+        // Asegurar que las horas tengan formato consistente
+        val horaInicioNormalizada = if (horaInicio.contains(":")) horaInicio else {
+            horaInicio.replace(Regex("(\\d{2})(\\d{2})"), "$1:$2")
         }
-    }
 
-    val horaFinParsed = remember(horaFin) {
-        try {
-            LocalTime.parse(horaFin.uppercase(), timeFormatter)
-        } catch (e: DateTimeParseException) {
-            null
+        val horaFinNormalizada = if (horaFin.contains(":")) horaFin else {
+            horaFin.replace(Regex("(\\d{2})(\\d{2})"), "$1:$2")
         }
+
+        Pair(parseHora(horaInicioNormalizada), parseHora(horaFinNormalizada))
+    } catch (e: Exception) {
+        coroutineScope.launch {
+            snackbarHostState.showSnackbar(
+                "Error en formato de hora: ${e.message ?: "Use formato HH:MM AM/PM"}"
+            )
+        }
+        Pair(null, null)
     }
 
     // Validar que ambas horas sean válidas antes de usarlas
-    val formattedHorarioForApi = when {
-        horaInicioParsed != null && horaFinParsed != null -> {
-            "${horaInicioParsed.format(timeFormatter)} - ${horaFinParsed.format(timeFormatter)}"
+    val formattedHorarioForApi = remember(horaInicioParsed, horaFinParsed) {
+        when {
+            horaInicioParsed != null && horaFinParsed != null -> {
+                "${formatHora(horaInicioParsed)} - ${formatHora(horaFinParsed)}"
+            }
+            else -> null
         }
-        else -> null
     }
 
-    // Obtener o crear reserva actual
-    val reservaActual = remember(state.reservaActual, state.proyectores, fechaLocalDate, formattedHorarioForApi) {
+    val reservaActual = remember(state.reservaActual, proyectorFinal, fechaLocalDate, formattedHorarioForApi) {
         state.reservaActual ?: DetalleReservaProyectorsDto(
             codigoReserva = (100000..999999).random(),
-            idProyector = state.proyectores.firstOrNull()?.proyectorId ?: 0,
+            idProyector = proyectorFinal?.proyectorId ?: 0,
             fecha = fechaLocalDate,
-            horario = formattedHorarioForApi ?: "$horaInicio - $horaFin", // Fallback
+            horario = formattedHorarioForApi ?: "$horaInicio - $horaFin",
             estado = 1,
-            proyector = state.proyectores.firstOrNull()
+            proyector = proyectorFinal
         )
     }
 
@@ -215,7 +254,7 @@ fun PrevisualizacionProyectorScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Horario: $horaInicio - $horaFin",
+                                text = "Horario: ${formattedHorarioForApi ?: "$horaInicio - $horaFin"}",
                                 color = Color.Black,
                                 fontSize = 16.sp
                             )
@@ -338,39 +377,56 @@ fun PrevisualizacionProyectorScreen(
                             onClick = {
                                 coroutineScope.launch {
                                     try {
-                                        if (fechaLocalDate == null || formattedHorarioForApi == null || reservaActual.idProyector == 0) {
-                                            snackbarHostState.showSnackbar(
-                                                message = "Error: Faltan datos para confirmar la reserva.",
-                                                duration = SnackbarDuration.Long
-                                            )
+                                        // Validación mejorada
+                                        if (fechaLocalDate == null) {
+                                            snackbarHostState.showSnackbar("Fecha inválida. Formato esperado: DD-MM-AAAA")
+                                            return@launch
+                                        }
+
+                                        if (horaInicioParsed == null) {
+                                            snackbarHostState.showSnackbar("Hora de inicio inválida. Use formato como: 09:00 AM")
+                                            return@launch
+                                        }
+
+                                        if (horaFinParsed == null) {
+                                            snackbarHostState.showSnackbar("Hora final inválida. Use formato como: 10:00 AM")
+                                            return@launch
+                                        }
+
+                                        if (horaInicioParsed.isAfter(horaFinParsed)) {
+                                            snackbarHostState.showSnackbar("La hora de inicio debe ser antes que la hora final")
+                                            return@launch
+                                        }
+
+                                        if (proyectorFinal == null) {
+                                            snackbarHostState.showSnackbar("Debe seleccionar un proyector")
                                             return@launch
                                         }
 
                                         val fechaStringForApi = fechaLocalDate.format(dateFormatter)
+                                        val horarioParaApi = "${formatHora(horaInicioParsed)} - ${formatHora(horaFinParsed)}"
+
                                         val reservaDto = ProyectoresDto(
-                                            proyectorId = reservaActual.idProyector,
+                                            proyectorId = proyectorFinal!!.proyectorId,
                                             fecha = fechaStringForApi,
-                                            horario = formattedHorarioForApi,
+                                            horario = horarioParaApi,
                                             estado = 1,
-                                            codigoReserva = reservaActual.codigoReserva
+                                            codigoReserva = reservaActual.codigoReserva, // Usar el código generado anteriormente
+                                            usuarioId = AuthManager.currentUser?.usuarioId ?: 0
                                         )
 
                                         val response = viewModel.confirmarReserva(reservaDto)
                                         if (response) {
-                                            navController.navigate("ReservaExitosa") {
-                                                popUpTo("reservaProyector") { inclusive = false }
+                                            // Navegar a pantalla de éxito con el código de reserva
+                                            navController.navigate("ReservaExitosa/${reservaActual.codigoReserva}") {
+                                                // Limpiar el back stack hasta la pantalla principal
+                                                popUpTo("Dashboard") { inclusive = false }
                                             }
                                         } else {
-                                            snackbarHostState.showSnackbar(
-                                                message = "Error al confirmar la reserva",
-                                                duration = SnackbarDuration.Short
-                                            )
+                                            snackbarHostState.showSnackbar("Error al confirmar la reserva")
                                         }
                                     } catch (e: Exception) {
-                                        snackbarHostState.showSnackbar(
-                                            message = "Error: ${e.message ?: "Desconocido"}",
-                                            duration = SnackbarDuration.Long
-                                        )
+                                        snackbarHostState.showSnackbar("Error inesperado: ${e.localizedMessage ?: "Por favor intente nuevamente"}")
                                     }
                                 }
                             },
