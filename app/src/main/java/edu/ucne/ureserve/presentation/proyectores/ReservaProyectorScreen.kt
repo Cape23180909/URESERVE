@@ -60,6 +60,9 @@ import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import edu.ucne.ureserve.presentation.proyectores.DateTimeUtils.parseHora
+import edu.ucne.ureserve.presentation.proyectores.DateTimeUtils.formatHora
+import edu.ucne.ureserve.presentation.proyectores.DateTimeUtils.parseFecha
 
 
 @RequiresApi(Build.VERSION_CODES.O)
