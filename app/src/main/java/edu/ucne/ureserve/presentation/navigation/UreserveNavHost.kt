@@ -41,8 +41,11 @@ import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteReservationcalendarioScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteScreen
+import edu.ucne.ureserve.presentation.restaurantes.RestauranteTransferenciaScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalaVipScreen
+import edu.ucne.ureserve.presentation.restaurantes.SalaVipTransferenciaScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalonReunionesScreen
+import edu.ucne.ureserve.presentation.restaurantes.SalonTransferenciaScreen
 import edu.ucne.ureserve.presentation.restaurantes.TarjetaCreditoRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.TarjetaCreditoSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaRestauranteScreen
@@ -683,6 +686,78 @@ fun UreserveNavHost(navController: NavHostController) {
                 navController = navController
             )
         }
+
+        composable(
+            route = "SalaVipTransferencia?fecha={fecha}",
+            arguments = listOf(
+                navArgument("fecha") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                }
+            )
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            SalaVipTransferenciaScreen(
+                fecha = fecha,
+                onCancelarClick = { navController.popBackStack() },
+                onTransferenciaClick = { banco -> /* manejo banco si quieres */ },
+                onConfirmarClick = { fechaConfirmacion ->
+                    navController.navigate("RegistroReservaSalaVip?fecha=$fechaConfirmacion")
+                }
+            )
+        }
+
+        composable(
+            route = "SalonTransferencia?fecha={fecha}",
+            arguments = listOf(
+                navArgument("fecha") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                }
+            )
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+
+            SalonTransferenciaScreen(
+                fecha = fecha,
+                onCancelarClick = { navController.popBackStack() },
+                onTransferenciaClick = { banco ->
+                    // Si deseas usar el banco seleccionado, puedes hacerlo aquí.
+                },
+                onConfirmarClick = { fechaConfirmada ->
+                    // 🚀 Aquí navegas hacia RegistroReservaSalonScreen
+                    navController.navigate("RegistroReservaSalon?fecha=$fechaConfirmada")
+                }
+            )
+        }
+
+
+        composable(
+            route = "RestauranteTransferencia?fecha={fecha}",
+            arguments = listOf(
+                navArgument("fecha") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                }
+            )
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+
+            RestauranteTransferenciaScreen(
+                fecha = fecha,
+                onCancelarClick = { navController.popBackStack() },
+                onTransferenciaClick = { banco ->
+                    // Si quieres guardar el banco seleccionado o mostrarlo, hazlo aquí
+                },
+                onConfirmarClick = { fechaConfirmada ->
+                    navController.navigate("RegistroReservaRestaurante?fecha=$fechaConfirmada")
+                }
+            )
+        }
+
 
 
     }
