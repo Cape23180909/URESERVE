@@ -5,53 +5,64 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import edu.ucne.ureserve.data.remote.DetalleReservaProyectorsApi
+import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
+import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.repository.ProyectorRepository
+import edu.ucne.ureserve.presentation.login.AuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.io.IOException
-import java.time.LocalDate
-import java.time.LocalTime
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.util.Locale // Import Locale
+import java.util.*
 import javax.inject.Inject
-import androidx.compose.runtime.State
 
 @HiltViewModel
 class ReservaProyectorViewModel @Inject constructor(
-    private val repository: ProyectorRepository
+    private val repository: ProyectorRepository,
+    private val detalleReservaApi: DetalleReservaProyectorsApi,
+    private val reservaApi: ReservacionesApi
 ) : ViewModel() {
+
+    // Estado principal del ViewModel
     private val _state = MutableStateFlow(ReservaProyectorState())
     val state: StateFlow<ReservaProyectorState> = _state.asStateFlow()
+
+    // Estado para la reserva confirmada
+    private val _reservaState = mutableStateOf(ReservaConfirmadaState())
+    val reservaState = _reservaState
+
+    private val _proyectorSeleccionado = MutableStateFlow<ProyectoresDto?>(null)
+    val proyectorSeleccionado: StateFlow<ProyectoresDto?> = _proyectorSeleccionado.asStateFlow()
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerFechaActual(): String {
         return LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
     }
 
-    @RequiresApi(Build.VERSION_CODES.O) // Add this annotation as we're using LocalDate/LocalTime
+    @RequiresApi(Build.VERSION_CODES.O)
     fun verificarDisponibilidad(fecha: String, horaInicio: String, horaFin: String) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
-                // Ensure the date formatter is consistent
                 val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
                 val fechaFormatted = LocalDate.parse(fecha, dateFormatter).format(dateFormatter)
 
-                // Ensure time formatter with Locale.US for both parsing and formatting
                 val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
-
-                // Parse and re-format horaInicio and horaFin to ensure consistency
                 val horaInicioFormatted = LocalTime.parse(horaInicio, timeFormatter).format(timeFormatter)
                 val horaFinFormatted = LocalTime.parse(horaFin, timeFormatter).format(timeFormatter)
 
-                val proyectores = repository.getProyectoresDisponibles(fechaFormatted, horaInicioFormatted, horaFinFormatted)
+                val proyectores = repository.getProyectoresDisponibles(
+                    fechaFormatted,
+                    horaInicioFormatted,
+                    horaFinFormatted
+                )
                 _state.value = _state.value.copy(
                     proyectores = proyectores,
                     isLoading = false,
@@ -59,7 +70,7 @@ class ReservaProyectorViewModel @Inject constructor(
                 )
             } catch (e: DateTimeParseException) {
                 _state.value = _state.value.copy(
-                    error = "Error de formato de fecha/hora al verificar disponibilidad: Asegúrate de que las fechas estén en 'dd-MM-yyyy' y las horas en 'hh:mm AM/PM'. Detalle: ${e.message}",
+                    error = "Error de formato de fecha/hora: ${e.message}",
                     isLoading = false
                 )
             } catch (e: Exception) {
@@ -71,144 +82,134 @@ class ReservaProyectorViewModel @Inject constructor(
         }
     }
 
-    private val _proyectorSeleccionado = MutableStateFlow<ProyectoresDto?>(null)
-    val proyectorSeleccionado: StateFlow<ProyectoresDto?> = _proyectorSeleccionado.asStateFlow()
-
     fun seleccionarProyector(proyector: ProyectoresDto) {
         _proyectorSeleccionado.value = proyector
-        // Guardar también en el estado actual para persistencia
         _state.value = _state.value.copy(
-            reservaActual = _state.value.reservaActual?.horario?.let {
-                DetalleReservaProyectorsDto(
-                    codigoReserva = (100000..999999).random(),
-                    idProyector = proyector.proyectorId,
-                    fecha = _state.value.reservaActual?.fecha,
-                    horario = it,
-                    estado = 1,
-                    proyector = proyector
-                )
-            }
+            reservaActual = _state.value.reservaActual?.copy(
+                idProyector = proyector.proyectorId,
+                proyector = proyector
+            )
         )
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun crearReserva(
-        fecha: String, // Expected: "dd-MM-yyyy" (as per previous logic)
-        horaInicio: String, // Expected from UI: "hh:mm AM/PM"
-        horaFin: String,    // Expected from UI: "hh:mm AM/PM"
+        fecha: String,
+        horaInicio: String,
+        horaFin: String,
         proyectorId: Int,
-        usuarioId: Int
+        usuarioId: Int,
+        codigoReserva: Int
     ): Boolean {
         return try {
-            if (fecha.isBlank()) {
-                throw IllegalArgumentException("La fecha no puede estar vacía.")
-            }
-            val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-            val fechaLocalDate = try {
-                LocalDate.parse(fecha, dateFormatter)
-            } catch (e: DateTimeParseException) {
-                throw IllegalArgumentException("Formato de fecha inválido. Use dd-MM-yyyy. Detalle: ${e.message}")
-            }
+            val fechaLocalDate = DateTimeUtils.parseFecha(fecha)
+            val horaInicioLocalTime = DateTimeUtils.parseHora(horaInicio)
+            val horaFinLocalTime = DateTimeUtils.parseHora(horaFin)
 
-            val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+            val proyectorFinal = repository.getProyector(proyectorId)
 
-            val horaInicioLocalTime = try {
-                LocalTime.parse(horaInicio, timeFormatter)
-            } catch (e: DateTimeParseException) {
-                throw IllegalArgumentException("Formato de hora inicio inválido. Use hh:mm AM/PM. Detalle: ${e.message}")
-            }
-
-            val horaFinLocalTime = try {
-                LocalTime.parse(horaFin, timeFormatter)
-            } catch (e: DateTimeParseException) {
-                throw IllegalArgumentException("Formato de hora fin inválido. Use hh:mm AM/PM. Detalle: ${e.message}")
-            }
-
-            val horarioForApi = "${horaInicioLocalTime.format(timeFormatter)} - ${horaFinLocalTime.format(timeFormatter)}"
-
-            // The date for ProyectoresDto should be formatted as "dd-MM-yyyy" if that's what the API expects for this specific field.
-            // If the API for ProyectoresDto expects "yyyy-MM-dd", then change dateFormatter pattern to "yyyy-MM-dd" or create another formatter.
-            // Based on your previous code, "dd-MM-yyyy" was used, so keeping that.
-            val reservaDto = ProyectoresDto(
-                fecha = fechaLocalDate.format(dateFormatter),
-                horario = horarioForApi,
+            val reservaDto = DetalleReservaProyectorsDto(
+                detalleReservaProyectorId = 0,
+                codigoReserva = codigoReserva,
+                idProyector = proyectorId,
+                matricula = AuthManager.currentUser?.correoInstitucional ?: "",
+                fecha = DateTimeUtils.toBackendDateTimeFormat(fechaLocalDate, horaInicioLocalTime),
+                horario = DateTimeUtils.createHorarioString(
+                    horaInicioLocalTime,
+                    Duration.between(horaInicioLocalTime, horaFinLocalTime).toHours()
+                ),
                 estado = 1,
-                codigoReserva = generarCodigoReserva(),
-                proyectorId = proyectorId,
-                usuarioId = usuarioId
+                proyector = proyectorFinal
             )
 
             val response = repository.createDetalleReservaProyector(reservaDto)
-            if (!response.isSuccessful) {
-                val errorBody = response.errorBody()?.string() ?: response.message()
-                throw Exception("Error del servidor (${response.code()}): $errorBody")
-            }
-            true
+            response.isSuccessful
         } catch (e: Exception) {
             _state.value = _state.value.copy(error = "Error al crear reserva: ${e.message}")
             false
         }
     }
 
-    private fun generarCodigoReserva(): Int {
-        return (100000..999999).random()
-    }
-
-    fun limpiarError() {
-        _state.value = _state.value.copy(error = null)
-    }
-
-    private val _errorMessage = mutableStateOf<String?>(null)
-    val errorMessage: State<String?> = _errorMessage
-
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun confirmarReserva(dto: ProyectoresDto): Boolean {
-        _errorMessage.value = null
-        _state.value = _state.value.copy(isLoading = true, error = null)
+    fun confirmarReserva(
+        fechaStr: String,
+        horaInicioStr: String,
+        horaFinStr: String,
+        proyector: ProyectoresDto,
+        codigoReserva: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                // Convertir fecha a formato ISO con zona horaria
+                val fechaIso = if (fechaStr.isNotEmpty()) {
+                    LocalDate.parse(fechaStr).atStartOfDay(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                } else {
+                    ""
+                }
 
-        return try {
-            // Validaciones
-            if (proyectorSeleccionado.value == null) {
-                val msg = "No se ha seleccionado un proyector"
-                _errorMessage.value = msg
-                _state.value = _state.value.copy(error = msg, isLoading = false)
-                return false
-            }
-            if (dto.fecha.isBlank()) throw IllegalArgumentException("Fecha no especificada")
-            if (dto.horario.isBlank()) throw IllegalArgumentException("Horario no especificado")
-            if (dto.codigoReserva == 0) throw IllegalArgumentException("Código de reserva no generado")
+                val detalleReserva = DetalleReservaProyectorsDto(
+                    detalleReservaProyectorId = 0,
+                    codigoReserva = codigoReserva,
+                    idProyector = proyector.proyectorId,
+                    matricula = AuthManager.currentUser?.correoInstitucional ?: "",
+                    fecha = fechaIso,
+                    horario = "$horaInicioStr - $horaFinStr",
+                    estado = 1,
+                    proyector = proyector
+                )
 
-            // Llamada a la API
-            val response = repository.createDetalleReservaProyector(dto)
-            if (!response.isSuccessful) {
-                val errorBody = response.errorBody()?.string() ?: response.message()
-                val msg = "Error del servidor (${response.code()}): $errorBody"
-                _errorMessage.value = msg
-                _state.value = _state.value.copy(error = msg, isLoading = false)
-                return false
-            }
+                val reservacionDto = ReservacionesDto(
+                    reservacionId = 0,
+                    codigoReserva = detalleReserva.codigoReserva,
+                    tipoReserva = 1,
+                    cantidadEstudiantes = 0,
+                    fecha = fechaIso,
+                    horario = detalleReserva.horario,
+                    estado = detalleReserva.estado,
+                    matricula = detalleReserva.matricula
+                )
 
-            _state.value = _state.value.copy(isLoading = false)
-            true
-        } catch (e: Exception) {
-            val msg = when (e) {
-                is IOException -> "Error de conexión"
-                is HttpException -> "Error del servidor"
-                is IllegalArgumentException -> e.message ?: "Error de validación"
-                else -> "Error desconocido: ${e.message}"
+                // Ambos lanzarán excepción si fallan
+                reservaApi.insert(reservacionDto)
+                val response2 = detalleReservaApi.insert(detalleReserva)
+
+                _reservaState.value = _reservaState.value.copy(
+                    reservaConfirmada = true,
+                    codigoReserva = detalleReserva.codigoReserva,
+                    error = null
+                )
+
+            } catch (e: Exception) {
+                _reservaState.value = _reservaState.value.copy(
+                    reservaConfirmada = false,
+                    error = "Error: ${e.message ?: "Error desconocido"}"
+                )
             }
-            _errorMessage.value = msg
-            _state.value = _state.value.copy(error = msg, isLoading = false)
-            false
         }
     }
 
+//    fun generarCodigoReserva(): Int {
+//        return (100000..999999).random()
+//    }
+
+    fun limpiarError() {
+        _state.value = _state.value.copy(error = null)
+        _reservaState.value = _reservaState.value.copy(error = null)
+    }
 }
 
+// State data classes
 data class ReservaProyectorState(
     val proyectores: List<ProyectoresDto> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val disponibilidadVerificada: Boolean = false,
     val reservaActual: DetalleReservaProyectorsDto? = null
+)
+
+data class ReservaConfirmadaState(
+    val reservaConfirmada: Boolean = false,
+    val codigoReserva: Int = 0,
+    val error: String? = null
 )
