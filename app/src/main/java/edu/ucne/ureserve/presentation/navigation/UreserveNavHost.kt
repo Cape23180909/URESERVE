@@ -12,6 +12,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
@@ -55,6 +56,7 @@ import edu.ucne.ureserve.presentation.salones.DatosPersonalesSalonStore
 import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
 import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
+import kotlinx.serialization.json.Json
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -214,8 +216,6 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
-
-
 
         composable("Restaurante") { backStackEntry ->
             val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
@@ -421,13 +421,19 @@ fun UreserveNavHost(navController: NavHostController) {
         }
 
         composable(
-            "ReservaExitosa/{codigoReserva}",
-            arguments = listOf(navArgument("codigoReserva") { type = NavType.StringType })
+            route = "ReservaExitosa/{codigoReserva}",
+            arguments = listOf(
+                navArgument("codigoReserva") {
+                    type = NavType.IntType // Asumimos que es un Int
+                }
+            )
         ) { backStackEntry ->
-            val codigoReserva = backStackEntry.arguments?.getString("codigoReserva") ?: ""
-            ReservaExitosaScreen(navController, codigoReserva)
+            val codigoReserva = backStackEntry.arguments?.getInt("codigoReserva")
+            ReservaExitosaScreen(
+                navController = navController,
+                codigoReserva = codigoReserva
+            )
         }
-
 
 // En tu NavHost o NavController setup:
         composable(
