@@ -14,7 +14,7 @@ interface DetalleReservaProyectorsApi {
 
     @POST("api/DetalleReservaProyectors")
     suspend fun insert(
-        @Body detalle: ProyectoresDto
+        @Body detalle: DetalleReservaProyectorsDto // Mantener como está si el backend espera ProyectoresDto
     ): Response<DetalleReservaProyectorsDto>
 
     @PUT("api/DetalleReservaProyectors/{id}")
