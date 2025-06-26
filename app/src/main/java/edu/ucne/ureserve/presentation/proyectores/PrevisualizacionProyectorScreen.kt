@@ -27,13 +27,17 @@ import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import edu.ucne.ureserve.presentation.login.AuthManager
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
+import edu.ucne.ureserve.presentation.proyectores.DateTimeUtils.parseHora
+import edu.ucne.ureserve.presentation.proyectores.DateTimeUtils.formatHora
+import kotlinx.coroutines.delay
+import java.time.ZoneId
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -132,15 +136,36 @@ fun PrevisualizacionProyectorScreen(
         }
     }
 
+    // Definir la reserva actual basada en el estado o crear una nueva
     val reservaActual = remember(state.reservaActual, proyectorFinal, fechaLocalDate, formattedHorarioForApi) {
-        state.reservaActual ?: DetalleReservaProyectorsDto(
-            codigoReserva = (100000..999999).random(),
-            idProyector = proyectorFinal?.proyectorId ?: 0,
-            fecha = fechaLocalDate,
-            horario = formattedHorarioForApi ?: "$horaInicio - $horaFin",
-            estado = 1,
-            proyector = proyectorFinal
-        )
+        state.reservaActual ?: run {
+            val codigoReserva = (100000..999999).random()
+            val matricula = AuthManager.currentUser?.correoInstitucional ?: ""
+
+            if (fechaLocalDate != null) {
+                DetalleReservaProyectorsDto(
+                    detalleReservaProyectorId = 0,
+                    codigoReserva = codigoReserva,
+                    idProyector = proyectorFinal?.proyectorId ?: 0,
+                    matricula = matricula,
+                    fecha = fechaLocalDate.toString(),
+                    horario = formattedHorarioForApi ?: "$horaInicio - $horaFin",
+                    estado = 1,
+                    proyector = proyectorFinal!!
+                )
+            } else {
+                DetalleReservaProyectorsDto(
+                    detalleReservaProyectorId = 0,
+                    codigoReserva = codigoReserva,
+                    idProyector = proyectorFinal?.proyectorId ?: 0,
+                    matricula = matricula,
+                    fecha = "",
+                    horario = formattedHorarioForApi ?: "$horaInicio - $horaFin",
+                    estado = 1,
+                    proyector = proyectorFinal!!
+                )
+            }
+        }
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
@@ -195,7 +220,7 @@ fun PrevisualizacionProyectorScreen(
                         )
 
                         // Detalles del proyector
-                        reservaActual.proyector?.let { proyector ->
+                        proyectorFinal?.let { proyector ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
@@ -376,72 +401,74 @@ fun PrevisualizacionProyectorScreen(
                         Button(
                             onClick = {
                                 coroutineScope.launch {
+
                                     try {
-                                        // Validación mejorada
-                                        if (fechaLocalDate == null) {
-                                            snackbarHostState.showSnackbar("Fecha inválida. Formato esperado: DD-MM-AAAA")
-                                            return@launch
-                                        }
-
-                                        if (horaInicioParsed == null) {
-                                            snackbarHostState.showSnackbar("Hora de inicio inválida. Use formato como: 09:00 AM")
-                                            return@launch
-                                        }
-
-                                        if (horaFinParsed == null) {
-                                            snackbarHostState.showSnackbar("Hora final inválida. Use formato como: 10:00 AM")
-                                            return@launch
-                                        }
-
-                                        if (horaInicioParsed.isAfter(horaFinParsed)) {
-                                            snackbarHostState.showSnackbar("La hora de inicio debe ser antes que la hora final")
-                                            return@launch
-                                        }
-
                                         if (proyectorFinal == null) {
-                                            snackbarHostState.showSnackbar("Debe seleccionar un proyector")
+                                            snackbarHostState.showSnackbar("No se ha seleccionado un proyector")
                                             return@launch
                                         }
 
-                                        val fechaStringForApi = fechaLocalDate.format(dateFormatter)
-                                        val horarioParaApi = "${formatHora(horaInicioParsed)} - ${formatHora(horaFinParsed)}"
+                                        val matricula = AuthManager.currentUser?.correoInstitucional ?: run {
+                                            snackbarHostState.showSnackbar("Usuario no autenticado")
+                                            return@launch
+                                        }
 
-                                        val reservaDto = ProyectoresDto(
-                                            proyectorId = proyectorFinal!!.proyectorId,
-                                            fecha = fechaStringForApi,
-                                            horario = horarioParaApi,
+                                        if (fechaLocalDate == null) {
+                                            snackbarHostState.showSnackbar("Fecha inválida")
+                                            return@launch
+                                        }
+
+                                        val fechaStr = fechaLocalDate.toString()
+                                        val horaInicioStr = horaInicioParsed?.format(DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())) ?: horaInicio
+                                        val horaFinStr = horaFinParsed?.format(DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())) ?: horaFin
+
+                                        val codigoReserva = reservaActual.codigoReserva
+
+                                        val reservaDto = DetalleReservaProyectorsDto(
+                                            detalleReservaProyectorId = 0,
+                                            codigoReserva = codigoReserva,
+                                            idProyector = proyectorFinal!!.proyectorId,
+                                            matricula = matricula,
+                                            fecha = fechaLocalDate.toString(),
+                                            horario = "$horaInicio - $horaFin",
                                             estado = 1,
-                                            codigoReserva = reservaActual.codigoReserva, // Usar el código generado anteriormente
-                                            usuarioId = AuthManager.currentUser?.usuarioId ?: 0
+                                            proyector = proyectorFinal!!
                                         )
 
-                                        val response = viewModel.confirmarReserva(reservaDto)
-                                        if (response) {
-                                            // Navegar a pantalla de éxito con el código de reserva
-                                            navController.navigate("ReservaExitosa/${reservaActual.codigoReserva}") {
-                                                // Limpiar el back stack hasta la pantalla principal
-                                                popUpTo("Dashboard") { inclusive = false }
+                                        viewModel.confirmarReserva(
+                                            fechaStr = fechaStr,
+                                            horaInicioStr = horaInicioStr,
+                                            horaFinStr = horaFinStr,
+                                            proyector = reservaDto.proyector,
+                                            codigoReserva = codigoReserva
+                                        )
+
+                                        delay(200) // Esperar un breve momento para que el estado se actualice
+
+                                        if (viewModel.reservaState.value.reservaConfirmada) {
+                                            // Pasa el mismo código a la pantalla de éxito
+                                            navController.navigate("ReservaExitosa/$codigoReserva") {
+                                                popUpTo("PrevisualizacionProyectorScreen") { inclusive = true }
                                             }
                                         } else {
-                                            snackbarHostState.showSnackbar("Error al confirmar la reserva")
+                                            val errorMsg = viewModel.reservaState.value.error ?: "Error desconocido al confirmar reserva"
+                                            snackbarHostState.showSnackbar(errorMsg)
                                         }
                                     } catch (e: Exception) {
-                                        snackbarHostState.showSnackbar("Error inesperado: ${e.localizedMessage ?: "Por favor intente nuevamente"}")
+                                        snackbarHostState.showSnackbar("Error: ${e.message ?: "Ocurrió un error inesperado"}")
                                     }
                                 }
                             },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 16.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF6895D2),
+                                containerColor = Color(0xFF004BBB),
                                 contentColor = Color.White
                             ),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text(
-                                text = "CONFIRMAR",
-                                fontSize = 16.sp,
-                                modifier = Modifier.padding(8.dp)
-                            )
+                            Text(text = "CONFIRMAR")
                         }
                     }
                 }
