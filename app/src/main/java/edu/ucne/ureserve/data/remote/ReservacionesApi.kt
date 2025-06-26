@@ -2,6 +2,7 @@ package edu.ucne.ureserve.data.remote
 
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import retrofit2.http.*
+import retrofit2.Response
 
 interface ReservacionesApi {
     @GET("api/Reservaciones")
@@ -11,7 +12,7 @@ interface ReservacionesApi {
     suspend fun getById(@Path("id") id: Int): ReservacionesDto
 
     @POST("api/Reservaciones")
-    suspend fun insert(@Body reservacion: ReservacionesDto): ReservacionesDto
+    suspend fun insert(@Body reservacion: ReservacionesDto): Response<ReservacionesDto>
 
     @PUT("api/Reservaciones/{id}")
     suspend fun update(@Path("id") id: Int, @Body reservacion: ReservacionesDto): ReservacionesDto
