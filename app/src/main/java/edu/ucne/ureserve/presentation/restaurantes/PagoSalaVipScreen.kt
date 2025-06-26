@@ -86,8 +86,11 @@ fun PagoSalaVipScreen(
                 }
 
                 MetodoPagoSalaVipItem("Transferencia bancaria", R.drawable.trasnferencia) {
-                    navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
+                    navController.navigate("SalaVipTransferencia?fecha=$fecha")
                 }
+
+
+
             }
         }
 
