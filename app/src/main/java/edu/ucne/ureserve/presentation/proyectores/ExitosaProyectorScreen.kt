@@ -30,16 +30,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
+import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservaExitosaScreen(
+    viewModel: ReservaProyectorViewModel = hiltViewModel(),
     navController: NavController,
-    codigoReserva: String,  // Añadir parámetro para el código de reserva
+    codigoReserva: Int?,
     onBottomNavClick: (String) -> Unit = {}
 ) {
     Column(
@@ -82,11 +86,18 @@ fun ReservaExitosaScreen(
                         fontWeight = FontWeight.Bold
                     )
 
+                    // Aquí va lo que querías copiar exactamente
                     Text(
-                        text = "No. de Reserva: $codigoReserva",  // Usar el código real
+                        text = "Código de reserva:",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = codigoReserva?.toString() ?: "No disponible",
                         color = Color.Black,
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
 
                     Button(
@@ -144,13 +155,27 @@ fun ReservaExitosaScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewReservaExitosaScreen() {
-    MaterialTheme {
-        ReservaExitosaScreen(
-            navController = rememberNavController(),
-            codigoReserva = "ABC123" // Valor de ejemplo
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewReservaExitosaScreen() {
+//    MaterialTheme {
+//        val ejemploReserva = DetalleReservaProyectorsDto(
+//            detalleReservaProyectorId = 0,
+//            codigoReserva = 123454,
+//            idProyector = 1,
+//            matricula = "20201234",
+//            fecha = "2025-06-24",
+//            horario = "12:00 PM - 01:00 PM",
+//            estado = 1,
+//            proyector = ProyectoresDto(
+//                proyectorId = 1,
+//                nombre = "Proyector Aula 101",
+//                conectividad = "HDMI, VGA"
+//            )
+//        )
+//        ReservaExitosaScreen(
+//            navController = rememberNavController(),
+//            detalleReserva = ejemploReserva
+//        )
+//    }
+//}
