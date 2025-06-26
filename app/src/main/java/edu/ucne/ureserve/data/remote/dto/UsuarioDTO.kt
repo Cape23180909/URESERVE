@@ -1,5 +1,8 @@
 package edu.ucne.ureserve.data.remote.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class UsuarioDTO (
     val usuarioId: Int = 0,
     val nombres: String = "",
