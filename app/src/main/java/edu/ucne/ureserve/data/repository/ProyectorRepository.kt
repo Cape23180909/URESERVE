@@ -1,6 +1,8 @@
 package edu.ucne.ureserve.data.repository
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
@@ -23,14 +25,15 @@ class ProyectorRepository @Inject constructor(
         // Implementar lógica para obtener proyectores disponibles
         // Esto puede variar según tu API real
         val todosProyectores = remoteDataSource.getProyectores()
-        return todosProyectores.filter { it.estado == 0 } // Filtra los disponibles
+        return todosProyectores
     }
 
     // Métodos para DetalleReservaProyector
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun createDetalleReservaProyector(
-        reservaDto: ProyectoresDto
+        detalle: DetalleReservaProyectorsDto
     ): Response<DetalleReservaProyectorsDto> {
-        return remoteDataSource.insertDetalleReservaProyector(reservaDto)
+        return remoteDataSource.insertDetalleReservaProyector(detalle)
     }
 
     suspend fun getDetalleReservaProyector(id: Int): DetalleReservaProyectorsDto {
