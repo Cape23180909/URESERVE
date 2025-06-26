@@ -87,8 +87,15 @@ class RemoteDataSource @Inject constructor(
     // Reservaciones
     suspend fun getReservaciones(): List<ReservacionesDto> = apiReservaciones.getAll()
     suspend fun getReservacion(id: Int): ReservacionesDto = apiReservaciones.getById(id)
-    suspend fun createReservacion(reservacion: ReservacionesDto): ReservacionesDto =
-        apiReservaciones.insert(reservacion)
+    suspend fun createReservacion(reservacion: ReservacionesDto): ReservacionesDto {
+        val response = apiReservaciones.insert(reservacion)
+        if (response.isSuccessful) {
+            return response.body() ?: throw Exception("La respuesta del servidor está vacía")
+        } else {
+            throw Exception("Error al crear la reservación: ${response.code()} - ${response.message()}")
+        }
+    }
+
 
     suspend fun updateReservacion(id: Int, reservacion: ReservacionesDto): ReservacionesDto =
         apiReservaciones.update(id, reservacion)
@@ -157,7 +164,7 @@ class RemoteDataSource @Inject constructor(
 
     // DetalleReservaProyectors
     suspend fun insertDetalleReservaProyector(
-        detalle: ProyectoresDto
+        detalle: DetalleReservaProyectorsDto
     ): Response<DetalleReservaProyectorsDto> {
         return apiDetalleReservaProyectors.insert(detalle)
     }
@@ -178,7 +185,7 @@ class RemoteDataSource @Inject constructor(
     }
 
     suspend fun createDetalleReservaProyector(
-        detalle: ProyectoresDto
+        detalle: DetalleReservaProyectorsDto
     ): Response<DetalleReservaProyectorsDto> {
         return apiDetalleReservaProyectors.insert(detalle)
     }
