@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.presentation.restaurantes.MetodoPagoSalaVipItem
 
 @Composable
 fun PagoSalonScreen(
@@ -85,8 +86,9 @@ fun PagoSalonScreen(
                 }
 
                 MetodoPagoSalonItem("Transferencia bancaria", R.drawable.trasnferencia) {
-                    navController.navigate("RegistroReservaSalon?fecha=$fecha")
+                    navController.navigate("SalonTransferencia?fecha=$fecha")
                 }
+
             }
         }
 
