@@ -8,8 +8,8 @@ data class ReservacionesDto(
     val codigoReserva: Int = 0,
     val tipoReserva: Int = 0,
     val cantidadEstudiantes: Int = 0,
-    val fecha: String = "",
-    val horario: String = "",
+    val fecha: String = "", // Formato: "yyyy-MM-dd"
+    val horario: String = "", // Formato: "HH:mm:ss"
     val estado: Int = 0,
     val matricula: String = ""
 )
