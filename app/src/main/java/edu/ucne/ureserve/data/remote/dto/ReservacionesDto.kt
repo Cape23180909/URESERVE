@@ -5,11 +5,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ReservacionesDto(
     val reservacionId: Int = 0,
-    val codigoReserva: Int = 0,
-    val tipoReserva: Int = 0,
+    val codigoReserva: Int,
+    val tipoReserva: Int,
     val cantidadEstudiantes: Int = 0,
-    val fecha: String = "", // Formato: "yyyy-MM-dd"
-    val horario: String = "", // Formato: "HH:mm:ss"
+    val fecha: String,
+    val horario: String,
     val estado: Int = 0,
-    val matricula: String = ""
+    val matricula: String
 )
