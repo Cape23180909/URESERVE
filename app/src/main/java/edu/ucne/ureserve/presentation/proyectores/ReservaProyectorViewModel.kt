@@ -1,6 +1,7 @@
 package edu.ucne.ureserve.presentation.proyectores
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -91,73 +92,65 @@ class ReservaProyectorViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun confirmarReserva(
-        fechaStr: String,
-        horaInicioStr: String,
-        horaFinStr: String,
+    fun confirmarReservaProyector(
         proyectorId: Int,
-        codigoReserva: Int
+        fechaLocal: LocalDate,
+        horaInicio: LocalTime,
+        horaFin: LocalTime,
+        matricula: String
     ) {
         viewModelScope.launch {
             try {
-                _state.value = _state.value.copy(isLoading = true, error = null)
+                val codigoReserva = (100000..999999).random()
 
-                // Convertir fecha a formato ISO (yyyy-MM-dd)
-                val fechaLocalDate = LocalDate.parse(fechaStr, DateTimeFormatter.ofPattern("dd-MM-yyyy"))
-                val fechaISO = fechaLocalDate.toString() // Esto dará formato yyyy-MM-dd
+                // 1. Formatear fecha y hora según lo que espera el backend
+                val fechaFormateada = ZonedDateTime.of(
+                    fechaLocal,
+                    horaInicio,
+                    ZoneId.systemDefault()
+                ).format(DateTimeFormatter.ISO_INSTANT)
 
-                // Validar formato de horas
-                val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
-                val horaInicio = LocalTime.parse(horaInicioStr, timeFormatter)
-                val horaFin = LocalTime.parse(horaFinStr, timeFormatter)
+                // 2. Calcular duración (TimeSpan) en formato HH:mm:ss
+                val duracion = Duration.between(horaInicio, horaFin)
+                val horarioFormateado = String.format(
+                    "%02d:%02d:%02d",
+                    duracion.toHours(),
+                    duracion.toMinutes() % 60,
+                    duracion.seconds % 60
+                )
 
-                if (horaFin.isBefore(horaInicio)) {
-                    throw Exception("La hora final debe ser después de la inicial")
+                // 3. Crear DTO para enviar (sin wrapper)
+                val reservacionDto = ReservacionesDto(
+                    codigoReserva = codigoReserva,
+                    tipoReserva = 1, // 1 para proyector
+                    fecha = fechaFormateada,
+                    horario = horarioFormateado,
+                    estado = 1, // 1 para confirmada
+                    matricula = matricula,
+                    cantidadEstudiantes = 0 // Valor por defecto
+                )
+
+                // 4. Enviar directamente el DTO a la API
+                val response = reservaApi.insert(reservacionDto)
+
+                if (!response.isSuccessful) {
+                    val errorBody = response.errorBody()?.string()
+                    throw Exception("Error en reserva: ${response.code()} - $errorBody")
                 }
 
-                val matricula = AuthManager.currentUser?.correoInstitucional
-                    ?: throw Exception("Usuario no autenticado")
-
-                // Crear DTO con formatos correctos
-                val detalleReserva = DetalleReservaProyectorsDto(
-                    detalleReservaProyectorId = 0,
-                    codigoReserva = codigoReserva,
-                    idProyector = proyectorId,
-                    matricula = matricula,
-                    fecha = fechaISO,
-                    horario = "${horaInicio.format(timeFormatter)} - ${horaFin.format(timeFormatter)}",
-                    estado = 1
-                )
-
-                val reservacionDto = ReservacionesDto(
-                    reservacionId = 0,
-                    codigoReserva = codigoReserva,
-                    tipoReserva = 2, // 2 = proyector
-                    cantidadEstudiantes = 0,
-                    fecha = fechaISO,
-                    horario = detalleReserva.horario,
-                    estado = 1,
-                    matricula = matricula
-                )
-
-                // Llamadas API con logging
-                println("Enviando reserva: ${Json.encodeToString(reservacionDto)}")
-                println("Enviando detalle: ${Json.encodeToString(detalleReserva)}")
-
-                reservaApi.insert(reservacionDto)
-                detalleReservaApi.insert(detalleReserva)
-
+                // 5. Actualizar estado si fue exitoso
                 _state.value = _state.value.copy(
-                    isLoading = false,
                     reservaConfirmada = true,
-                    codigoReserva = codigoReserva
+                    codigoReserva = codigoReserva,
+                    error = null
                 )
 
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "Error al confirmar reserva"
+                    error = "Error: ${e.message ?: "Error desconocido al confirmar reserva"}",
+                    reservaConfirmada = false
                 )
+                Log.e("Reserva", "Error confirmando reserva", e)
             }
         }
     }
