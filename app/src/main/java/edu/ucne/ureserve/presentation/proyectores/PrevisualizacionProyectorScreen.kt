@@ -354,35 +354,30 @@ fun PrevisualizacionProyectorScreen(
                                         // Validar horas
                                         try {
                                             val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
-                                            val horaInicioParsed = LocalTime.parse(horaInicio, timeFormatter)
-                                            val horaFinParsed = LocalTime.parse(horaFin, timeFormatter)
+                                            val horaInicioTime = LocalTime.parse(horaInicio, timeFormatter)
+                                            val horaFinTime = LocalTime.parse(horaFin, timeFormatter)
 
-                                            if (horaFinParsed.isBefore(horaInicioParsed)) {
-                                                snackbarHostState.showSnackbar("La hora final debe ser después de la inicial")
-                                                return@launch
+                                            viewModel.confirmarReservaProyector(
+                                                proyectorId = proyectorFinal.proyectorId,
+                                                fechaLocal = fechaLocalDate!!,
+                                                horaInicio = horaInicioTime,
+                                                horaFin = horaFinTime,
+                                                matricula = matricula
+                                            )
+
+                                            // Esperar y verificar estado
+                                            delay(1000)
+
+                                            if (viewModel.state.value.reservaConfirmada) {
+                                                navController.navigate("ReservaExitosa/${viewModel.state.value.codigoReserva}") {
+                                                    popUpTo("PrevisualizacionProyectorScreen") { inclusive = true }
+                                                }
+                                            } else {
+                                                snackbarHostState.showSnackbar(viewModel.state.value.error ?: "Error desconocido")
                                             }
                                         } catch (e: Exception) {
                                             snackbarHostState.showSnackbar("Formato de hora inválido")
                                             return@launch
-                                        }
-
-                                        viewModel.confirmarReserva(
-                                            fechaStr = fechaLocalDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
-                                            horaInicioStr = horaInicio,
-                                            horaFinStr = horaFin,
-                                            proyectorId = proyectorFinal.proyectorId,
-                                            codigoReserva = codigoReserva
-                                        )
-
-                                        // Esperar y verificar estado
-                                        delay(500)
-
-                                        if (state.reservaConfirmada) {
-                                            navController.navigate("ReservaExitosa/$codigoReserva") {
-                                                popUpTo("PrevisualizacionProyectorScreen") { inclusive = true }
-                                            }
-                                        } else {
-                                            snackbarHostState.showSnackbar(state.error ?: "Error desconocido")
                                         }
                                     } catch (e: Exception) {
                                         snackbarHostState.showSnackbar("Error: ${e.message ?: "Ocurrió un error inesperado"}")
