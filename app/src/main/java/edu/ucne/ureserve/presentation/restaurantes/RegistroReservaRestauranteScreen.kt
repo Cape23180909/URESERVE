@@ -14,13 +14,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import edu.ucne.ureserve.R
 
 @Composable
 fun RegistroReservaRestauranteScreen(
     fecha: String,
     onCancelarClick: () -> Unit,
-    onConfirmarClick: () -> Unit
+    onConfirmarClick: () -> Unit,
+    viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     Column(
         modifier = Modifier
@@ -53,7 +55,6 @@ fun RegistroReservaRestauranteScreen(
             )
         }
 
-        // Título con fecha
         Text(
             text = "Formulario para $fecha",
             style = MaterialTheme.typography.headlineSmall,
@@ -61,7 +62,6 @@ fun RegistroReservaRestauranteScreen(
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Formulario
         RegistroReservaRestauranteForm(
             onCancelarClick = onCancelarClick,
             onConfirmarClick = { correo, nombres, apellidos, celular, matricula, cedula, direccion ->
@@ -76,6 +76,16 @@ fun RegistroReservaRestauranteScreen(
                         direccion = direccion
                     )
                 )
+                // Configurar datos de reserva en el ViewModel
+                viewModel.setFecha(fecha)
+                viewModel.setHorario("12:00 PM") // Puedes usar un selector si deseas
+                viewModel.setCantidad(1)         // Aquí puedes ajustar según tus datos
+                viewModel.setEstado(1)
+                viewModel.setCodigoReserva(matricula.hashCode())
+
+                // Guardar en el backend
+                viewModel.create()
+
                 onConfirmarClick()
             }
         )
@@ -107,15 +117,14 @@ private fun RegistroReservaRestauranteForm(
         correo, nombres, apellidos, celular, matricula, cedula, direccion
     ).all { it.isNotBlank() }
 
-    // Definimos cada campo como un Triple(label, value, setter)
     val campos = listOf(
         Triple("Correo electrónico *", correo) { v: String -> correo = v },
-        Triple("Nombres *",           nombres) { v: String -> nombres = v },
-        Triple("Apellidos *",         apellidos) { v: String -> apellidos = v },
+        Triple("Nombres *", nombres) { v: String -> nombres = v },
+        Triple("Apellidos *", apellidos) { v: String -> apellidos = v },
         Triple("Número de celular *", celular) { v: String -> celular = v },
-        Triple("Matrícula *",         matricula) { v: String -> matricula = v },
-        Triple("Cédula *",            cedula) { v: String -> cedula = v },
-        Triple("Dirección *",         direccion) { v: String -> direccion = v }
+        Triple("Matrícula *", matricula) { v: String -> matricula = v },
+        Triple("Cédula *", cedula) { v: String -> cedula = v },
+        Triple("Dirección *", direccion) { v: String -> direccion = v }
     )
 
     Column(
@@ -172,7 +181,6 @@ private fun RegistroReservaRestauranteForm(
         }
     }
 }
-
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
