@@ -31,8 +31,8 @@ class RestauranteRepository @Inject constructor(
     suspend fun createRestaurante(restaurante: RestaurantesDto): RestaurantesDto =
         remoteDataSource.createRestaurante(restaurante)
 
-    suspend fun updateRestaurante(restaurante: RestaurantesDto): RestaurantesDto =
-        remoteDataSource.updateRestaurante(restaurante.restauranteId, restaurante)
+    suspend fun updateRestaurante(id: Int, restaurante: RestaurantesDto): RestaurantesDto =
+        remoteDataSource.updateRestaurante(id, restaurante)
 
     suspend fun deleteRestaurante(id: Int) = remoteDataSource.deleteRestaurante(id)
 }
