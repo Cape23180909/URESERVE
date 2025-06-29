@@ -1,6 +1,7 @@
 // Archivo: RegistroReservaScreen.kt
 package edu.ucne.ureserve.presentation.restaurantes
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,13 +35,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.android.play.core.integrity.r
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.RestaurantesDto
+import edu.ucne.ureserve.data.repository.RestauranteRepository
+
 
 @Composable
 fun RegistroReservaScreen(
     fecha: String,
     onCancelarClick: () -> Unit,
-    onConfirmarClick: () -> Unit
+    onConfirmarClick: () -> Unit,
+    viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     Column(
         modifier = Modifier
@@ -80,7 +88,11 @@ fun RegistroReservaScreen(
 
         RegistroReservaForm(
             onCancelarClick = onCancelarClick,
-            onConfirmarClick = onConfirmarClick
+            onConfirmarClick = {
+                viewModel.create()
+                onConfirmarClick()
+            },
+            viewModel = viewModel
         )
     }
 }
@@ -88,7 +100,8 @@ fun RegistroReservaScreen(
 @Composable
 fun RegistroReservaForm(
     onCancelarClick: () -> Unit,
-    onConfirmarClick: () -> Unit
+    onConfirmarClick: () -> Unit,
+    viewModel: RestaurantesViewModel
 ) {
     var correo by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
@@ -97,6 +110,8 @@ fun RegistroReservaForm(
     var matricula by remember { mutableStateOf("") }
     var cedula by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
+
+    val uiState by viewModel.uiState.collectAsState()
 
     val formularioCompleto = listOf(
         correo, nombres, apellidos, celular, matricula, cedula, direccion
@@ -144,7 +159,10 @@ fun RegistroReservaForm(
         )
         OutlinedTextField(
             value = matricula,
-            onValueChange = { matricula = it },
+            onValueChange = {
+                matricula = it
+                viewModel.setCodigoReserva(it.hashCode()) // Solo un ejemplo para generar código
+            },
             label = { Text("Matrícula *") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -168,7 +186,10 @@ fun RegistroReservaForm(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             OutlinedButton(
-                onClick = onCancelarClick,
+                onClick = {
+                    viewModel.limpiarCampos()
+                    onCancelarClick()
+                },
                 modifier = Modifier.weight(1f)
             ) {
                 Text("CANCELAR")
@@ -178,17 +199,11 @@ fun RegistroReservaForm(
 
             Button(
                 onClick = {
-                    DatosPersonalesStore.lista.add(
-                        DatosPersonales(
-                            correo = correo,
-                            nombres = nombres,
-                            apellidos = apellidos,
-                            celular = celular,
-                            matricula = matricula,
-                            cedula = cedula,
-                            direccion = direccion
-                        )
-                    )
+                    // Actualizar datos en el ViewModel
+                    viewModel.setFecha("2025-06-28") // Reemplaza si usas un DatePicker
+                    viewModel.setHorario("10:00 AM")
+                    viewModel.setCantidad(1)
+                    viewModel.setEstado(1)
                     onConfirmarClick()
                 },
                 enabled = formularioCompleto,
@@ -200,9 +215,13 @@ fun RegistroReservaForm(
                 Text("CONFIRMAR", color = Color.White)
             }
         }
+
+        uiState.inputError?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(it, color = Color.Red)
+        }
     }
 }
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewRegistroReservaScreen() {
