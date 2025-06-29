@@ -1,47 +1,26 @@
 // Archivo: RegistroReservaScreen.kt
 package edu.ucne.ureserve.presentation.restaurantes
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.android.play.core.integrity.r
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.data.remote.dto.RestaurantesDto
-import edu.ucne.ureserve.data.repository.RestauranteRepository
 
-
+// Composable principal de la pantalla
 @Composable
 fun RegistroReservaScreen(
     fecha: String,
@@ -89,8 +68,8 @@ fun RegistroReservaScreen(
         RegistroReservaForm(
             onCancelarClick = onCancelarClick,
             onConfirmarClick = {
-                viewModel.create()
-                onConfirmarClick()
+                viewModel.create()  // Ejecuta la acción en ViewModel para crear
+                onConfirmarClick()  // Callback externo si lo necesitas
             },
             viewModel = viewModel
         )
@@ -103,19 +82,19 @@ fun RegistroReservaForm(
     onConfirmarClick: () -> Unit,
     viewModel: RestaurantesViewModel
 ) {
+    // Aquí se pueden usar variables locales para controlar inputs o directamente usar uiState
+    var nombre by remember { mutableStateOf("") }
+    var ubicacion by remember { mutableStateOf("") }
+    var capacidadStr by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
-    var nombres by remember { mutableStateOf("") }
-    var apellidos by remember { mutableStateOf("") }
-    var celular by remember { mutableStateOf("") }
-    var matricula by remember { mutableStateOf("") }
-    var cedula by remember { mutableStateOf("") }
-    var direccion by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
 
-    val uiState by viewModel.uiState.collectAsState()
+    val capacidad = capacidadStr.toIntOrNull() ?: 0
 
     val formularioCompleto = listOf(
-        correo, nombres, apellidos, celular, matricula, cedula, direccion
-    ).all { it.isNotBlank() }
+        nombre, ubicacion, telefono, correo, descripcion
+    ).all { it.isNotBlank() } && capacidad > 0
 
     Column(
         modifier = Modifier
@@ -123,62 +102,63 @@ fun RegistroReservaForm(
             .verticalScroll(rememberScrollState())
     ) {
         Text(
-            text = "Registro de reserva",
+            text = "Registro de Restaurante",
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
             color = Color(0xFF023E8A)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("COMPLETAR REGISTRO DE RESERVA", color = Color.DarkGray)
-
         Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = nombre,
+            onValueChange = { nombre = it },
+            label = { Text("Nombre *") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = ubicacion,
+            onValueChange = { ubicacion = it },
+            label = { Text("Ubicación *") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = capacidadStr,
+            onValueChange = { input -> capacidadStr = input.filter { it.isDigit() } },
+            label = { Text("Capacidad *") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = telefono,
+            onValueChange = { telefono = it },
+            label = { Text("Teléfono *") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
             value = correo,
             onValueChange = { correo = it },
             label = { Text("Correo electrónico *") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
         )
-        OutlinedTextField(
-            value = nombres,
-            onValueChange = { nombres = it },
-            label = { Text("Nombres *") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = apellidos,
-            onValueChange = { apellidos = it },
-            label = { Text("Apellidos *") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = celular,
-            onValueChange = { celular = it },
-            label = { Text("Número de celular *") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = matricula,
-            onValueChange = {
-                matricula = it
-                viewModel.setCodigoReserva(it.hashCode()) // Solo un ejemplo para generar código
-            },
-            label = { Text("Matrícula *") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = cedula,
-            onValueChange = { cedula = it },
-            label = { Text("Cédula *") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = direccion,
-            onValueChange = { direccion = it },
-            label = { Text("Dirección *") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Spacer(modifier = Modifier.height(8.dp))
 
+        OutlinedTextField(
+            value = descripcion,
+            onValueChange = { descripcion = it },
+            label = { Text("Descripción *") },
+            modifier = Modifier.fillMaxWidth()
+        )
         Spacer(modifier = Modifier.height(24.dp))
 
         Row(
@@ -187,7 +167,12 @@ fun RegistroReservaForm(
         ) {
             OutlinedButton(
                 onClick = {
-                    viewModel.limpiarCampos()
+                    nombre = ""
+                    ubicacion = ""
+                    capacidadStr = ""
+                    telefono = ""
+                    correo = ""
+                    descripcion = ""
                     onCancelarClick()
                 },
                 modifier = Modifier.weight(1f)
@@ -199,11 +184,13 @@ fun RegistroReservaForm(
 
             Button(
                 onClick = {
-                    // Actualizar datos en el ViewModel
-                    viewModel.setFecha("2025-06-28") // Reemplaza si usas un DatePicker
-                    viewModel.setHorario("10:00 AM")
-                    viewModel.setCantidad(1)
-                    viewModel.setEstado(1)
+                    viewModel.setNombre(nombre)
+                    viewModel.setUbicacion(ubicacion)
+                    viewModel.setCapacidad(capacidad)
+                    viewModel.setTelefono(telefono)
+                    viewModel.setCorreo(correo)
+                    viewModel.setDescripcion(descripcion)
+                    viewModel.setFecha("") // o la fecha que tengas
                     onConfirmarClick()
                 },
                 enabled = formularioCompleto,
@@ -214,14 +201,17 @@ fun RegistroReservaForm(
             ) {
                 Text("CONFIRMAR", color = Color.White)
             }
+
         }
 
-        uiState.inputError?.let {
+        // Mostrar errores si los tienes en el ViewModel
+        viewModel.uiState.collectAsState().value.inputError?.let {
             Spacer(modifier = Modifier.height(8.dp))
             Text(it, color = Color.Red)
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewRegistroReservaScreen() {
