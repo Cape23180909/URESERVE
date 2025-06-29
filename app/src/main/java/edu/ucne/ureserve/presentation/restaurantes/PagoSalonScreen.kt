@@ -14,16 +14,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.presentation.restaurantes.MetodoPagoSalaVipItem
+import edu.ucne.ureserve.data.repository.RestauranteRepository
+import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
 @Composable
 fun PagoSalonScreen(
     fecha: String,
-    navController: NavController
+    navController: NavController,
+    viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(fecha) {
+        viewModel.setFecha(fecha)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -49,7 +58,7 @@ fun PagoSalonScreen(
                 fontWeight = FontWeight.Bold
             )
             Image(
-                painter = painterResource(id = R.drawable.salon), // Debes tener este recurso
+                painter = painterResource(id = R.drawable.salon), // Asegúrate que exista este recurso
                 contentDescription = "Salón",
                 modifier = Modifier.size(40.dp)
             )
@@ -170,6 +179,8 @@ fun PagoSalonScreen(
 
         Button(
             onClick = {
+                viewModel.create() // Si quieres crear reserva con ViewModel
+
                 val numeroReserva = (1000..9999).random().toString()
                 DatosPersonalesSalonStore.lista.clear()
                 navController.navigate("ReservaExitosaSalon?numeroReserva=$numeroReserva")
@@ -184,7 +195,6 @@ fun PagoSalonScreen(
         ) {
             Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
-
     }
 }
 
@@ -207,7 +217,6 @@ fun MetodoPagoSalonItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
     }
 }
 
-// Modelo de datos personales para salón
 data class DatosPersonalesSalon(
     val correo: String,
     val nombres: String,
@@ -226,5 +235,10 @@ object DatosPersonalesSalonStore {
 @Composable
 fun PreviewPagoSalonScreen() {
     val navController = rememberNavController()
-    PagoSalonScreen(fecha = "20/06/2025", navController = navController)
+    PagoSalonScreen(
+        fecha = "20/06/2025",
+        navController = navController
+    )
 }
+
+
