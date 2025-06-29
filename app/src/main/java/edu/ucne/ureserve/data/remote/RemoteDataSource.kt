@@ -108,8 +108,9 @@ class RemoteDataSource @Inject constructor(
         apiRestaurantes.insert(restaurante)
 
     suspend fun getRestaurante(id: Int): RestaurantesDto = apiRestaurantes.getById(id)
-    suspend fun updateRestaurante(id: Int, restaurante: RestaurantesDto): RestaurantesDto =
-        apiRestaurantes.update(id, restaurante)
+    suspend fun updateRestaurante(restauranteId: Int, restaurante: RestaurantesDto): RestaurantesDto =
+        apiRestaurantes.update(restauranteId, restaurante)
+
 
     suspend fun deleteRestaurante(id: Int) = apiRestaurantes.delete(id)
 
