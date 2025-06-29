@@ -19,9 +19,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.data.remote.RemoteDataSource
-import edu.ucne.ureserve.data.remote.dto.RestaurantesDto
-import edu.ucne.ureserve.data.repository.RestauranteRepository
 
 @Composable
 fun PagoRestauranteScreen(
@@ -30,11 +27,6 @@ fun PagoRestauranteScreen(
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
-    // Actualizar la fecha del ViewModel
-    LaunchedEffect(fecha) {
-        viewModel.setFecha(fecha)
-    }
 
     Column(
         modifier = Modifier
@@ -76,7 +68,7 @@ fun PagoRestauranteScreen(
                 .padding(bottom = 16.dp)
         )
 
-        // Método de pago
+        // Métodos de pago
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -96,7 +88,6 @@ fun PagoRestauranteScreen(
                 MetodoPagoItem("Tarjeta de crédito", R.drawable.credito) {
                     navController.navigate("TarjetaCreditoRestaurante?fecha=$fecha")
                 }
-
                 MetodoPagoItem("Transferencia bancaria", R.drawable.trasnferencia) {
                     navController.navigate("RestauranteTransferencia?fecha=$fecha")
                 }
@@ -146,12 +137,13 @@ fun PagoRestauranteScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        Text("Nombre: ${persona.nombres} ${persona.apellidos}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Nombre: ${persona.nombre}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Ubicación: ${persona.ubicacion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Capacidad: ${persona.capacidad}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Teléfono: ${persona.telefono}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Text("Correo: ${persona.correo}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Celular: ${persona.celular}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Matrícula: ${persona.matricula}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Cédula: ${persona.cedula}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Dirección: ${persona.direccion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Descripción: ${persona.descripcion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Fecha: ${persona.fecha}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                     }
                 }
             }
@@ -161,25 +153,29 @@ fun PagoRestauranteScreen(
 
         Button(
             onClick = {
-                // Registrar reserva con ViewModel
-                viewModel.create()
-
-                // Limpiar datos personales
+                // Construir el objeto con datos reales del estado actual
+                val nuevaReserva = DatosPersonalesRestaurante(
+                    restauranteId = DatosPersonalesRestauranteStore.lista.size + 1,
+                    nombre = uiState.nombre,
+                    ubicacion = uiState.ubicacion,
+                    capacidad = uiState.capacidad,
+                    telefono = uiState.telefono,
+                    correo = uiState.correo,
+                    descripcion = uiState.descripcion,
+                    fecha = fecha
+                )
+                viewModel.create(nuevaReserva)
                 DatosPersonalesRestauranteStore.lista.clear()
-
                 val numeroReserva = (1000..9999).random().toString()
                 navController.navigate("ReservaRestauranteExitosa?numeroReserva=$numeroReserva")
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF0077B6),
-                contentColor = Color.White
-            )
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0077B6), contentColor = Color.White)
         ) {
             Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
+
+
     }
 }
 
@@ -208,20 +204,21 @@ fun MetodoPagoItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
 fun PreviewPagoRestauranteScreen() {
     val navController = rememberNavController()
     PagoRestauranteScreen(
-        fecha = "15/06/2025",
+        fecha = "2025-06-29",
         navController = navController
-
     )
 }
 
+
 data class DatosPersonalesRestaurante(
-    val correo: String,
-    val nombres: String,
-    val apellidos: String,
-    val celular: String,
-    val matricula: String,
-    val cedula: String,
-    val direccion: String
+    val restauranteId: Int? = 0,
+    val nombre: String = "",
+    val ubicacion: String = "",
+    val capacidad: Int = 0,
+    val telefono: String = "",
+    val correo: String = "",
+    val descripcion: String = "",
+    val fecha: String = ""
 )
 
 object DatosPersonalesRestauranteStore {
