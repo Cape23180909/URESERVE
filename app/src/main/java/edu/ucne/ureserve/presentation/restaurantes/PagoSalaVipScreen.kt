@@ -15,15 +15,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.RemoteDataSource
+import edu.ucne.ureserve.data.repository.RestauranteRepository
+import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
 @Composable
 fun PagoSalaVipScreen(
     fecha: String,
-    navController: NavController
+    navController: NavController,
+    viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    // Actualizar fecha en ViewModel cuando cambie el parámetro
+    LaunchedEffect(fecha) {
+        viewModel.setFecha(fecha)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -84,13 +96,9 @@ fun PagoSalaVipScreen(
                 MetodoPagoSalaVipItem("Tarjeta de crédito", R.drawable.credito) {
                     navController.navigate("TarjetaCreditoSalaVip?fecha=$fecha")
                 }
-
                 MetodoPagoSalaVipItem("Transferencia bancaria", R.drawable.trasnferencia) {
                     navController.navigate("SalaVipTransferencia?fecha=$fecha")
                 }
-
-
-
             }
         }
 
@@ -102,7 +110,12 @@ fun PagoSalaVipScreen(
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("RESUMEN DE PEDIDO", fontWeight = FontWeight.Bold, color = Color(0xFF023E8A), fontSize = 14.sp)
+                Text(
+                    "RESUMEN DE PEDIDO",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF023E8A),
+                    fontSize = 14.sp
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                     Text("Reserva Sala VIP", color = Color.Black)
@@ -153,6 +166,8 @@ fun PagoSalaVipScreen(
 
         Button(
             onClick = {
+                viewModel.create() // Usar ViewModel para crear reserva si aplica
+
                 val numeroReserva = (1000..9999).random().toString()
                 DatosPersonalesStore.lista.clear()
                 navController.navigate("ReservaSalaVipExitosa?numeroReserva=$numeroReserva")
@@ -167,9 +182,6 @@ fun PagoSalaVipScreen(
         ) {
             Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
-
-
-
     }
 }
 
@@ -197,7 +209,10 @@ fun MetodoPagoSalaVipItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
 @Composable
 fun PreviewPagoSalaVipScreen() {
     val navController = rememberNavController()
-    PagoSalaVipScreen(fecha = "15/06/2025", navController = navController)
+    PagoSalaVipScreen(
+        fecha = "15/06/2025",
+        navController = navController
+    )
 }
 
 // Modelo de datos para guardar info globalmente
