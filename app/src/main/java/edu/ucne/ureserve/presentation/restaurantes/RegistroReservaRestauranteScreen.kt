@@ -29,7 +29,6 @@ fun RegistroReservaRestauranteScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -63,27 +62,22 @@ fun RegistroReservaRestauranteScreen(
         )
 
         RegistroReservaRestauranteForm(
+            fecha = fecha,
             onCancelarClick = onCancelarClick,
-            onConfirmarClick = { correo, nombres, apellidos, celular, matricula, cedula, direccion ->
-                DatosPersonalesRestauranteStore.lista.add(
-                    DatosPersonalesRestaurante(
+            onConfirmarClick = { nombre, ubicacion, capacidad, telefono, correo, descripcion ->
+                DatosPersonalesSalaVipStore.lista.add(
+                    DatosPersonalesSalaVip(
+                        nombre = nombre,
+                        ubicacion = ubicacion,
+                        capacidad = capacidad.toIntOrNull() ?: 0,
+                        telefono = telefono,
                         correo = correo,
-                        nombres = nombres,
-                        apellidos = apellidos,
-                        celular = celular,
-                        matricula = matricula,
-                        cedula = cedula,
-                        direccion = direccion
+                        descripcion = descripcion,
+                        fecha = fecha
                     )
                 )
-                // Configurar datos de reserva en el ViewModel
-                viewModel.setFecha(fecha)
-                viewModel.setHorario("12:00 PM") // Puedes usar un selector si deseas
-                viewModel.setCantidad(1)         // Aquí puedes ajustar según tus datos
-                viewModel.setEstado(1)
-                viewModel.setCodigoReserva(matricula.hashCode())
 
-                // Guardar en el backend
+                viewModel.setFecha(fecha)
                 viewModel.create()
 
                 onConfirmarClick()
@@ -94,38 +88,27 @@ fun RegistroReservaRestauranteScreen(
 
 @Composable
 private fun RegistroReservaRestauranteForm(
+    fecha: String,
     onCancelarClick: () -> Unit,
     onConfirmarClick: (
+        nombre: String,
+        ubicacion: String,
+        capacidad: String,
+        telefono: String,
         correo: String,
-        nombres: String,
-        apellidos: String,
-        celular: String,
-        matricula: String,
-        cedula: String,
-        direccion: String
+        descripcion: String
     ) -> Unit
 ) {
+    var nombre by remember { mutableStateOf("") }
+    var ubicacion by remember { mutableStateOf("") }
+    var capacidad by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
-    var nombres by remember { mutableStateOf("") }
-    var apellidos by remember { mutableStateOf("") }
-    var celular by remember { mutableStateOf("") }
-    var matricula by remember { mutableStateOf("") }
-    var cedula by remember { mutableStateOf("") }
-    var direccion by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
 
     val formularioCompleto = listOf(
-        correo, nombres, apellidos, celular, matricula, cedula, direccion
+        nombre, ubicacion, capacidad, telefono, correo, descripcion
     ).all { it.isNotBlank() }
-
-    val campos = listOf(
-        Triple("Correo electrónico *", correo) { v: String -> correo = v },
-        Triple("Nombres *", nombres) { v: String -> nombres = v },
-        Triple("Apellidos *", apellidos) { v: String -> apellidos = v },
-        Triple("Número de celular *", celular) { v: String -> celular = v },
-        Triple("Matrícula *", matricula) { v: String -> matricula = v },
-        Triple("Cédula *", cedula) { v: String -> cedula = v },
-        Triple("Dirección *", direccion) { v: String -> direccion = v }
-    )
 
     Column(
         modifier = Modifier
@@ -133,24 +116,60 @@ private fun RegistroReservaRestauranteForm(
             .verticalScroll(rememberScrollState())
     ) {
         Text(
-            text = "Datos Personales",
+            text = "Datos de la Reserva",
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
             color = Color(0xFF023E8A)
         )
         Spacer(Modifier.height(12.dp))
 
-        campos.forEach { (label, value, onValueChange) ->
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                label = { Text(label) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(8.dp))
-        }
+        OutlinedTextField(
+            value = nombre,
+            onValueChange = { nombre = it },
+            label = { Text("Nombre del Restaurante *") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
+        OutlinedTextField(
+            value = ubicacion,
+            onValueChange = { ubicacion = it },
+            label = { Text("Ubicación *") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = capacidad,
+            onValueChange = { capacidad = it },
+            label = { Text("Capacidad *") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = telefono,
+            onValueChange = { telefono = it },
+            label = { Text("Teléfono *") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = correo,
+            onValueChange = { correo = it },
+            label = { Text("Correo electrónico *") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = descripcion,
+            onValueChange = { descripcion = it },
+            label = { Text("Descripción *") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(24.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -166,8 +185,8 @@ private fun RegistroReservaRestauranteForm(
             Button(
                 onClick = {
                     onConfirmarClick(
-                        correo, nombres, apellidos,
-                        celular, matricula, cedula, direccion
+                        nombre, ubicacion, capacidad,
+                        telefono, correo, descripcion
                     )
                 },
                 enabled = formularioCompleto,
