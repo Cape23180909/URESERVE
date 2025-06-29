@@ -16,6 +16,7 @@ interface RestaurantesApi {
     @PUT("api/Restaurantes/{id}")
     suspend fun update(@Path("id") id: Int, @Body restaurante: RestaurantesDto): RestaurantesDto
 
+
     @DELETE("api/Restaurantes/{id}")
     suspend fun delete(@Path("id") id: Int)
 }
