@@ -164,12 +164,14 @@ fun PagoSalonScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Nombre: ${persona.nombres} ${persona.apellidos}", color = Color(0xFF023E8A), fontSize = 14.sp)
-                        Text("Correo: ${persona.correo}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Celular: ${persona.celular}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Matrícula: ${persona.matricula}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Cédula: ${persona.cedula}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Dirección: ${persona.direccion}", fontSize = 14.sp, color = Color.DarkGray)
+                        Text("Nombre: ${persona.nombre}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Ubicación: ${persona.ubicacion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Capacidad: ${persona.capacidad}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Teléfono: ${persona.telefono}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Correo: ${persona.correo}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Descripción: ${persona.descripcion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Fecha: ${persona.fecha}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+
                     }
                 }
             }
@@ -218,18 +220,20 @@ fun MetodoPagoSalonItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
 }
 
 data class DatosPersonalesSalon(
-    val correo: String,
-    val nombres: String,
-    val apellidos: String,
-    val celular: String,
-    val matricula: String,
-    val cedula: String,
-    val direccion: String
+    val restauranteId: Int? = null,
+    val nombre: String = "",
+    val ubicacion: String = "",
+    val capacidad: Int = 0,
+    val telefono: String = "",
+    val correo: String = "",
+    val descripcion: String = "",
+    val fecha: String = ""
 )
 
 object DatosPersonalesSalonStore {
     val lista = mutableStateListOf<DatosPersonalesSalon>()
 }
+
 
 @Preview(showBackground = true)
 @Composable
