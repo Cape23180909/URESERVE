@@ -12,7 +12,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
@@ -59,7 +58,6 @@ import edu.ucne.ureserve.presentation.salones.DatosPersonalesSalonStore
 import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
 import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
-import kotlinx.serialization.json.Json
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -438,23 +436,28 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
 
-// En tu NavHost o NavController setup:
+
         composable(
             route = "RegistroReservaSalon?fecha={fecha}",
-            arguments = listOf(navArgument("fecha") {
-                type = NavType.StringType
-                defaultValue = "Fecha no especificada"
-            })
+            arguments = listOf(
+                navArgument("fecha") {
+                    type = NavType.StringType
+                    defaultValue = "Fecha no especificada"
+                    nullable = true
+                }
+            )
         ) { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: "Fecha no especificada"
             RegistroReservaSalonScreen(
                 fecha = fecha,
                 onCancelarClick = { navController.popBackStack() },
-                onConfirmarClick = {
+                onConfirmarClick = { nombre, ubicacion, capacidad, telefono, correo, descripcion ->
+                    // Aquí podrías procesar o guardar datos antes de navegar
                     navController.navigate("PagoSalon?fecha=$fecha")
                 }
             )
         }
+
 
 
         composable(
@@ -620,26 +623,30 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+
         composable("RegistroReservaRestaurante?fecha={fecha}") { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+
             RegistrosReservaRestauranteScreen(
                 onCancelarClick = { navController.popBackStack() },
                 onConfirmarClick = { datos ->
                     DatosPersonalesRestauranteStore.lista.add(
                         DatosPersonalesRestaurante(
+                            restauranteId = datos.restauranteId,
+                            nombre = datos.nombre,
+                            ubicacion = datos.ubicacion,
+                            capacidad = datos.capacidad,
+                            telefono = datos.telefono,
                             correo = datos.correo,
-                            nombres = datos.nombres,
-                            apellidos = datos.apellidos,
-                            celular = datos.celular,
-                            matricula = datos.matricula,
-                            cedula = datos.cedula,
-                            direccion = datos.direccion
+                            descripcion = datos.descripcion,
+                            fecha = fecha // Pasamos la fecha desde el parámetro de la ruta
                         )
                     )
                     navController.navigate("PagoRestaurante?fecha=$fecha")
                 }
             )
         }
+
         composable("ReservaSalon?fecha={fecha}") { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
             ReservaSalonScreen(
@@ -648,13 +655,14 @@ fun UreserveNavHost(navController: NavHostController) {
                     // Guardar los datos en la lista global
                     DatosPersonalesSalonStore.lista.add(
                         DatosPersonalesSalon(
+                            restauranteId = datos.restauranteId,
+                            nombre = datos.nombre,
+                            ubicacion = datos.ubicacion,
+                            capacidad = datos.capacidad,
+                            telefono = datos.telefono,
                             correo = datos.correo,
-                            nombres = datos.nombres,
-                            apellidos = datos.apellidos,
-                            celular = datos.celular,
-                            matricula = datos.matricula,
-                            cedula = datos.cedula,
-                            direccion = datos.direccion
+                            descripcion = datos.descripcion,
+                            fecha = fecha // Pasamos la fecha desde el parámetro de la ruta
                         )
                     )
                     // Navegar a la pantalla de pago con la fecha
