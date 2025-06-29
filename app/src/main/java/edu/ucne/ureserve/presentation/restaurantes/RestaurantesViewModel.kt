@@ -23,26 +23,30 @@ class RestaurantesViewModel @Inject constructor(
     }
 
     fun validarCampos(): Boolean {
-        val estado = _uiState.value.estado
-        val cantidad = _uiState.value.cantidadEstudiantes
-        val fecha = _uiState.value.fecha
-        val horario = _uiState.value.horario
-
+        val state = _uiState.value
         return when {
-            fecha.isBlank() -> {
+            state.nombre.isBlank() -> {
+                _uiState.update { it.copy(inputError = "El nombre no puede estar vacío") }
+                false
+            }
+            state.ubicacion.isBlank() -> {
+                _uiState.update { it.copy(inputError = "La ubicación no puede estar vacía") }
+                false
+            }
+            state.capacidad <= 0 -> {
+                _uiState.update { it.copy(inputError = "La capacidad debe ser mayor que cero") }
+                false
+            }
+            state.telefono.isBlank() -> {
+                _uiState.update { it.copy(inputError = "El teléfono no puede estar vacío") }
+                false
+            }
+            state.correo.isBlank() -> {
+                _uiState.update { it.copy(inputError = "El correo no puede estar vacío") }
+                false
+            }
+            state.fecha.isBlank() -> {
                 _uiState.update { it.copy(inputError = "La fecha no puede estar vacía") }
-                false
-            }
-            horario.isBlank() -> {
-                _uiState.update { it.copy(inputError = "El horario no puede estar vacío") }
-                false
-            }
-            cantidad <= 0 -> {
-                _uiState.update { it.copy(inputError = "Cantidad debe ser mayor que cero") }
-                false
-            }
-            estado !in 0..1 -> {
-                _uiState.update { it.copy(inputError = "Estado inválido (debe ser 0 o 1)") }
                 false
             }
             else -> {
@@ -56,17 +60,19 @@ class RestaurantesViewModel @Inject constructor(
         if (!validarCampos()) return
 
         val current = _uiState.value
-        val newReserva = RestaurantesDto(
-            fecha = current.fecha,
-            horario = current.horario,
-            cantidadEstudiantes = current.cantidadEstudiantes,
-            estado = current.estado,
-            codigoReserva = current.codigoReserva
+        val nuevoRestaurante = RestaurantesDto(
+            restauranteId = 0,
+            nombre = current.nombre,
+            ubicacion = current.ubicacion,
+            capacidad = current.capacidad,
+            telefono = current.telefono,
+            correo = current.correo,
+            descripcion = current.descripcion
         )
 
         viewModelScope.launch {
             try {
-                restauranteRepository.createRestaurante(newReserva)
+                restauranteRepository.createRestaurante(nuevoRestaurante)
                 limpiarCampos()
                 getRestaurantes()
             } catch (e: Exception) {
@@ -79,25 +85,24 @@ class RestaurantesViewModel @Inject constructor(
         if (!validarCampos()) return
 
         val current = _uiState.value
-        val restauranteId = current.restauranteId
-
-        if (restauranteId == null) {
-            _uiState.update { it.copy(errorMessage = "No se puede actualizar: ID nulo") }
+        val restauranteId = current.restauranteId ?: run {
+            _uiState.update { it.copy(errorMessage = "ID nulo, no se puede actualizar") }
             return
         }
 
-        val updatedReserva = RestaurantesDto(
+        val restauranteActualizado = RestaurantesDto(
             restauranteId = restauranteId,
-            fecha = current.fecha,
-            horario = current.horario,
-            cantidadEstudiantes = current.cantidadEstudiantes,
-            estado = current.estado,
-            codigoReserva = current.codigoReserva
+            nombre = current.nombre,
+            ubicacion = current.ubicacion,
+            capacidad = current.capacidad,
+            telefono = current.telefono,
+            correo = current.correo,
+            descripcion = current.descripcion
         )
 
         viewModelScope.launch {
             try {
-                restauranteRepository.updateRestaurante(restauranteId, updatedReserva)
+                restauranteRepository.updateRestaurante(restauranteId, restauranteActualizado)
                 limpiarCampos()
                 getRestaurantes()
             } catch (e: Exception) {
@@ -108,11 +113,10 @@ class RestaurantesViewModel @Inject constructor(
         }
     }
 
-
     fun getRestaurantes() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             try {
-                _uiState.update { it.copy(isLoading = true) }
                 val data = restauranteRepository.getRestaurantes()
                 _uiState.update {
                     it.copy(
@@ -124,47 +128,76 @@ class RestaurantesViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        errorMessage = e.localizedMessage ?: "Error al cargar datos",
+                        errorMessage = e.localizedMessage ?: "Error al cargar los restaurantes",
                         isLoading = false
                     )
                 }
             }
         }
     }
+    fun create(restaurante: DatosPersonalesRestaurante) {
+        val nuevoRestaurante = RestaurantesDto(
+            restauranteId = restaurante.restauranteId,
+            nombre = restaurante.nombre,
+            ubicacion = restaurante.ubicacion,
+            capacidad = restaurante.capacidad,
+            telefono = restaurante.telefono,
+            correo = restaurante.correo,
+            descripcion = restaurante.descripcion
+        )
+
+        viewModelScope.launch {
+            try {
+                restauranteRepository.createRestaurante(nuevoRestaurante)
+                limpiarCampos()
+                getRestaurantes()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = e.localizedMessage ?: "Error al guardar") }
+            }
+        }
+    }
+
+
 
     // Setters
-    fun setFecha(value: String) = _uiState.update { it.copy(fecha = value) }
-    fun setHorario(value: String) = _uiState.update { it.copy(horario = value) }
-    fun setCantidad(value: Int) = _uiState.update { it.copy(cantidadEstudiantes = value) }
-    fun setEstado(value: Int) = _uiState.update { it.copy(estado = value) }
-    fun setCodigoReserva(value: Int) = _uiState.update { it.copy(codigoReserva = value) }
+    fun setNombre(value: String) = _uiState.update { it.copy(nombre = value) }
+    fun setUbicacion(value: String) = _uiState.update { it.copy(ubicacion = value) }
+    fun setCapacidad(value: Int) = _uiState.update { it.copy(capacidad = value) }
+    fun setTelefono(value: String) = _uiState.update { it.copy(telefono = value) }
+    fun setCorreo(value: String) = _uiState.update { it.copy(correo = value) }
+    fun setDescripcion(value: String) = _uiState.update { it.copy(descripcion = value) }
     fun setRestauranteId(value: Int) = _uiState.update { it.copy(restauranteId = value) }
+    fun setFecha(value: String) = _uiState.update { it.copy(fecha = value) }
 
     fun limpiarCampos() {
         _uiState.update {
             it.copy(
                 restauranteId = null,
+                nombre = "",
+                ubicacion = "",
+                capacidad = 0,
+                telefono = "",
+                correo = "",
+                descripcion = "",
                 fecha = "",
-                horario = "",
-                cantidadEstudiantes = 0,
-                estado = 0,
-                codigoReserva = 0,
                 inputError = null
             )
         }
     }
 }
+
 data class RestaurantesUiState(
     val restauranteId: Int? = null,
-    val fecha: String = "",
-    val horario: String = "",
-    val cantidadEstudiantes: Int = 0,
-    val estado: Int = 0,
-    val codigoReserva: Int = 0,
+    val nombre: String = "",
+    val ubicacion: String = "",
+    val capacidad: Int = 0,
+    val telefono: String = "",
+    val correo: String = "",
+    val descripcion: String = "",
+    val fecha: String = "", // <--- AQUI INCLUIDA LA FECHA
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val inputError: String? = null,
-    val restaurantes: List<RestaurantesDto> = emptyList(),
-
-
+    val restaurantes: List<RestaurantesDto> = emptyList()
 )
+
