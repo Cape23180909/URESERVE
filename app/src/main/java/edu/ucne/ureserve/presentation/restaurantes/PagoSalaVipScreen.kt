@@ -19,8 +19,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.data.remote.RemoteDataSource
-import edu.ucne.ureserve.data.repository.RestauranteRepository
 import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
 @Composable
@@ -135,7 +133,7 @@ fun PagoSalaVipScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (DatosPersonalesStore.lista.isNotEmpty()) {
+        if (DatosPersonalesSalaVipStore.lista.isNotEmpty()) {
             Text(
                 text = "DATOS PERSONALES REGISTRADOS",
                 color = Color.White,
@@ -143,7 +141,7 @@ fun PagoSalaVipScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
-            DatosPersonalesStore.lista.forEach { persona ->
+            DatosPersonalesSalaVipStore.lista.forEach { persona ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -151,12 +149,13 @@ fun PagoSalaVipScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Nombre: ${persona.nombres} ${persona.apellidos}", color = Color(0xFF023E8A), fontSize = 14.sp)
-                        Text("Correo: ${persona.correo}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Celular: ${persona.celular}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Matrícula: ${persona.matricula}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Cédula: ${persona.cedula}", fontSize = 14.sp, color = Color.DarkGray)
-                        Text("Dirección: ${persona.direccion}", fontSize = 14.sp, color = Color.DarkGray)
+                        Text("Nombre: ${persona.nombre}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Ubicación: ${persona.ubicacion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Capacidad: ${persona.capacidad}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Teléfono: ${persona.telefono}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Correo: ${persona.correo}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Descripción: ${persona.descripcion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Fecha: ${persona.fecha}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                     }
                 }
             }
@@ -166,10 +165,9 @@ fun PagoSalaVipScreen(
 
         Button(
             onClick = {
-                viewModel.create() // Usar ViewModel para crear reserva si aplica
-
+                viewModel.create()
+                DatosPersonalesSalaVipStore.lista.clear()
                 val numeroReserva = (1000..9999).random().toString()
-                DatosPersonalesStore.lista.clear()
                 navController.navigate("ReservaSalaVipExitosa?numeroReserva=$numeroReserva")
             },
             modifier = Modifier
@@ -215,17 +213,18 @@ fun PreviewPagoSalaVipScreen() {
     )
 }
 
-// Modelo de datos para guardar info globalmente
-data class DatosPersonales(
-    val correo: String,
-    val nombres: String,
-    val apellidos: String,
-    val celular: String,
-    val matricula: String,
-    val cedula: String,
-    val direccion: String
+// Modelo actualizado para sala VIP
+data class DatosPersonalesSalaVip(
+    val restauranteId: Int? = null,
+    val nombre: String = "",
+    val ubicacion: String = "",
+    val capacidad: Int = 0,
+    val telefono: String = "",
+    val correo: String = "",
+    val descripcion: String = "",
+    val fecha: String = ""
 )
 
-object DatosPersonalesStore {
-    val lista = mutableStateListOf<DatosPersonales>()
+object DatosPersonalesSalaVipStore {
+    val lista = mutableStateListOf<DatosPersonalesSalaVip>()
 }
