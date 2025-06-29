@@ -22,17 +22,19 @@ fun ReservaSalonScreen(
     onCancelarClick: () -> Unit = {},
     onConfirmarClick: (DatosPersonales) -> Unit = {}
 ) {
+    var nombre by remember { mutableStateOf("") }
+    var ubicacion by remember { mutableStateOf("") }
+    var capacidadStr by remember { mutableStateOf("") } // Usamos String para facilitar input
+    var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
-    var nombres by remember { mutableStateOf("") }
-    var apellidos by remember { mutableStateOf("") }
-    var celular by remember { mutableStateOf("") }
-    var matricula by remember { mutableStateOf("") }
-    var cedula by remember { mutableStateOf("") }
-    var direccion by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
+    var fecha by remember { mutableStateOf("") }
+
+    val capacidad = capacidadStr.toIntOrNull() ?: 0
 
     val formularioCompleto = listOf(
-        correo, nombres, apellidos, celular, matricula, cedula, direccion
-    ).all { it.isNotBlank() }
+        nombre, ubicacion, telefono, correo, descripcion, fecha
+    ).all { it.isNotBlank() } && capacidad > 0
 
     Column(
         modifier = Modifier
@@ -79,6 +81,46 @@ fun ReservaSalonScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre *") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = ubicacion,
+                onValueChange = { ubicacion = it },
+                label = { Text("Ubicación *") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = capacidadStr,
+                onValueChange = { input ->
+                    capacidadStr = input.filter { it.isDigit() }
+                },
+                label = { Text("Capacidad *") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = telefono,
+                onValueChange = { telefono = it },
+                label = { Text("Teléfono *") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
                 value = correo,
                 onValueChange = { correo = it },
                 label = { Text("Correo electrónico *") },
@@ -89,56 +131,20 @@ fun ReservaSalonScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = nombres,
-                onValueChange = { nombres = it },
-                label = { Text("Nombres *") },
+                value = descripcion,
+                onValueChange = { descripcion = it },
+                label = { Text("Descripción *") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = apellidos,
-                onValueChange = { apellidos = it },
-                label = { Text("Apellidos *") },
+                value = fecha,
+                onValueChange = { fecha = it },
+                label = { Text("Fecha *") },
                 modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = celular,
-                onValueChange = { celular = it },
-                label = { Text("Número de celular *") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = matricula,
-                onValueChange = { matricula = it },
-                label = { Text("Matrícula *") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = cedula,
-                onValueChange = { cedula = it },
-                label = { Text("Cédula *") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = direccion,
-                onValueChange = { direccion = it },
-                label = { Text("Dirección *") },
-                modifier = Modifier.fillMaxWidth()
+                // Puedes agregar aquí un DatePicker si quieres mejorar UX
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -158,13 +164,14 @@ fun ReservaSalonScreen(
                 Button(
                     onClick = {
                         val datos = DatosPersonales(
+                            restauranteId = null,
+                            nombre = nombre,
+                            ubicacion = ubicacion,
+                            capacidad = capacidad,
+                            telefono = telefono,
                             correo = correo,
-                            nombres = nombres,
-                            apellidos = apellidos,
-                            celular = celular,
-                            matricula = matricula,
-                            cedula = cedula,
-                            direccion = direccion
+                            descripcion = descripcion,
+                            fecha = fecha
                         )
                         onConfirmarClick(datos)
                     },
@@ -181,13 +188,13 @@ fun ReservaSalonScreen(
     }
 }
 
-// Reusa el modelo DatosPersonales si ya lo tienes, si no, defínelo así:
 data class DatosPersonales(
-    val correo: String,
-    val nombres: String,
-    val apellidos: String,
-    val celular: String,
-    val matricula: String,
-    val cedula: String,
-    val direccion: String
+    val restauranteId: Int? = null,
+    val nombre: String = "",
+    val ubicacion: String = "",
+    val capacidad: Int = 0,
+    val telefono: String = "",
+    val correo: String = "",
+    val descripcion: String = "",
+    val fecha: String = ""
 )
