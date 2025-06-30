@@ -1,5 +1,8 @@
 package edu.ucne.ureserve.data.remote.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class DetalleReservaCubiculosDto(
     val detalleReservaCubiculoId: Int = 0,
     val codigoReserva: Int,
