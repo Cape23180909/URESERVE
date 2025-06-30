@@ -2,6 +2,7 @@ package edu.ucne.ureserve.presentation.cubiculos
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,12 +33,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import java.util.Calendar
@@ -46,7 +49,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CubiculoReservationScreen(
-    onBottomNavClick: (String) -> Unit = {}
+    onBottomNavClick: (String) -> Unit = {},
+    navController: NavController
 ) {
     val calendar = Calendar.getInstance()
     var selectedDate by remember { mutableStateOf<Calendar?>(null) }
@@ -126,7 +130,8 @@ fun CubiculoReservationScreen(
                     onClick = {
                         println("Reserva realizada para la fecha seleccionada")
                     },
-                    onBottomNavClick = onBottomNavClick
+                    onBottomNavClick = onBottomNavClick,
+                    navController = navController
                 )
             }
         }
@@ -355,7 +360,8 @@ private fun CalendarDay(
 private fun ReservationButton(
     isEnabled: Boolean,
     onClick: () -> Unit,
-    onBottomNavClick: (String) -> Unit
+    onBottomNavClick: (String) -> Unit,
+    navController: NavController
 ) {
     Button(
         onClick = onClick,
@@ -367,7 +373,12 @@ private fun ReservationButton(
         )
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clickable {
+                    navController.navigate("ReservaCubiculo?fecha=Hoy")
+                }
+                .padding(8.dp)
         ) {
             Text(
                 text = "¿Desea reservar ahora?",
@@ -381,6 +392,7 @@ private fun ReservationButton(
                 modifier = Modifier.size(34.dp)
             )
         }
+
     }
 
     Spacer(modifier = Modifier.height(70.dp))
@@ -405,6 +417,7 @@ private fun ReservationButton(
 @Composable
 fun PreviewCubiculoReservationScreen() {
     MaterialTheme {
-        CubiculoReservationScreen(onBottomNavClick = {})
+        CubiculoReservationScreen(onBottomNavClick = {},
+        navController = NavController(LocalContext.current))
     }
 }
