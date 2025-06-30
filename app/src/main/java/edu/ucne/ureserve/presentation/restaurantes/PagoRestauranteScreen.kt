@@ -165,23 +165,35 @@ fun PagoRestauranteScreen(
                         descripcion = persona.descripcion,
                         fecha = persona.fecha // Ya viene con la fecha asignada si se registró antes
                     )
+
+                    // 1. Crear restaurante
                     viewModel.create(nuevaReserva)
+
+                    // 2. Crear reservación relacionada
+                    viewModel.crearReservacionDesdeRestaurante(
+                        fecha = persona.fecha,
+                        matricula = persona.correo // Usamos el correo como matrícula
+                    )
                 }
 
-                // Limpia los datos después del envío
+                // 3. Limpia los datos después del envío
                 DatosPersonalesRestauranteStore.lista.clear()
 
-                // Navega a la pantalla de éxito
+                // 4. Navega a la pantalla de éxito
                 val numeroReserva = (1000..9999).random().toString()
                 navController.navigate("ReservaRestauranteExitosa?numeroReserva=$numeroReserva")
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0077B6), contentColor = Color.White)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF0077B6),
+                contentColor = Color.White
+            )
         ) {
             Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
+
 
 
 
