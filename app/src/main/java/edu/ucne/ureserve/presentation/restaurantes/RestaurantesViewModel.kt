@@ -4,7 +4,9 @@ package edu.ucne.ureserve.presentation.restaurantes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.RestaurantesDto
+import edu.ucne.ureserve.data.repository.ReservacionRepository
 import edu.ucne.ureserve.data.repository.RestauranteRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -12,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RestaurantesViewModel @Inject constructor(
-    private val restauranteRepository: RestauranteRepository
+    private val restauranteRepository: RestauranteRepository,
+    private val reservacionRepository : ReservacionRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RestaurantesUiState())
@@ -153,6 +156,30 @@ class RestaurantesViewModel @Inject constructor(
                 getRestaurantes()
             } catch (e: Exception) {
                 _uiState.update { it.copy(errorMessage = e.localizedMessage ?: "Error al guardar") }
+            }
+        }
+    }
+    fun crearReservacionDesdeRestaurante(fecha: String, matricula: String) {
+        val codigoReserva = (100000..999999).random()
+        val fechaConHora = "${fecha}T12:00:00" // Puedes ajustar la hora
+
+        val nuevaReservacion = ReservacionesDto(
+            codigoReserva = codigoReserva,
+            tipoReserva = 1, // Restaurante
+            cantidadEstudiantes = 0,
+            fecha = fechaConHora,
+            horario = "01:00:00",
+            estado = 1,
+            matricula = matricula
+        )
+
+        viewModelScope.launch {
+            try {
+                reservacionRepository.createReservacion(nuevaReservacion)
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(errorMessage = "Error al crear reservación: ${e.localizedMessage}")
+                }
             }
         }
     }
