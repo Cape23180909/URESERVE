@@ -4,6 +4,7 @@ import android.util.Log
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
+import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
@@ -12,18 +13,15 @@ import javax.inject.Inject
 class CubiculoRepository @Inject constructor(
     private val remoteDataSource: RemoteDataSource
 ) {
-    fun getCubiculos(): Flow<Resource<List<CubiculosDto>>> = flow {
-        try {
-            emit(Resource.Loading())
-            val cubiculos = remoteDataSource.getCubiculos()
-            emit(Resource.Success(cubiculos))
-        } catch (e: HttpException) {
-            Log.e("Retrofit No connection", "Error de conexión ${e.message}", e)
-            emit(Resource.Error("Error de internet: ${e.message}"))
-        } catch (e: Exception) {
-            Log.e("Retrofit Unknown", "Error desconocido ${e.message}", e)
-            emit(Resource.Error("Error desconocido: ${e.message}"))
-        }
+    suspend fun getCubiculosDisponibles(
+        fecha: String,
+        horaInicio: String,
+        horaFin: String
+    ): List<CubiculosDto> {
+        // Implementar lógica para obtener proyectores disponibles
+        // Esto puede variar según tu API real
+        val todosCubiculos = remoteDataSource.getCubiculos()
+        return todosCubiculos
     }
 
     suspend fun getCubiculo(id: Int): CubiculosDto = remoteDataSource.getCubiculo(id)
