@@ -15,6 +15,7 @@ import androidx.navigation.navArgument
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
+import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
 import edu.ucne.ureserve.presentation.login.AuthManager
@@ -129,7 +130,24 @@ fun UreserveNavHost(navController: NavHostController) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                     }
-                }
+                },
+                navController = navController
+            )
+        }
+
+        composable(
+            route = "ReservaCubiculo?fecha={fecha}",
+            arguments = listOf(navArgument("fecha") { defaultValue = "Hoy" })
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: "Hoy"
+            ReservaCubiculoScreen(
+                fecha = fecha,
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard")
+                    }
+                },
+                navController = navController
             )
         }
 
@@ -242,14 +260,12 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Perfil" -> navController.navigate("Profile")
                         "Tutorial" -> {} // Agrega aquí si tienes esa pantalla
                     }
-                }
-                ,
+                },
                 onExclamacionClick = {
                     navController.navigate("TerminosReservaRestaurante")
                 }
             )
         }
-
 
         composable("SalonReuniones") { backStackEntry ->
             val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
@@ -765,9 +781,5 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
-
-
-
     }
 }
-
