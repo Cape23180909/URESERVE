@@ -459,7 +459,7 @@ fun ReservaProyectorScreen(
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
-fun PreviewReservaProyectorScreen() {
+fun ReservaProyectorScreenPreview() {
     MaterialTheme {
         ReservaProyectorScreen(
             navController = rememberNavController()
