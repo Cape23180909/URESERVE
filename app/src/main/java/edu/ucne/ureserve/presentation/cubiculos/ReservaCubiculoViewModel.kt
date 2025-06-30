@@ -3,9 +3,11 @@ package edu.ucne.ureserve.presentation.cubiculos
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import edu.ucne.ureserve.data.remote.CubiculosApi
 import edu.ucne.ureserve.data.remote.DetalleReservaCubiculosApi
 import edu.ucne.ureserve.data.remote.DetalleReservaProyectorsApi
 import edu.ucne.ureserve.data.remote.ReservacionesApi
@@ -27,19 +29,39 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
 import javax.inject.Inject
+import androidx.compose.runtime.State
 
 @HiltViewModel
 class ReservaCubiculoViewModel @Inject constructor(
     private val repository: CubiculoRepository,
     private val detalleReservaApi: DetalleReservaCubiculosApi,
+    private val cubiculoApi: CubiculosApi,
     private val reservaApi: ReservacionesApi
 ) : ViewModel() {
+
+    private val _cubiculos = mutableStateOf<List<CubiculosDto>>(emptyList())
+    val cubiculos: State<List<CubiculosDto>> = _cubiculos
+
+    init {
+        loadCubiculos()
+    }
+
+    private fun loadCubiculos() {
+        viewModelScope.launch {
+            try {
+                _cubiculos.value = cubiculoApi.getAll()
+            } catch (e: Exception) {
+                // Manejo de errores
+                _cubiculos.value = emptyList()
+            }
+        }
+    }
 
     // Estado unificado del ViewModel
     private val _state = MutableStateFlow(ReservaCubiculoState())
     val state: StateFlow<ReservaCubiculoState> = _state.asStateFlow()
 
-    // Proyector seleccionado
+    // Cubiculo seleccionado
     private val _cubiculoSeleccionado = MutableStateFlow<CubiculosDto?>(null)
     val cubiculoSeleccionado: StateFlow<CubiculosDto?> = _cubiculoSeleccionado.asStateFlow()
 
