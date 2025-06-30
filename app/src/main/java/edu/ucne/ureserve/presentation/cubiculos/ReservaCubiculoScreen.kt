@@ -38,21 +38,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
+import androidx.compose.runtime.getValue
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservaCubiculoScreen(
     fecha: String = "Hoy",
-    cubiculos: List<CubiculosDto> = emptyList(),
+    viewModel: ReservaCubiculoViewModel = hiltViewModel(),
     onCubiculoClick: (CubiculosDto) -> Unit = {},
     onBottomNavClick: (String) -> Unit = {},
     navController: NavController
 ) {
+    val cubiculos by viewModel.cubiculos
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFF023E8A)))
     {
         TopAppBar(
@@ -254,6 +258,6 @@ fun ReservaCubiculoScreenPreview() {
     )
 
     MaterialTheme {
-        ReservaCubiculoScreen(cubiculos = cubiculosEjemplo, navController = rememberNavController())
+        ReservaCubiculoScreen(navController = rememberNavController())
     }
 }
