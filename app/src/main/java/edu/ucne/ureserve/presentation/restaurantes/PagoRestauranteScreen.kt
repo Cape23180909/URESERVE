@@ -153,27 +153,36 @@ fun PagoRestauranteScreen(
 
         Button(
             onClick = {
-                // Construir el objeto con datos reales del estado actual
-                val nuevaReserva = DatosPersonalesRestaurante(
-                    restauranteId = DatosPersonalesRestauranteStore.lista.size + 1,
-                    nombre = uiState.nombre,
-                    ubicacion = uiState.ubicacion,
-                    capacidad = uiState.capacidad,
-                    telefono = uiState.telefono,
-                    correo = uiState.correo,
-                    descripcion = uiState.descripcion,
-                    fecha = fecha
-                )
-                viewModel.create(nuevaReserva)
+                // Recorre y guarda cada persona registrada en la API
+                DatosPersonalesRestauranteStore.lista.forEach { persona ->
+                    val nuevaReserva = DatosPersonalesRestaurante(
+                        restauranteId = persona.restauranteId ?: 0,
+                        nombre = persona.nombre,
+                        ubicacion = persona.ubicacion,
+                        capacidad = persona.capacidad,
+                        telefono = persona.telefono,
+                        correo = persona.correo,
+                        descripcion = persona.descripcion,
+                        fecha = persona.fecha // Ya viene con la fecha asignada si se registró antes
+                    )
+                    viewModel.create(nuevaReserva)
+                }
+
+                // Limpia los datos después del envío
                 DatosPersonalesRestauranteStore.lista.clear()
+
+                // Navega a la pantalla de éxito
                 val numeroReserva = (1000..9999).random().toString()
                 navController.navigate("ReservaRestauranteExitosa?numeroReserva=$numeroReserva")
             },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0077B6), contentColor = Color.White)
         ) {
             Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
         }
+
 
 
     }
