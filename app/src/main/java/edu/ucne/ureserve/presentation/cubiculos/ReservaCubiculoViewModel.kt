@@ -48,8 +48,27 @@ class ReservaCubiculoViewModel @Inject constructor(
         _selectedHours.value = value
     }
 
-    private val _groupMembers = MutableStateFlow(listOf(Member("Juan Perez", "2022-0465")))
+    // Cambia esta parte en tu ViewModel
+    private val _groupMembers = MutableStateFlow(
+        listOf(
+            Member("Juan Perez", "2022-0465"),
+            Member("", ""),
+            Member("", ""),
+            Member("", ""),
+            Member("", ""),
+            Member("", "")
+        )
+    )
     val groupMembers: StateFlow<List<Member>> = _groupMembers
+
+    // Añade esta función para actualizar miembros
+    fun updateMember(index: Int, name: String, id: String) {
+        val currentList = _groupMembers.value.toMutableList()
+        if (index < currentList.size) {
+            currentList[index] = Member(name, id)
+            _groupMembers.value = currentList
+        }
+    }
 
 
     data class Member(val name: String, val id: String)
