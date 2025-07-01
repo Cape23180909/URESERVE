@@ -13,27 +13,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
 @Composable
 fun ReservaSalonScreen(
+    fecha: String,
     onCancelarClick: () -> Unit = {},
-    onConfirmarClick: (DatosPersonales) -> Unit = {}
+    onConfirmarClick: () -> Unit = {},
+    viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     var nombre by remember { mutableStateOf("") }
     var ubicacion by remember { mutableStateOf("") }
-    var capacidadStr by remember { mutableStateOf("") } // Usamos String para facilitar input
+    var capacidadStr by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
-    var fecha by remember { mutableStateOf("") }
 
     val capacidad = capacidadStr.toIntOrNull() ?: 0
 
     val formularioCompleto = listOf(
-        nombre, ubicacion, telefono, correo, descripcion, fecha
+        nombre, ubicacion, telefono, correo, descripcion
     ).all { it.isNotBlank() } && capacidad > 0
 
     Column(
@@ -74,7 +76,6 @@ fun ReservaSalonScreen(
                 text = "COMPLETAR REGISTRO DE RESERVA",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
                 color = Color.Black
             )
 
@@ -86,7 +87,6 @@ fun ReservaSalonScreen(
                 label = { Text("Nombre *") },
                 modifier = Modifier.fillMaxWidth()
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -95,19 +95,15 @@ fun ReservaSalonScreen(
                 label = { Text("Ubicación *") },
                 modifier = Modifier.fillMaxWidth()
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = capacidadStr,
-                onValueChange = { input ->
-                    capacidadStr = input.filter { it.isDigit() }
-                },
+                onValueChange = { capacidadStr = it.filter { char -> char.isDigit() } },
                 label = { Text("Capacidad *") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -117,7 +113,6 @@ fun ReservaSalonScreen(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -127,7 +122,6 @@ fun ReservaSalonScreen(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -137,16 +131,6 @@ fun ReservaSalonScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = fecha,
-                onValueChange = { fecha = it },
-                label = { Text("Fecha *") },
-                modifier = Modifier.fillMaxWidth()
-                // Puedes agregar aquí un DatePicker si quieres mejorar UX
-            )
-
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
@@ -154,26 +138,49 @@ fun ReservaSalonScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = onCancelarClick,
+                    onClick = {
+                        // Limpia campos y ejecuta acción cancelar
+                        nombre = ""
+                        ubicacion = ""
+                        capacidadStr = ""
+                        telefono = ""
+                        correo = ""
+                        descripcion = ""
+                        onCancelarClick()
+                    },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0077B6))
                 ) {
                     Text("CANCELAR")
                 }
+
                 Spacer(modifier = Modifier.width(16.dp))
+
                 Button(
                     onClick = {
-                        val datos = DatosPersonales(
-                            restauranteId = null,
-                            nombre = nombre,
-                            ubicacion = ubicacion,
-                            capacidad = capacidad,
-                            telefono = telefono,
-                            correo = correo,
-                            descripcion = descripcion,
-                            fecha = fecha
+                        // Guardar reserva en store y ViewModel
+                        DatosPersonalesSalonStore.lista.add(
+                            DatosPersonalesSalon(
+                                nombre = nombre,
+                                ubicacion = ubicacion,
+                                capacidad = capacidad,
+                                telefono = telefono,
+                                correo = correo,
+                                descripcion = descripcion,
+                                fecha = fecha
+                            )
                         )
-                        onConfirmarClick(datos)
+
+                        viewModel.setNombre(nombre)
+                        viewModel.setUbicacion(ubicacion)
+                        viewModel.setCapacidad(capacidad)
+                        viewModel.setTelefono(telefono)
+                        viewModel.setCorreo(correo)
+                        viewModel.setDescripcion(descripcion)
+                        viewModel.setFecha(fecha)
+                        viewModel.create()
+
+                        onConfirmarClick()
                     },
                     enabled = formularioCompleto,
                     modifier = Modifier.weight(1f),
@@ -187,14 +194,3 @@ fun ReservaSalonScreen(
         }
     }
 }
-
-data class DatosPersonales(
-    val restauranteId: Int? = null,
-    val nombre: String = "",
-    val ubicacion: String = "",
-    val capacidad: Int = 0,
-    val telefono: String = "",
-    val correo: String = "",
-    val descripcion: String = "",
-    val fecha: String = ""
-)
