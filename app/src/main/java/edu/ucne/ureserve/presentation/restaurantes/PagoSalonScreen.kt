@@ -18,7 +18,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.data.repository.RestauranteRepository
+import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesRestaurante
+import edu.ucne.ureserve.presentation.restaurantes.MetodoPagoSalaVipItem
 import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
 @Composable
@@ -58,7 +59,7 @@ fun PagoSalonScreen(
                 fontWeight = FontWeight.Bold
             )
             Image(
-                painter = painterResource(id = R.drawable.salon), // Asegúrate que exista este recurso
+                painter = painterResource(id = R.drawable.salon),
                 contentDescription = "Salón",
                 modifier = Modifier.size(40.dp)
             )
@@ -83,13 +84,11 @@ fun PagoSalonScreen(
                     color = Color(0xFF023E8A),
                     fontSize = 14.sp
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 MetodoPagoSalonItem("Efectivo", R.drawable.dinero) {
                     navController.navigate("RegistroReservaSalon?fecha=$fecha")
                 }
-
                 MetodoPagoSalonItem("Tarjeta de crédito", R.drawable.credito) {
                     navController.navigate("TarjetaCreditoSalon?fecha=$fecha")
                 }
@@ -97,7 +96,6 @@ fun PagoSalonScreen(
                 MetodoPagoSalonItem("Transferencia bancaria", R.drawable.trasnferencia) {
                     navController.navigate("SalonTransferencia?fecha=$fecha")
                 }
-
             }
         }
 
@@ -114,48 +112,33 @@ fun PagoSalonScreen(
                     color = Color(0xFF023E8A),
                     fontSize = 14.sp
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                     Text("Reserva Salón de Reuniones", color = Color.Black)
                     Text("RD$ 15,000", color = Color.Black)
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                     Text("Fecha:", color = Color.Black)
                     Text(fecha, color = Color.Black)
                 }
-
                 Divider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray)
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                     Text("TOTAL", fontWeight = FontWeight.Bold, color = Color.Black)
                     Text("RD$ 15,000", fontWeight = FontWeight.Bold, color = Color.Black)
                 }
             }
         }
 
-        if (DatosPersonalesSalonStore.lista.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        if (DatosPersonalesSalonStore.lista.isNotEmpty()) {
             Text(
                 text = "DATOS PERSONALES REGISTRADOS",
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(vertical = 8.dp)
             )
-
             DatosPersonalesSalonStore.lista.forEach { persona ->
                 Card(
                     modifier = Modifier
@@ -171,7 +154,6 @@ fun PagoSalonScreen(
                         Text("Correo: ${persona.correo}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Text("Descripción: ${persona.descripcion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Text("Fecha: ${persona.fecha}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-
                     }
                 }
             }
@@ -181,10 +163,25 @@ fun PagoSalonScreen(
 
         Button(
             onClick = {
-                viewModel.create() // Si quieres crear reserva con ViewModel
-
-                val numeroReserva = (1000..9999).random().toString()
+                DatosPersonalesSalonStore.lista.forEach { persona ->
+                    val nuevaReserva = DatosPersonalesRestaurante(
+                        restauranteId = persona.restauranteId ?: 0,
+                        nombre = persona.nombre,
+                        ubicacion = persona.ubicacion,
+                        capacidad = persona.capacidad,
+                        telefono = persona.telefono,
+                        correo = persona.correo,
+                        descripcion = persona.descripcion,
+                        fecha = persona.fecha
+                    )
+                    viewModel.create(nuevaReserva)
+                    viewModel.crearReservacionDesdeRestaurante(
+                        fecha = persona.fecha,
+                        matricula = persona.correo
+                    )
+                }
                 DatosPersonalesSalonStore.lista.clear()
+                val numeroReserva = (1000..9999).random().toString()
                 navController.navigate("ReservaExitosaSalon?numeroReserva=$numeroReserva")
             },
             modifier = Modifier
@@ -209,9 +206,10 @@ fun MetodoPagoSalonItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
+        Icon(
             painter = painterResource(id = iconRes),
             contentDescription = titulo,
+            tint = Color(0xFF023E8A),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -234,7 +232,6 @@ object DatosPersonalesSalonStore {
     val lista = mutableStateListOf<DatosPersonalesSalon>()
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewPagoSalonScreen() {
@@ -244,5 +241,3 @@ fun PreviewPagoSalonScreen() {
         navController = navController
     )
 }
-
-
