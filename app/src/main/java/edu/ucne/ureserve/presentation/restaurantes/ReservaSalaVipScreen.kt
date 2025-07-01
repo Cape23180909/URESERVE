@@ -14,12 +14,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import edu.ucne.ureserve.R
 
 @Composable
 fun ReservaSalaVipScreen(
+    fecha: String,
     onCancelarClick: () -> Unit = {},
-    onConfirmarClick: (DatosPersonalesvip) -> Unit = {}
+    onConfirmarClick: () -> Unit = {},
+    viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     var nombre by remember { mutableStateOf("") }
     var ubicacion by remember { mutableStateOf("") }
@@ -27,12 +30,11 @@ fun ReservaSalaVipScreen(
     var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
-    var fecha by remember { mutableStateOf("") }
 
     val capacidad = capacidadStr.toIntOrNull() ?: 0
 
     val formularioCompleto = listOf(
-        nombre, ubicacion, telefono, correo, descripcion, fecha
+        nombre, ubicacion, telefono, correo, descripcion
     ).all { it.isNotBlank() } && capacidad > 0
 
     Column(
@@ -85,7 +87,6 @@ fun ReservaSalaVipScreen(
                 label = { Text("Nombre *") },
                 modifier = Modifier.fillMaxWidth()
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -94,17 +95,15 @@ fun ReservaSalaVipScreen(
                 label = { Text("Ubicación *") },
                 modifier = Modifier.fillMaxWidth()
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = capacidadStr,
-                onValueChange = { input -> capacidadStr = input.filter { it.isDigit() } },
+                onValueChange = { capacidadStr = it.filter { it.isDigit() } },
                 label = { Text("Capacidad *") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -114,7 +113,6 @@ fun ReservaSalaVipScreen(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -124,7 +122,6 @@ fun ReservaSalaVipScreen(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -133,17 +130,6 @@ fun ReservaSalaVipScreen(
                 label = { Text("Descripción *") },
                 modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = fecha,
-                onValueChange = { fecha = it },
-                label = { Text("Fecha *") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text) // Puedes cambiar a DatePicker si quieres
-            )
-
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
@@ -152,14 +138,12 @@ fun ReservaSalaVipScreen(
             ) {
                 Button(
                     onClick = {
-                        // Limpia todos los campos y llama al callback cancelar
                         nombre = ""
                         ubicacion = ""
                         capacidadStr = ""
                         telefono = ""
                         correo = ""
                         descripcion = ""
-                        fecha = ""
                         onCancelarClick()
                     },
                     modifier = Modifier.weight(1f),
@@ -172,17 +156,30 @@ fun ReservaSalaVipScreen(
 
                 Button(
                     onClick = {
-                        val datos = DatosPersonalesvip(
-                            restauranteId = null,
-                            nombre = nombre,
-                            ubicacion = ubicacion,
-                            capacidad = capacidad,
-                            telefono = telefono,
-                            correo = correo,
-                            descripcion = descripcion,
-                            fecha = fecha
+                        // Guardar en el Store correcto
+                        DatosPersonalesSalaVipStore.lista.add(
+                            DatosPersonalesSalaVip(
+                                nombre = nombre,
+                                ubicacion = ubicacion,
+                                capacidad = capacidad,
+                                telefono = telefono,
+                                correo = correo,
+                                descripcion = descripcion,
+                                fecha = fecha
+                            )
                         )
-                        onConfirmarClick(datos)
+
+                        // Actualizar ViewModel y guardar
+                        viewModel.setNombre(nombre)
+                        viewModel.setUbicacion(ubicacion)
+                        viewModel.setCapacidad(capacidad)
+                        viewModel.setTelefono(telefono)
+                        viewModel.setCorreo(correo)
+                        viewModel.setDescripcion(descripcion)
+                        viewModel.setFecha(fecha)
+                        viewModel.create()
+
+                        onConfirmarClick()
                     },
                     enabled = formularioCompleto,
                     modifier = Modifier.weight(1f),
@@ -197,17 +194,4 @@ fun ReservaSalaVipScreen(
     }
 }
 
-data class DatosPersonalesvip(
-    val restauranteId: Int? = null,
-    val nombre: String = "",
-    val ubicacion: String = "",
-    val capacidad: Int = 0,
-    val telefono: String = "",
-    val correo: String = "",
-    val descripcion: String = "",
-    val fecha: String = ""
-)
-object DatosPersonalesStore {
-    val lista = mutableStateListOf<DatosPersonalesvip>()
-}
 
