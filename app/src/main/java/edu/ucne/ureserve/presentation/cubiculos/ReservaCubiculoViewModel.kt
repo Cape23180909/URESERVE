@@ -30,6 +30,8 @@ import java.time.format.DateTimeParseException
 import java.util.Locale
 import javax.inject.Inject
 import androidx.compose.runtime.State
+import androidx.compose.ui.text.input.TextFieldValue
+import java.lang.reflect.Member
 
 @HiltViewModel
 class ReservaCubiculoViewModel @Inject constructor(
@@ -39,8 +41,22 @@ class ReservaCubiculoViewModel @Inject constructor(
     private val reservaApi: ReservacionesApi
 ) : ViewModel() {
 
-    private val _cubiculos = mutableStateOf<List<CubiculosDto>>(emptyList())
-    val cubiculos: State<List<CubiculosDto>> = _cubiculos
+    private val _selectedHours = MutableStateFlow("")
+    val selectedHours: StateFlow<String> = _selectedHours
+
+    fun setSelectedHours(value: String) {
+        _selectedHours.value = value
+    }
+
+    private val _groupMembers = MutableStateFlow(listOf(Member("Juan Perez", "2022-0465")))
+    val groupMembers: StateFlow<List<Member>> = _groupMembers
+
+
+    data class Member(val name: String, val id: String)
+
+    private val _cubiculos = MutableStateFlow<List<CubiculosDto>>(emptyList())
+    val cubiculos: StateFlow<List<CubiculosDto>> = _cubiculos
+
 
     init {
         loadCubiculos()
