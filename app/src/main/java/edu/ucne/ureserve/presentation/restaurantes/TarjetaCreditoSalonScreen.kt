@@ -15,10 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import java.util.*
 
 @Composable
@@ -50,7 +48,6 @@ fun TarjetaCreditoSalonScreen(
         }
     }
 
-    // Validaciones
     val isCardValid = numeroTarjeta.length == 16
     val isNameValid = nombreTitular.trim().isNotEmpty()
     val isFechaValid = fechaVencimiento.length == 4 && fechaVencimiento.take(2).toIntOrNull() in 1..12
@@ -169,8 +166,7 @@ fun TarjetaCreditoSalonScreen(
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(
                     onClick = {
-                        // Navega a ReservaSalonScreen
-                        navController.navigate("ReservaSalon")
+                        navController.navigate("ReservaSalon?fecha=$fecha")
                     },
                     enabled = isFormValid,
                     colors = ButtonDefaults.buttonColors(
@@ -180,6 +176,7 @@ fun TarjetaCreditoSalonScreen(
                 ) {
                     Text("CONFIRMAR")
                 }
+
             }
         }
     }
@@ -235,16 +232,4 @@ val FechaVisualTransformation = VisualTransformation { text ->
         AnnotatedString(formatted),
         offsetTranslator
     )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewTarjetaCreditoSalonScreen() {
-    val navController = rememberNavController()
-    MaterialTheme {
-        TarjetaCreditoSalonScreen(
-            fecha = "0625",
-            navController = navController
-        )
-    }
 }
