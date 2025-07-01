@@ -19,7 +19,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
 @Composable
 fun PagoSalaVipScreen(
@@ -29,7 +28,6 @@ fun PagoSalaVipScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Actualizar fecha en ViewModel cuando cambie el parámetro
     LaunchedEffect(fecha) {
         viewModel.setFecha(fecha)
     }
@@ -40,7 +38,6 @@ fun PagoSalaVipScreen(
             .background(Color(0xFF023E8A))
             .padding(16.dp)
     ) {
-        // Top Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -74,7 +71,6 @@ fun PagoSalaVipScreen(
                 .padding(bottom = 16.dp)
         )
 
-        // Método de pago
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -102,7 +98,6 @@ fun PagoSalaVipScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Resumen del pedido
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -165,7 +160,23 @@ fun PagoSalaVipScreen(
 
         Button(
             onClick = {
-                viewModel.create()
+                DatosPersonalesSalaVipStore.lista.forEach { persona ->
+                    val nuevaReserva = DatosPersonalesRestaurante(
+                        restauranteId = persona.restauranteId ?: 0,
+                        nombre = persona.nombre,
+                        ubicacion = persona.ubicacion,
+                        capacidad = persona.capacidad,
+                        telefono = persona.telefono,
+                        correo = persona.correo,
+                        descripcion = persona.descripcion,
+                        fecha = persona.fecha
+                    )
+                    viewModel.create(nuevaReserva)
+                    viewModel.crearReservacionDesdeRestaurante(
+                        fecha = persona.fecha,
+                        matricula = persona.correo
+                    )
+                }
                 DatosPersonalesSalaVipStore.lista.clear()
                 val numeroReserva = (1000..9999).random().toString()
                 navController.navigate("ReservaSalaVipExitosa?numeroReserva=$numeroReserva")
@@ -213,7 +224,6 @@ fun PreviewPagoSalaVipScreen() {
     )
 }
 
-// Modelo actualizado para sala VIP
 data class DatosPersonalesSalaVip(
     val restauranteId: Int? = null,
     val nombre: String = "",
