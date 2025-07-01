@@ -15,6 +15,7 @@ import androidx.navigation.navArgument
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
+import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
@@ -137,7 +138,7 @@ fun UreserveNavHost(navController: NavHostController) {
             arguments = listOf(navArgument("fecha") { defaultValue = "Hoy" })
         ) { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: "Hoy"
-            ReservaCubiculoScreen(
+            DashboardCubiculoScreen(
                 fecha = fecha,
                 onBottomNavClick = { destination ->
                     when (destination) {
@@ -146,6 +147,11 @@ fun UreserveNavHost(navController: NavHostController) {
                 },
                 navController = navController
             )
+        }
+
+        composable("reserva/{cubiculoId}") { backStackEntry ->
+            val cubiculoId = backStackEntry.arguments?.getString("cubiculoId")?.toIntOrNull()
+            ReservaCubiculoScreen(navController = navController, cubiculoId = cubiculoId)
         }
 
         composable("LaboratorioReservation") {
