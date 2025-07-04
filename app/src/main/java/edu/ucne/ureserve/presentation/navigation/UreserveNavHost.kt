@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -145,13 +146,35 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Inicio" -> navController.navigate("Dashboard")
                     }
                 },
-                navController = navController
+                navController = navController,
+                usuarioDTO = UsuarioDTO()
             )
         }
 
-        composable("reserva/{cubiculoId}") { backStackEntry ->
-            val cubiculoId = backStackEntry.arguments?.getString("cubiculoId")?.toIntOrNull()
-            ReservaCubiculoScreen(navController = navController, cubiculoId = cubiculoId)
+
+
+        composable(
+            "reserva/{cubiculoId}/{nombres}/{apellidos}/{matricula}",
+            arguments = listOf(
+                navArgument("cubiculoId") { type = NavType.IntType },
+                navArgument("nombres") { type = NavType.StringType },
+                navArgument("apellidos") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val cubiculoId = backStackEntry.arguments?.getInt("cubiculoId")
+            val nombres = backStackEntry.arguments?.getString("nombres") ?: ""
+            val apellidos = backStackEntry.arguments?.getString("apellidos") ?: ""
+            val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
+
+            ReservaCubiculoScreen(
+                viewModel = hiltViewModel(),
+                cubiculoId = cubiculoId,
+                nombres = nombres,
+                apellidos = apellidos,
+                matricula = matricula,
+                navController = navController,
+            )
         }
 
         composable("LaboratorioReservation") {
