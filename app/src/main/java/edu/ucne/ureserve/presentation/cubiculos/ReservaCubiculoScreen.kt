@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -32,14 +34,12 @@ fun ReservaCubiculoScreen(
     navController: NavController,
     usuarioDTO: UsuarioDTO
 ) {
+    // Esto agrega al usuario automáticamente cuando cambia el usuarioDTO.usuarioId
     LaunchedEffect(usuarioDTO.usuarioId) {
-        viewModel.resetGroupMembers()
         viewModel.initializeWithUser(usuarioDTO)
     }
-
     val hours by viewModel.selectedHours.collectAsState()
     val members by viewModel.groupMembers.collectAsState()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -140,7 +140,12 @@ fun ReservaCubiculoScreen(
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
-                IconButton(onClick = { /* Add member */ }) {
+                IconButton(onClick = {
+                    // Solo agrega si no está ya agregado para evitar duplicados
+                    if (members.none { it.usuarioId == usuarioDTO.usuarioId }) {
+                        viewModel.addMember(usuarioDTO)
+                    }
+                }) {
                     Image(
                         painter = painterResource(id = R.drawable.icon_agregarcubicul),
                         contentDescription = "Agregar",
@@ -149,60 +154,64 @@ fun ReservaCubiculoScreen(
                 }
             }
 
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF0F4C81), RoundedCornerShape(4.dp))
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFF0F4C81))
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Nombre",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Yellow,
-                        modifier = Modifier.weight(1f).padding(start = 16.dp)
-                    )
-                    Text(
-                        text = "Matrícula",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Yellow,
-                        modifier = Modifier.weight(1f).padding(end = 16.dp),
-                        textAlign = TextAlign.End
-                    )
-                }
-
-                Divider(color = Color.White, thickness = 1.dp, modifier = Modifier.fillMaxWidth())
-
-                // Mostrar los miembros del grupo (incluyendo al usuario principal ya agregado)
-                members.forEachIndexed { i, member ->
+                item {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(if (i % 2 == 0) Color(0xFFE6E6E6) else Color.White)
+                            .background(Color(0xFF0F4C81))
                             .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "${member.nombres} ${member.apellidos}",
-                            modifier = Modifier.weight(1f).padding(start = 16.dp),
-                            color = Color.Black
+                            text = "Nombre",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Yellow,
+                            modifier = Modifier.weight(1f).padding(start = 16.dp)
                         )
                         Text(
-                            text = member.estudiante?.matricula ?: "No disponible",
+                            text = "Matrícula",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Yellow,
                             modifier = Modifier.weight(1f).padding(end = 16.dp),
-                            textAlign = TextAlign.End,
-                            color = Color.Black
+                            textAlign = TextAlign.End
                         )
                     }
-                    if (i < members.size - 1) {
+                    Divider(color = Color.White, thickness = 1.dp, modifier = Modifier.fillMaxWidth())
+                }
+
+
+                    itemsIndexed(members) { i, member ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(if (i % 2 == 0) Color(0xFFE6E6E6) else Color.White)
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "${member.nombres} ${member.apellidos}",
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 16.dp),
+                                color = Color.Black
+                            )
+                            Text(
+                                text = member.estudiante?.matricula ?: "No disponible",
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 16.dp),
+                                textAlign = TextAlign.End,
+                                color = Color.Black
+                            )
+                        }
                         Divider(color = Color.White, thickness = 1.dp)
                     }
-                }
+
             }
 
             Text(
@@ -250,21 +259,5 @@ fun ReservaCubiculoScreen(
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewReservaCubiculoScreen() {
-    MaterialTheme {
-        ReservaCubiculoScreen(
-            navController = rememberNavController(),
-            usuarioDTO = UsuarioDTO(
-                usuarioId = 1,
-                nombres = "Juan",
-                apellidos = "Perez",
-                estudiante = EstudianteDto(matricula = "2022-0465")
-            )
-        )
     }
 }

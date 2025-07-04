@@ -119,6 +119,7 @@ fun DashboardCubiculoScreen(
                         if (cubiculo.disponible) {
                             Log.d("Navigation", "Usuario: ${usuarioDTO.nombres} ${usuarioDTO.apellidos}, Matrícula: ${usuarioDTO.estudiante?.matricula}")
                             navController.navigate("reserva/${cubiculo.cubiculoId}/${usuarioDTO.nombres}/${usuarioDTO.apellidos}/${usuarioDTO.estudiante?.matricula ?: ""}")
+
                         }
                     }
                 )

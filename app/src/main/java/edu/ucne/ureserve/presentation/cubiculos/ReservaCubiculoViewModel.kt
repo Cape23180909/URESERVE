@@ -50,30 +50,22 @@ class ReservaCubiculoViewModel @Inject constructor(
         _selectedHours.value = hours
     }
 
-    fun resetGroupMembers() {
-        _groupMembers.value = emptyList()
-    }
 
     fun initializeWithUser(usuarioDTO: UsuarioDTO) {
-        Log.d(
-            "ReservaCubiculoViewModel",
-            "Inicializando con usuario: ${usuarioDTO.nombres} ${usuarioDTO.apellidos}, Matrícula: ${usuarioDTO.estudiante?.matricula}"
-        )
-        if (_groupMembers.value.isEmpty()) {
-            _groupMembers.value = listOf(usuarioDTO)
-            Log.d(
-                "ReservaCubiculoViewModel",
-                "Usuario añadido a la lista de miembros: ${usuarioDTO.estudiante?.matricula}"
-            )
+        if (_groupMembers.value.none { it.usuarioId == usuarioDTO.usuarioId }) {
+            val currentList = _groupMembers.value.toMutableList()
+            currentList.add(usuarioDTO)
+            _groupMembers.value = currentList
         }
     }
+
 
     fun addMember(member: UsuarioDTO) {
         val currentMembers = _groupMembers.value.toMutableList()
         currentMembers.add(member)
         _groupMembers.value = currentMembers
-        Log.d("ReservaCubiculoViewModel", "Miembro añadido: ${member.estudiante?.matricula}")
     }
+
 
     fun getUsuarioById(id: Int) {
         viewModelScope.launch {
