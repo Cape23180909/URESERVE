@@ -167,13 +167,24 @@ fun UreserveNavHost(navController: NavHostController) {
             val apellidos = backStackEntry.arguments?.getString("apellidos") ?: ""
             val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
 
+            // Crear una instancia de EstudianteDto y UsuarioDTO
+            val estudianteDto = EstudianteDto(
+                matricula = matricula,
+                facultad = "", // Asegúrate de tener estos valores si es posible
+                carrera = ""
+            )
+
+            val usuarioDTO = UsuarioDTO(
+                nombres = nombres,
+                apellidos = apellidos,
+                estudiante = estudianteDto
+            )
+
             ReservaCubiculoScreen(
                 viewModel = hiltViewModel(),
                 cubiculoId = cubiculoId,
-                nombres = nombres,
-                apellidos = apellidos,
-                matricula = matricula,
                 navController = navController,
+                usuarioDTO = usuarioDTO
             )
         }
 

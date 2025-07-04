@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.cubiculos
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -22,24 +23,18 @@ import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
-import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel.Member
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservaCubiculoScreen(
     viewModel: ReservaCubiculoViewModel = hiltViewModel(),
     cubiculoId: Int? = null,
-    nombres: String = "",
-    apellidos: String = "",
-    matricula: String = "",
     navController: NavController,
-    usuarioDTO: UsuarioDTO? = null
+    usuarioDTO: UsuarioDTO
 ) {
-    // Inicializa el ViewModel con el usuario que inicia sesión
-    LaunchedEffect(Unit) {
-        usuarioDTO?.let {
-            viewModel.initializeWithUser(it)
-        }
+    LaunchedEffect(usuarioDTO.usuarioId) {
+        viewModel.resetGroupMembers()
+        viewModel.initializeWithUser(usuarioDTO)
     }
 
     val hours by viewModel.selectedHours.collectAsState()
@@ -183,29 +178,29 @@ fun ReservaCubiculoScreen(
 
                 Divider(color = Color.White, thickness = 1.dp, modifier = Modifier.fillMaxWidth())
 
-                for (i in 0 until members.size) {
-                    val member = members[i]
+                // Mostrar los miembros del grupo (incluyendo al usuario principal ya agregado)
+                members.forEachIndexed { i, member ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(if (i % 2 == 0) Color.White else Color.LightGray)
+                            .background(if (i % 2 == 0) Color(0xFFE6E6E6) else Color.White)
                             .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = member.name.ifEmpty { "" },
+                            text = "${member.nombres} ${member.apellidos}",
                             modifier = Modifier.weight(1f).padding(start = 16.dp),
                             color = Color.Black
                         )
                         Text(
-                            text = member.id.ifEmpty { "" },
+                            text = member.estudiante?.matricula ?: "No disponible",
                             modifier = Modifier.weight(1f).padding(end = 16.dp),
                             textAlign = TextAlign.End,
                             color = Color.Black
                         )
                     }
                     if (i < members.size - 1) {
-                        Divider(color = Color.White, thickness = 1.dp, modifier = Modifier.fillMaxWidth())
+                        Divider(color = Color.White, thickness = 1.dp)
                     }
                 }
             }
@@ -262,6 +257,14 @@ fun ReservaCubiculoScreen(
 @Composable
 fun PreviewReservaCubiculoScreen() {
     MaterialTheme {
-        ReservaCubiculoScreen(navController = rememberNavController())
+        ReservaCubiculoScreen(
+            navController = rememberNavController(),
+            usuarioDTO = UsuarioDTO(
+                usuarioId = 1,
+                nombres = "Juan",
+                apellidos = "Perez",
+                estudiante = EstudianteDto(matricula = "2022-0465")
+            )
+        )
     }
 }

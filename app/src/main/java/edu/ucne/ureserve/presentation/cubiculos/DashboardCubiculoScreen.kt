@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.cubiculos
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -116,7 +117,7 @@ fun DashboardCubiculoScreen(
                     cubiculo = cubiculo,
                     onClick = {
                         if (cubiculo.disponible) {
-                            // Asume que tienes el usuarioDTO disponible en este contexto
+                            Log.d("Navigation", "Usuario: ${usuarioDTO.nombres} ${usuarioDTO.apellidos}, Matrícula: ${usuarioDTO.estudiante?.matricula}")
                             navController.navigate("reserva/${cubiculo.cubiculoId}/${usuarioDTO.nombres}/${usuarioDTO.apellidos}/${usuarioDTO.estudiante?.matricula ?: ""}")
                         }
                     }

@@ -3,6 +3,7 @@ package edu.ucne.ureserve.presentation.cubiculos
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,6 +11,7 @@ import edu.ucne.ureserve.data.remote.CubiculosApi
 import edu.ucne.ureserve.data.remote.DetalleReservaCubiculosApi
 import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
+import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.data.repository.CubiculoRepository
@@ -38,21 +40,39 @@ class ReservaCubiculoViewModel @Inject constructor(
     private val _selectedHours = MutableStateFlow("")
     val selectedHours: StateFlow<String> = _selectedHours.asStateFlow()
 
-    private val _groupMembers = MutableStateFlow<List<Member>>(emptyList())
-    val groupMembers: StateFlow<List<Member>> = _groupMembers.asStateFlow()
+    private val _groupMembers = MutableStateFlow<List<UsuarioDTO>>(emptyList())
+    val groupMembers: StateFlow<List<UsuarioDTO>> = _groupMembers.asStateFlow()
 
     private val _usuario = MutableStateFlow<UsuarioDTO?>(null)
     val usuario: StateFlow<UsuarioDTO?> = _usuario.asStateFlow()
 
-    fun initializeWithUser(usuarioDTO: UsuarioDTO, additionalMembers: List<Member> = emptyList()) {
-        _usuario.value = usuarioDTO
-        val currentUserMember = Member(
-            name = "${usuarioDTO.nombres} ${usuarioDTO.apellidos}",
-            id = usuarioDTO.estudiante?.matricula ?: ""
+    fun setSelectedHours(hours: String) {
+        _selectedHours.value = hours
+    }
+
+    fun resetGroupMembers() {
+        _groupMembers.value = emptyList()
+    }
+
+    fun initializeWithUser(usuarioDTO: UsuarioDTO) {
+        Log.d(
+            "ReservaCubiculoViewModel",
+            "Inicializando con usuario: ${usuarioDTO.nombres} ${usuarioDTO.apellidos}, Matrícula: ${usuarioDTO.estudiante?.matricula}"
         )
-        val initialMembers = listOf(currentUserMember) + additionalMembers
-        _groupMembers.value = initialMembers
-        Log.d("ReservaCubiculoViewModel", "Initialized user: ${usuarioDTO.nombres} ${usuarioDTO.apellidos}")
+        if (_groupMembers.value.isEmpty()) {
+            _groupMembers.value = listOf(usuarioDTO)
+            Log.d(
+                "ReservaCubiculoViewModel",
+                "Usuario añadido a la lista de miembros: ${usuarioDTO.estudiante?.matricula}"
+            )
+        }
+    }
+
+    fun addMember(member: UsuarioDTO) {
+        val currentMembers = _groupMembers.value.toMutableList()
+        currentMembers.add(member)
+        _groupMembers.value = currentMembers
+        Log.d("ReservaCubiculoViewModel", "Miembro añadido: ${member.estudiante?.matricula}")
     }
 
     fun getUsuarioById(id: Int) {
@@ -60,6 +80,7 @@ class ReservaCubiculoViewModel @Inject constructor(
             try {
                 val usuario = repository.getUsuarioById(id)
                 _usuario.value = usuario
+                Log.d("ReservaCubiculoViewModel", "Usuario cargado: ${usuario?.nombres} ${usuario?.apellidos}")
             } catch (e: Exception) {
                 Log.e("Usuario", "Error al obtener usuario: ${e.message}")
                 _usuario.value = null
@@ -67,19 +88,18 @@ class ReservaCubiculoViewModel @Inject constructor(
         }
     }
 
-    fun updateMember(index: Int, name: String, id: String) {
+    fun updateMember(index: Int, nombres: String, apellidos: String, matricula: String) {
         val currentList = _groupMembers.value.toMutableList()
         if (index < currentList.size) {
-            currentList[index] = Member(name, id)
+            val current = currentList[index]
+            currentList[index] = current.copy(
+                nombres = nombres,
+                apellidos = apellidos,
+                estudiante = current.estudiante?.copy(matricula = matricula)
+            )
             _groupMembers.value = currentList
         }
     }
-
-    fun setSelectedHours(value: String) {
-        _selectedHours.value = value
-    }
-
-    data class Member(val name: String, val id: String)
 
     private val _cubiculos = MutableStateFlow<List<CubiculosDto>>(emptyList())
     val cubiculos: StateFlow<List<CubiculosDto>> = _cubiculos.asStateFlow()
@@ -119,17 +139,14 @@ class ReservaCubiculoViewModel @Inject constructor(
             try {
                 val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
                 val fechaFormatted = LocalDate.parse(fecha, dateFormatter).toString()
-
                 val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
                 val horaInicioParsed = LocalTime.parse(horaInicio, timeFormatter)
                 val horaFinParsed = LocalTime.parse(horaFin, timeFormatter)
-
                 val cubiculos = repository.getCubiculosDisponibles(
                     fechaFormatted,
-                    horaInicioParsed.format(DateTimeFormatter.ofPattern("HHH:mm")),
-                    horaFinParsed.format(DateTimeFormatter.ofPattern("HHH:mm"))
+                    horaInicioParsed.format(DateTimeFormatter.ofPattern("HH:mm")),
+                    horaFinParsed.format(DateTimeFormatter.ofPattern("HH:mm"))
                 )
-
                 _state.value = _state.value.copy(
                     cubiculos = cubiculos,
                     isLoading = false,
@@ -166,7 +183,6 @@ class ReservaCubiculoViewModel @Inject constructor(
                     horaInicio,
                     ZoneId.systemDefault()
                 ).format(DateTimeFormatter.ISO_INSTANT)
-
                 val duracion = Duration.between(horaInicio, horaFin)
                 val horarioFormateado = String.format(
                     "%02d:%02d:%02d",
@@ -174,7 +190,6 @@ class ReservaCubiculoViewModel @Inject constructor(
                     duracion.toMinutes() % 60,
                     duracion.seconds % 60
                 )
-
                 val reservacionDto = ReservacionesDto(
                     codigoReserva = codigoReserva,
                     tipoReserva = 2,
@@ -184,13 +199,10 @@ class ReservaCubiculoViewModel @Inject constructor(
                     matricula = matricula,
                     cantidadEstudiantes = 0
                 )
-
                 val response = reservaApi.insert(reservacionDto)
-
                 if (!response.isSuccessful) {
                     throw Exception("Error en reserva: ${response.code()}")
                 }
-
                 _state.value = _state.value.copy(
                     reservaConfirmada = true,
                     codigoReserva = codigoReserva,
