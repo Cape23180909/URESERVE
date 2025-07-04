@@ -3,16 +3,28 @@ package edu.ucne.ureserve.data.repository
 import android.util.Log
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.Resource
+import edu.ucne.ureserve.data.remote.UsuarioApi
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
+import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
 import javax.inject.Inject
 
 class CubiculoRepository @Inject constructor(
-    private val remoteDataSource: RemoteDataSource
+    private val remoteDataSource: RemoteDataSource,
+    private val usuarioApi: UsuarioApi
 ) {
+
+    suspend fun getUsuarioById(id: Int): UsuarioDTO {
+        return try {
+            usuarioApi.getById(id)
+        } catch (e: Exception) {
+            throw Exception("Error al obtener usuario: ${e.message}")
+        }
+    }
+
     suspend fun getCubiculosDisponibles(
         fecha: String,
         horaInicio: String,
