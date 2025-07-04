@@ -45,6 +45,7 @@ import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import androidx.compose.runtime.getValue
+import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +53,7 @@ fun DashboardCubiculoScreen(
     fecha: String = "Hoy",
     onBottomNavClick: (String) -> Unit = {},
     viewModel: ReservaCubiculoViewModel = hiltViewModel(),
+    usuarioDTO: UsuarioDTO,
     navController: NavController
 ) {
     val cubiculos by viewModel.cubiculos.collectAsState()
@@ -114,7 +116,8 @@ fun DashboardCubiculoScreen(
                     cubiculo = cubiculo,
                     onClick = {
                         if (cubiculo.disponible) {
-                            navController.navigate("reserva/${cubiculo.cubiculoId}")
+                            // Asume que tienes el usuarioDTO disponible en este contexto
+                            navController.navigate("reserva/${cubiculo.cubiculoId}/${usuarioDTO.nombres}/${usuarioDTO.apellidos}/${usuarioDTO.estudiante?.matricula ?: ""}")
                         }
                     }
                 )
@@ -235,6 +238,6 @@ fun ReservaCubiculoScreenPreview() {
     )
 
     MaterialTheme {
-        DashboardCubiculoScreen(navController = rememberNavController())
+        DashboardCubiculoScreen(navController = rememberNavController(), usuarioDTO = UsuarioDTO())
     }
 }
