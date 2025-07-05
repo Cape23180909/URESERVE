@@ -47,6 +47,9 @@ import edu.ucne.ureserve.data.remote.dto.CubiculosDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import androidx.compose.runtime.getValue
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,9 +120,8 @@ fun DashboardCubiculoScreen(
                     cubiculo = cubiculo,
                     onClick = {
                         if (cubiculo.disponible) {
-                            Log.d("Navigation", "Usuario: ${usuarioDTO.nombres} ${usuarioDTO.apellidos}, Matrícula: ${usuarioDTO.estudiante?.matricula}")
-                            navController.navigate("reserva/${cubiculo.cubiculoId}/${usuarioDTO.nombres}/${usuarioDTO.apellidos}/${usuarioDTO.estudiante?.matricula ?: ""}")
-
+                            val jsonUsuario = Json.encodeToString(usuarioDTO)
+                            navController.navigate("reserva/${cubiculo.cubiculoId}?usuario=${URLEncoder.encode(jsonUsuario, "UTF-8")}")
                         }
                     }
                 )
