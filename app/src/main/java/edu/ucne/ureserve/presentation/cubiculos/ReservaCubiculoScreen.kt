@@ -4,8 +4,6 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -17,10 +15,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
@@ -41,18 +40,15 @@ fun ReservaCubiculoScreen(
 
     // Inicialización única con usuario
     LaunchedEffect(usuarioDTO) {
-        Log.d("ReservaScreen", "Inicializando ViewModel con usuario...")
         viewModel.initializeWithUser(usuarioDTO)
     }
 
-    val members by remember { derivedStateOf { viewModel.members } }
     val hours by viewModel.selectedHours.collectAsState()
+    val members by remember { derivedStateOf { viewModel.members } }
 
-    var localMembers by remember { mutableStateOf(listOf(usuarioDTO)) }
-
-    // Combinar con miembros del ViewModel
-    val allMembers = remember(localMembers, viewModel.members) {
-        (localMembers + viewModel.members).distinctBy { it.usuarioId }
+    // Asegura que el usuario esté incluido en la lista
+    val allMembers = remember(members) {
+        (listOf(usuarioDTO) + members).distinctBy { it.usuarioId }
     }
 
     Column(
@@ -68,24 +64,13 @@ fun ReservaCubiculoScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo_reserve),
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(60.dp)
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.icon_cubiculo),
-                        contentDescription = "Icono de Cubículo",
-                        modifier = Modifier.size(60.dp)
-                    )
+                    Image(painter = painterResource(id = R.drawable.logo_reserve), contentDescription = "Logo", modifier = Modifier.size(60.dp))
+                    Image(painter = painterResource(id = R.drawable.icon_cubiculo), contentDescription = "Icono de Cubículo", modifier = Modifier.size(60.dp))
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFF6D87A4)
-            )
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6D87A4))
         )
 
-        // Título
         Text(
             text = "Reserva de cubículo #$cubiculoId",
             style = MaterialTheme.typography.headlineMedium,
@@ -97,36 +82,16 @@ fun ReservaCubiculoScreen(
                 .align(Alignment.CenterHorizontally)
         )
 
-        // Campo para horas
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            Text(
-                text = "Seleccione la cantidad de horas:",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+        // Horas
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+            Text("Seleccione la cantidad de horas:", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = Color.White)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Digite la cantidad de horas:",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Text("Digite la cantidad de horas:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White)
             Spacer(modifier = Modifier.height(8.dp))
             TextField(
                 value = hours,
-                onValueChange = { newValue ->
-                    if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
-                        viewModel.setSelectedHours(newValue)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
+                onValueChange = { if (it.isEmpty() || it.all(Char::isDigit)) viewModel.setSelectedHours(it) },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.LightGray,
@@ -140,171 +105,98 @@ fun ReservaCubiculoScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Miembros del grupo
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Añade los integrantes de tu grupo",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                Text("Añade los integrantes de tu grupo", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = Color.White)
                 IconButton(onClick = {
                     if (members.none { it.usuarioId == usuarioDTO.usuarioId }) {
                         viewModel.addMember(usuarioDTO)
                     }
                 }) {
-                    Image(
-                        painter = painterResource(id = R.drawable.icon_agregarcubicul),
-                        contentDescription = "Agregar",
-                        modifier = Modifier.size(32.dp)
-                    )
+                    Image(painter = painterResource(id = R.drawable.icon_agregarcubicul), contentDescription = "Agregar", modifier = Modifier.size(32.dp))
                 }
             }
 
-            LazyColumn(
+            // Lista con filas fijas
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF0F4C81), RoundedCornerShape(4.dp))
             ) {
-                // Encabezado
-                item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF0F4C81))
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Nombre", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(start = 16.dp))
+                    Text("Matrícula", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(end = 16.dp), textAlign = TextAlign.End)
+                }
+
+                Divider(color = Color.White, thickness = 1.dp, modifier = Modifier.fillMaxWidth())
+
+                for (i in 0 until 6) {
+                    val member = allMembers.getOrNull(i)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFF0F4C81))
-                            .padding(8.dp),
+                            .background(if (i % 2 == 0) Color.White else Color.LightGray)
+                            .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Nombre", color = Color.Yellow, fontWeight = FontWeight.Bold)
-                        Text("Matrícula", color = Color.Yellow, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = member?.nombres?.takeIf { it.isNotBlank() }?.plus(" ${member.apellidos}") ?: "",
+                            modifier = Modifier.weight(1f).padding(start = 16.dp),
+                            color = Color.Black
+                        )
+                        Text(
+                            text = member?.estudiante?.matricula ?: "",
+                            modifier = Modifier.weight(1f).padding(end = 16.dp),
+                            textAlign = TextAlign.End,
+                            color = Color.Black
+                        )
                     }
-                    Divider(color = Color.White)
-                }
-
-                // Si no hay miembros
-                if (members.isEmpty()) {
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color.LightGray)
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text("No hay miembros agregados", color = Color.Black)
-                        }
-                        Divider(color = Color.White)
-                    }
-                } else {
-                    // Si hay miembros
-                    items(members) { member ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    if (members.indexOf(member) % 2 == 0)
-                                        Color.LightGray
-                                    else
-                                        Color.White
-                                )
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "${usuarioDTO.nombres}",
-                                fontSize = 18.sp,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(member.estudiante?.matricula ?: "Sin matrícula", color = Color.Black)
-                        }
-                        Divider(color = Color.White)
-                    }
-                }
-
-                // Footer con mensaje dinámico
-                item {
-                    val faltantes = (3 - members.size).coerceAtLeast(0)
-                    Text(
-                        text = if (faltantes > 0)
-                            "Debe tener mínimo $faltantes miembros más"
-                        else
-                            "Tienes el mínimo requerido",
-                        color = Color.White,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    if (i < 5) Divider(color = Color.White, thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                 }
             }
+
+            val faltantes = (3 - allMembers.size).coerceAtLeast(0)
+            Text(
+                text = if (faltantes > 0) "Debe tener mínimo $faltantes miembros más" else "Tienes el mínimo requerido",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
         // Botones inferiores
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(
-                onClick = { /* Cancelar reserva */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007BFF))
-            ) {
+            Button(onClick = { /* TODO */ }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007BFF))) {
                 Text(text = "CANCELAR")
             }
-            Button(
-                onClick = { /* Continuar reserva */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-            ) {
+            Button(onClick = { /* TODO */ }, colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)) {
                 Text(text = "SIGUIENTE")
             }
         }
 
-        // Barra de navegación inferior
+        // Navegación inferior
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF2E5C94))
-                .padding(vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().background(Color(0xFF2E5C94)).padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             IconButton(onClick = { /* navController.navigate("Inicio") */ }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.icon_inicio),
-                    contentDescription = "Inicio",
-                    tint = Color.White
-                )
+                Icon(painter = painterResource(id = R.drawable.icon_inicio), contentDescription = "Inicio", tint = Color.White)
             }
         }
     }
-}
-
-@Composable
-fun MemberItem(member: UsuarioDTO) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.LightGray)
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = "${member.nombres} ${member.apellidos}",
-            color = Color.Black
-        )
-        Text(
-            text = member.estudiante?.matricula ?: "Sin matrícula",
-            color = Color.Black
-        )
-    }
-    Divider(color = Color.White)
 }
