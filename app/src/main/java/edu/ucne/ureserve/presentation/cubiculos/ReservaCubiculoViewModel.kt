@@ -3,7 +3,10 @@ package edu.ucne.ureserve.presentation.cubiculos
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,8 +43,8 @@ class ReservaCubiculoViewModel @Inject constructor(
     private val _selectedHours = MutableStateFlow("")
     val selectedHours: StateFlow<String> = _selectedHours.asStateFlow()
 
-    private val _groupMembers = MutableStateFlow<List<UsuarioDTO>>(emptyList())
-    val groupMembers: StateFlow<List<UsuarioDTO>> = _groupMembers.asStateFlow()
+    private val _members = mutableStateListOf<UsuarioDTO>()
+    val members: List<UsuarioDTO> get() = _members
 
     private val _usuario = MutableStateFlow<UsuarioDTO?>(null)
     val usuario: StateFlow<UsuarioDTO?> = _usuario.asStateFlow()
@@ -50,21 +53,21 @@ class ReservaCubiculoViewModel @Inject constructor(
         _selectedHours.value = hours
     }
 
-
-    fun initializeWithUser(usuarioDTO: UsuarioDTO) {
-        if (_groupMembers.value.none { it.usuarioId == usuarioDTO.usuarioId }) {
-            val currentList = _groupMembers.value.toMutableList()
-            currentList.add(usuarioDTO)
-            _groupMembers.value = currentList
+    fun initializeWithUser(usuario: UsuarioDTO) {
+        Log.d("ViewModel", "Inicializando con usuario: ${usuario.nombres}")
+        if (_members.none { it.usuarioId == usuario.usuarioId }) {
+            _members.add(0, usuario) // Siempre agregar al inicio
+            Log.d("ViewModel", "Usuario agregado. Total miembros: ${_members.size}")
         }
     }
 
-
     fun addMember(member: UsuarioDTO) {
-        val currentMembers = _groupMembers.value.toMutableList()
-        currentMembers.add(member)
-        _groupMembers.value = currentMembers
+        if (!_members.any { it.usuarioId == member.usuarioId }) {
+            _members.add(member)
+            Log.d("ViewModel", "Miembro agregado. Total: ${_members.size}")
+        }
     }
+
 
 
     fun getUsuarioById(id: Int) {
@@ -80,18 +83,18 @@ class ReservaCubiculoViewModel @Inject constructor(
         }
     }
 
-    fun updateMember(index: Int, nombres: String, apellidos: String, matricula: String) {
-        val currentList = _groupMembers.value.toMutableList()
-        if (index < currentList.size) {
-            val current = currentList[index]
-            currentList[index] = current.copy(
-                nombres = nombres,
-                apellidos = apellidos,
-                estudiante = current.estudiante?.copy(matricula = matricula)
-            )
-            _groupMembers.value = currentList
-        }
-    }
+//    fun updateMember(index: Int, nombres: String, apellidos: String, matricula: String) {
+//        val currentList = _groupMembers.value.toMutableList()
+//        if (index < currentList.size) {
+//            val current = currentList[index]
+//            currentList[index] = current.copy(
+//                nombres = nombres,
+//                apellidos = apellidos,
+//                estudiante = current.estudiante?.copy(matricula = matricula)
+//            )
+//            _groupMembers.value = currentList
+//        }
+//    }
 
     private val _cubiculos = MutableStateFlow<List<CubiculosDto>>(emptyList())
     val cubiculos: StateFlow<List<CubiculosDto>> = _cubiculos.asStateFlow()
