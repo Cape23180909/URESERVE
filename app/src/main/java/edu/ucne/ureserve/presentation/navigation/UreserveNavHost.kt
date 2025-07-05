@@ -2,6 +2,7 @@ package edu.ucne.ureserve.presentation.navigation
 
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -58,6 +59,8 @@ import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
 import edu.ucne.ureserve.presentation.salones.RegistroReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
+import kotlinx.serialization.json.Json
+import java.net.URLDecoder
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -154,37 +157,32 @@ fun UreserveNavHost(navController: NavHostController) {
 
 
         composable(
-            "reserva/{cubiculoId}/{nombres}/{apellidos}/{matricula}",
+            "reserva/{cubiculoId}?usuario={usuario}",
             arguments = listOf(
                 navArgument("cubiculoId") { type = NavType.IntType },
-                navArgument("nombres") { type = NavType.StringType },
-                navArgument("apellidos") { type = NavType.StringType },
-                navArgument("matricula") { type = NavType.StringType }
+                navArgument("usuario") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
             )
         ) { backStackEntry ->
             val cubiculoId = backStackEntry.arguments?.getInt("cubiculoId")
-            val nombres = backStackEntry.arguments?.getString("nombres") ?: ""
-            val apellidos = backStackEntry.arguments?.getString("apellidos") ?: ""
-            val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
-
-            // Crear una instancia de EstudianteDto y UsuarioDTO
-            val estudianteDto = EstudianteDto(
-                matricula = matricula,
-                facultad = "", // Asegúrate de tener estos valores si es posible
-                carrera = ""
-            )
-
-            val usuarioDTO = UsuarioDTO(
-                nombres = nombres,
-                apellidos = apellidos,
-                estudiante = estudianteDto
-            )
+            val usuario = AuthManager.currentUser ?: UsuarioDTO()
+            val estudiante = remember {
+                EstudianteDto(
+                    estudianteId = 1,  // Esto debería venir de tu backend
+                    matricula = "2022-0465",
+                    facultad = "Ingeniería",
+                    carrera = "Ingeniería en Sistemas"
+                )
+            }
 
             ReservaCubiculoScreen(
-                viewModel = hiltViewModel(),
                 cubiculoId = cubiculoId,
                 navController = navController,
-                usuarioDTO = usuarioDTO
+                usuarioDTO = usuario,
+                estudiante = estudiante
             )
         }
 
