@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,16 +16,44 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import edu.ucne.ureserve.R
-import androidx.compose.material3.TextFieldDefaults
-
+import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 
 @Composable
 fun AgregarEstudianteScreen(
+    viewModel: ReservaCubiculoViewModel = hiltViewModel(),
+    navController: NavController,
     onCancel: () -> Unit = {},
     onAdd: (String) -> Unit = {}
 ) {
-    val matricula = remember { mutableStateOf("") }
+    var matricula by remember { mutableStateOf("") }
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
+
+    fun formatMatricula(input: String): String {
+        return when {
+            input.length <= 4 -> input
+            input.length <= 8 -> "${input.substring(0, 4)}-${input.substring(4)}"
+            else -> "${input.substring(0, 4)}-${input.substring(4, 8)}"
+        }
+    }
+
+    fun onMatriculaChange(input: String) {
+        val cleanInput = input.replace("-", "")
+        if (cleanInput.length <= 8) {
+            matricula = formatMatricula(cleanInput)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -37,19 +63,17 @@ fun AgregarEstudianteScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Campo de matrícula
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4)) // Cambiado a #6D87A4
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Logo
                 Box(
                     modifier = Modifier
                         .size(60.dp)
@@ -75,8 +99,8 @@ fun AgregarEstudianteScreen(
                 )
 
                 OutlinedTextField(
-                    value = matricula.value,
-                    onValueChange = { matricula.value = it },
+                    value = matricula,
+                    onValueChange = { onMatriculaChange(it) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     textStyle = TextStyle(fontSize = 20.sp, textAlign = TextAlign.Center),
                     modifier = Modifier
@@ -110,13 +134,28 @@ fun AgregarEstudianteScreen(
                     ) {
                         Text(
                             text = "CANCELAR",
-                            fontSize = 14.sp,   //Cambiar dependiendo mi gusto, si lo veo raro en mi cell
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
                     Button(
-                        onClick = { onAdd(matricula.value) },
+                        onClick = {
+                            val matriculaLimpia = matricula.replace("-", "")
+                            if (matriculaLimpia.length == 8) {
+                                viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
+                                    if (usuarioEncontrado != null) {
+                                        viewModel.addMember(usuarioEncontrado) // Agrega el usuario al ViewModel
+                                        navController.popBackStack() // Navega hacia atrás
+                                    } else {
+                                        viewModel.setError("Matrícula no válida")
+                                    }
+                                }
+                            } else {
+                                viewModel.setError("La matrícula debe tener 8 dígitos")
+                            }
+                        },
+                        enabled = !isLoading,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF3A7BD5),
                             contentColor = Color.White
@@ -126,11 +165,15 @@ fun AgregarEstudianteScreen(
                             .width(120.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
-                        Text(
-                            text = "AÑADIR",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text(
+                                text = "AÑADIR",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -154,7 +197,7 @@ fun AgregarEstudianteScreen(
                     for (j in 1..3) {
                         val number = (i - 1) * 3 + j
                         Button(
-                            onClick = { matricula.value += number.toString() },
+                            onClick = { onMatriculaChange(matricula + number.toString()) },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF2E5C94),
                                 contentColor = Color.White
@@ -179,7 +222,7 @@ fun AgregarEstudianteScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Button(
-                    onClick = { matricula.value += "0" },
+                    onClick = { onMatriculaChange(matricula + "0") },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2E5C94),
                         contentColor = Color.White
@@ -200,8 +243,8 @@ fun AgregarEstudianteScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewAgregarEstudianteScreen() {
-    AgregarEstudianteScreen()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewAgregarEstudianteScreen() {
+//    AgregarEstudianteScreen()
+//}
