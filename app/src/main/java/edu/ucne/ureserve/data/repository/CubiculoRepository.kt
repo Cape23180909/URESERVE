@@ -36,6 +36,17 @@ class CubiculoRepository @Inject constructor(
         return todosCubiculos
     }
 
+    suspend fun buscarUsuarioPorMatricula(matricula: String): UsuarioDTO? {
+        return try {
+            usuarioApi.getAll().find {
+                it.estudiante?.matricula.equals(matricula, ignoreCase = true)
+            }
+        } catch (e: Exception) {
+            Log.e("Repository", "Error buscando usuario", e)
+            null
+        }
+    }
+
     suspend fun getCubiculo(id: Int): CubiculosDto = remoteDataSource.getCubiculo(id)
 
     suspend fun createCubiculo(cubiculo: CubiculosDto): CubiculosDto =
