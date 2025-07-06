@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.navigation
 
+import AgregarEstudianteScreen
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -13,12 +14,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoScreen
+import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
 import edu.ucne.ureserve.presentation.login.AuthManager
@@ -183,6 +186,26 @@ fun UreserveNavHost(navController: NavHostController) {
                 navController = navController,
                 usuarioDTO = usuario,
                 estudiante = estudiante
+            )
+        }
+
+        composable("AgregarEstudiante") { backStackEntry ->
+            val navController = rememberNavController()
+            val viewModel: ReservaCubiculoViewModel = hiltViewModel()
+            AgregarEstudianteScreen(
+                viewModel = viewModel,
+                navController = navController,
+                onCancel = { navController.popBackStack() },
+                onAdd = { matricula ->
+                    viewModel.buscarUsuarioPorMatricula(matricula) { usuarioEncontrado ->
+                        if (usuarioEncontrado != null) {
+                            viewModel.addMember(usuarioEncontrado)
+                            navController.popBackStack()
+                        } else {
+                            viewModel.setError("Matrícula no válida")
+                        }
+                    }
+                }
             )
         }
 
