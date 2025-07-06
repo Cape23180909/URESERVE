@@ -43,8 +43,14 @@ class ReservaCubiculoViewModel @Inject constructor(
     private val _selectedHours = MutableStateFlow("")
     val selectedHours: StateFlow<String> = _selectedHours.asStateFlow()
 
-    private val _members = mutableStateListOf<UsuarioDTO>()
-    val members: List<UsuarioDTO> get() = _members
+    private val _members = MutableStateFlow<List<UsuarioDTO>>(emptyList())
+    val members: StateFlow<List<UsuarioDTO>> = _members
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     private val _usuario = MutableStateFlow<UsuarioDTO?>(null)
     val usuario: StateFlow<UsuarioDTO?> = _usuario.asStateFlow()
@@ -55,20 +61,46 @@ class ReservaCubiculoViewModel @Inject constructor(
 
     fun initializeWithUser(usuario: UsuarioDTO) {
         Log.d("ViewModel", "Inicializando con usuario: ${usuario.nombres}")
-        if (_members.none { it.usuarioId == usuario.usuarioId }) {
-            _members.add(0, usuario) // Siempre agregar al inicio
-            Log.d("ViewModel", "Usuario agregado. Total miembros: ${_members.size}")
+        if (_members.value.none { it.usuarioId == usuario.usuarioId }) {
+            _members.value = listOf(usuario) + _members.value
+            Log.d("ViewModel", "Usuario agregado. Total miembros: ${_members.value.size}")
         }
     }
 
-    fun addMember(member: UsuarioDTO) {
-        if (!_members.any { it.usuarioId == member.usuarioId }) {
-            _members.add(member)
-            Log.d("ViewModel", "Miembro agregado. Total: ${_members.size}")
+    fun setError(message: String) {
+        _errorMessage.value = message
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
+    fun addMember(usuario: UsuarioDTO) {
+        viewModelScope.launch {
+            _members.value = _members.value + usuario
         }
     }
 
+    fun buscarUsuarioPorMatricula(matricula: String, onResult: (UsuarioDTO?) -> Unit) {
+        _isLoading.value = true
+        _errorMessage.value = null
 
+        viewModelScope.launch {
+            try {
+                val usuario = repository.buscarUsuarioPorMatricula(matricula)
+                if (usuario != null && _members.value.none { it.usuarioId == usuario.usuarioId }) {
+                    _members.value = _members.value + usuario
+                    Log.d("ViewModel", "Usuario agregado: ${usuario.nombres}")
+                }
+                onResult(usuario)
+            } catch (e: Exception) {
+                _errorMessage.value = "Error buscando usuario: ${e.message}"
+                onResult(null)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
     fun getUsuarioById(id: Int) {
         viewModelScope.launch {
@@ -82,19 +114,6 @@ class ReservaCubiculoViewModel @Inject constructor(
             }
         }
     }
-
-//    fun updateMember(index: Int, nombres: String, apellidos: String, matricula: String) {
-//        val currentList = _groupMembers.value.toMutableList()
-//        if (index < currentList.size) {
-//            val current = currentList[index]
-//            currentList[index] = current.copy(
-//                nombres = nombres,
-//                apellidos = apellidos,
-//                estudiante = current.estudiante?.copy(matricula = matricula)
-//            )
-//            _groupMembers.value = currentList
-//        }
-//    }
 
     private val _cubiculos = MutableStateFlow<List<CubiculosDto>>(emptyList())
     val cubiculos: StateFlow<List<CubiculosDto>> = _cubiculos.asStateFlow()
