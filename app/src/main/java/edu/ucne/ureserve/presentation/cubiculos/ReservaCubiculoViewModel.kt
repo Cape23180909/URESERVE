@@ -75,29 +75,32 @@ class ReservaCubiculoViewModel @Inject constructor(
         _errorMessage.value = null
     }
 
-    fun addMember(usuario: UsuarioDTO) {
-        viewModelScope.launch {
-            _members.value = _members.value + usuario
-        }
-    }
-
     fun buscarUsuarioPorMatricula(matricula: String, onResult: (UsuarioDTO?) -> Unit) {
         _isLoading.value = true
         _errorMessage.value = null
-
         viewModelScope.launch {
             try {
                 val usuario = repository.buscarUsuarioPorMatricula(matricula)
-                if (usuario != null && _members.value.none { it.usuarioId == usuario.usuarioId }) {
-                    _members.value = _members.value + usuario
+                if (usuario != null) {
+                    addMember(usuario)
                     Log.d("ViewModel", "Usuario agregado: ${usuario.nombres}")
                 }
                 onResult(usuario)
             } catch (e: Exception) {
                 _errorMessage.value = "Error buscando usuario: ${e.message}"
+                Log.e("ViewModel", "Error buscando usuario", e)
                 onResult(null)
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    fun addMember(usuario: UsuarioDTO) {
+        viewModelScope.launch {
+            if (_members.value.none { it.usuarioId == usuario.usuarioId }) {
+                _members.value = _members.value + usuario
+                Log.d("ViewModel", "Miembro agregado: ${usuario.nombres}. Total miembros: ${_members.value.size}")
             }
         }
     }
