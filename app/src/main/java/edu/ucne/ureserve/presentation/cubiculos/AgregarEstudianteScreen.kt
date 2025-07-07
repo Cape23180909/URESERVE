@@ -1,3 +1,4 @@
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -139,14 +140,17 @@ fun AgregarEstudianteScreen(
                         )
                     }
 
+                    // En la pantalla AgregarEstudianteScreen
                     Button(
                         onClick = {
                             val matriculaLimpia = matricula.replace("-", "")
                             if (matriculaLimpia.length == 8) {
                                 viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
                                     if (usuarioEncontrado != null) {
-                                        viewModel.addMember(usuarioEncontrado) // Agrega el usuario al ViewModel
-                                        navController.popBackStack() // Navega hacia atrás
+                                        viewModel.addMember(usuarioEncontrado)
+                                        Log.d("AgregarEstudianteScreen", "Usuario encontrado y agregado: ${usuarioEncontrado.nombres}")
+                                        navController.popBackStack()
+                                        Log.d("AgregarEstudianteScreen", "Navegando de vuelta a la pantalla anterior")
                                     } else {
                                         viewModel.setError("Matrícula no válida")
                                     }
