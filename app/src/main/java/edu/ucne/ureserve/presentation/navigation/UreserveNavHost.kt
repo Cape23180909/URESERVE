@@ -189,8 +189,7 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
 
-        composable("AgregarEstudiante") { backStackEntry ->
-            val navController = rememberNavController()
+        composable("AgregarEstudiante") {
             val viewModel: ReservaCubiculoViewModel = hiltViewModel()
             AgregarEstudianteScreen(
                 viewModel = viewModel,
