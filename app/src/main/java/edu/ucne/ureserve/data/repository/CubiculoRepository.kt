@@ -38,9 +38,23 @@ class CubiculoRepository @Inject constructor(
 
     suspend fun buscarUsuarioPorMatricula(matricula: String): UsuarioDTO? {
         return try {
-            usuarioApi.getAll().find {
-                it.estudiante?.matricula.equals(matricula, ignoreCase = true)
+            val usuarios = usuarioApi.getAll()
+            Log.d("Repository", "Usuarios recuperados: ${usuarios.size}")
+
+            // Normalizar la matrícula quitando guiones para la comparación
+            val normalizedMatricula = matricula.replace("-", "")
+
+            val usuario = usuarios.find { usuario ->
+                val userMatricula = usuario.estudiante?.matricula?.replace("-", "") ?: ""
+                userMatricula.equals(normalizedMatricula, ignoreCase = true)
             }
+
+            if (usuario != null) {
+                Log.d("Repository", "Usuario encontrado: ${usuario.nombres}")
+            } else {
+                Log.d("Repository", "Usuario no encontrado para la matrícula: $matricula")
+            }
+            usuario
         } catch (e: Exception) {
             Log.e("Repository", "Error buscando usuario", e)
             null
