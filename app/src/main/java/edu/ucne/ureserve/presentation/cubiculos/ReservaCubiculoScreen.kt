@@ -70,6 +70,11 @@ fun ReservaCubiculoScreen(
     val hours by viewModel.selectedHours.collectAsState()
     val allMembers by viewModel.members.collectAsState()
 
+    // Log para verificar los miembros actuales
+    LaunchedEffect(allMembers) {
+        Log.d("ReservaCubiculoScreen", "Miembros actuales: ${allMembers.size}")
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
