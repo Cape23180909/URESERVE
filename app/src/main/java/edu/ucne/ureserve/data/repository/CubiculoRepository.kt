@@ -40,15 +40,11 @@ class CubiculoRepository @Inject constructor(
         return try {
             val usuarios = usuarioApi.getAll()
             Log.d("Repository", "Usuarios recuperados: ${usuarios.size}")
-
-            // Normalizar la matrícula quitando guiones para la comparación
             val normalizedMatricula = matricula.replace("-", "")
-
             val usuario = usuarios.find { usuario ->
                 val userMatricula = usuario.estudiante?.matricula?.replace("-", "") ?: ""
                 userMatricula.equals(normalizedMatricula, ignoreCase = true)
             }
-
             if (usuario != null) {
                 Log.d("Repository", "Usuario encontrado: ${usuario.nombres}")
             } else {
