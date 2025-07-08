@@ -1,11 +1,13 @@
 package edu.ucne.ureserve.presentation.navigation
 
 import AgregarEstudianteScreen
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -65,6 +67,7 @@ import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
 import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 
+@SuppressLint("UnrememberedGetBackStackEntry")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UreserveNavHost(navController: NavHostController) {
@@ -160,7 +163,7 @@ fun UreserveNavHost(navController: NavHostController) {
 
 
         composable(
-            "reserva/{cubiculoId}?usuario={usuario}",
+            route = "reserva/{cubiculoId}?usuario={usuario}",
             arguments = listOf(
                 navArgument("cubiculoId") { type = NavType.IntType },
                 navArgument("usuario") {
@@ -174,23 +177,42 @@ fun UreserveNavHost(navController: NavHostController) {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
             val estudiante = remember {
                 EstudianteDto(
-                    estudianteId = 1,  // Esto debería venir de tu backend
+                    estudianteId = 1,
                     matricula = "2022-0465",
                     facultad = "Ingeniería",
                     carrera = "Ingeniería en Sistemas"
                 )
             }
 
+            // Guardamos el backStackEntry como referencia para otras pantallas
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry("reserva/{cubiculoId}?usuario={usuario}")
+            }
+
+            // Este ViewModel se compartirá con otras rutas
+            val viewModel: ReservaCubiculoViewModel = hiltViewModel(parentEntry)
+
+            // Inicializar el usuario
+            LaunchedEffect(usuario) {
+                viewModel.initializeWithUser(usuario)
+            }
+
             ReservaCubiculoScreen(
                 cubiculoId = cubiculoId,
                 navController = navController,
                 usuarioDTO = usuario,
-                estudiante = estudiante
+                estudiante = estudiante,
+                viewModel = viewModel
             )
         }
 
-        composable("AgregarEstudiante") {
-            val viewModel: ReservaCubiculoViewModel = hiltViewModel()
+        composable("AgregarEstudiante") { backStackEntry ->
+            // Usamos el mismo ViewModel de la pantalla anterior
+            val parentEntry = remember {
+                navController.getBackStackEntry("reserva/{cubiculoId}?usuario={usuario}")
+            }
+            val viewModel: ReservaCubiculoViewModel = hiltViewModel(parentEntry)
+
             AgregarEstudianteScreen(
                 viewModel = viewModel,
                 navController = navController,
@@ -199,6 +221,7 @@ fun UreserveNavHost(navController: NavHostController) {
                     viewModel.buscarUsuarioPorMatricula(matricula) { usuarioEncontrado ->
                         if (usuarioEncontrado != null) {
                             viewModel.addMember(usuarioEncontrado)
+                            Log.d("AgregarEstudianteScreen", "Usuario agregado: ${usuarioEncontrado.nombres}")
                             navController.popBackStack()
                         } else {
                             viewModel.setError("Matrícula no válida")
