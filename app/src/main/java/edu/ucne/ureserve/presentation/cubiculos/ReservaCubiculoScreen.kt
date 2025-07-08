@@ -3,35 +3,11 @@ package edu.ucne.ureserve.presentation.cubiculos
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +15,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -55,24 +30,24 @@ fun ReservaCubiculoScreen(
     cubiculoId: Int? = null,
     navController: NavController,
     usuarioDTO: UsuarioDTO,
-    estudiante: EstudianteDto,
+    estudiante: EstudianteDto
 ) {
-    // Debug inicial
+    val hours by viewModel.selectedHours.collectAsState()
+    val allMembers by viewModel.members.collectAsState()
+
+    LaunchedEffect(allMembers) {
+        Log.d("ReservaCubiculoScreen", "Miembros actualizados: ${allMembers.size}")
+        allMembers.forEach { member ->
+            Log.d("ReservaCubiculoScreen", "Miembro: ${member.nombres}")
+        }
+    }
+
     LaunchedEffect(Unit) {
         Log.d("ReservaScreen", "Usuario recibido - Nombre: ${usuarioDTO.nombres}, Matrícula: ${usuarioDTO.estudiante?.matricula ?: "N/A"}")
     }
 
-    // Inicialización única con usuario
     LaunchedEffect(usuarioDTO) {
         viewModel.initializeWithUser(usuarioDTO)
-    }
-
-    val hours by viewModel.selectedHours.collectAsState()
-    val allMembers by viewModel.members.collectAsState()
-
-    // Log para verificar los miembros actuales
-    LaunchedEffect(allMembers) {
-        Log.d("ReservaCubiculoScreen", "Miembros actuales: ${allMembers.size}")
     }
 
     Column(
@@ -80,7 +55,6 @@ fun ReservaCubiculoScreen(
             .fillMaxSize()
             .background(Color(0xFF023E8A))
     ) {
-        // Top AppBar
         TopAppBar(
             title = {
                 Row(
@@ -106,7 +80,6 @@ fun ReservaCubiculoScreen(
                 .align(Alignment.CenterHorizontally)
         )
 
-        // Horas
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             Text("Seleccione la cantidad de horas:", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = Color.White)
             Spacer(modifier = Modifier.height(4.dp))
@@ -140,7 +113,6 @@ fun ReservaCubiculoScreen(
                     onClick = {
                         navController.navigate("AgregarEstudiante") {
                             launchSingleTop = true
-                            // Esto asegura que al volver mantenga el estado
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
@@ -155,7 +127,6 @@ fun ReservaCubiculoScreen(
                 }
             }
 
-            // Lista con filas fijas
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -164,38 +135,36 @@ fun ReservaCubiculoScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF0F4C81))
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("Nombre", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(start = 16.dp))
                     Text("Matrícula", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(end = 16.dp), textAlign = TextAlign.End)
                 }
-
-                Divider(color = Color.White, thickness = 1.dp, modifier = Modifier.fillMaxWidth())
-
-                for (i in 0 until 6) {
-                    val member = allMembers.getOrNull(i)
+                Divider(color = Color.White, thickness = 1.dp)
+                allMembers.forEachIndexed { index, member ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(if (i % 2 == 0) Color.White else Color.LightGray)
+                            .background(if (index % 2 == 0) Color.White else Color.LightGray)
                             .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = member?.nombres?.takeIf { it.isNotBlank() }?.plus(" ${member.apellidos}") ?: "",
+                            text = member.nombres.orEmpty() + " " + member.apellidos.orEmpty(),
                             modifier = Modifier.weight(1f).padding(start = 16.dp),
                             color = Color.Black
                         )
                         Text(
-                            text = member?.estudiante?.matricula ?: "",
+                            text = member.estudiante?.matricula.orEmpty(),
                             modifier = Modifier.weight(1f).padding(end = 16.dp),
                             textAlign = TextAlign.End,
                             color = Color.Black
                         )
                     }
-                    if (i < 5) Divider(color = Color.White, thickness = 1.dp, modifier = Modifier.fillMaxWidth())
+                    if (index < allMembers.size - 1) {
+                        Divider(color = Color.White, thickness = 1.dp)
+                    }
                 }
             }
 
@@ -210,25 +179,23 @@ fun ReservaCubiculoScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Botones inferiores
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(onClick = { /* TODO */ }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007BFF))) {
+            Button(onClick = { /* TODO: Cancelar */ }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007BFF))) {
                 Text(text = "CANCELAR")
             }
-            Button(onClick = { /* TODO */ }, colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)) {
+            Button(onClick = { /* TODO: Siguiente */ }, colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)) {
                 Text(text = "SIGUIENTE")
             }
         }
 
-        // Navegación inferior
         Row(
             modifier = Modifier.fillMaxWidth().background(Color(0xFF2E5C94)).padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            IconButton(onClick = { /* navController.navigate("Inicio") */ }) {
+            IconButton(onClick = { /* TODO: Ir a Inicio */ }) {
                 Icon(painter = painterResource(id = R.drawable.icon_inicio), contentDescription = "Inicio", tint = Color.White)
             }
         }
