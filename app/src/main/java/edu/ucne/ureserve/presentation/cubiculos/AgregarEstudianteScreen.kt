@@ -34,6 +34,10 @@ fun AgregarEstudianteScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(viewModel.members) {
+        Log.d("AgregarEstudianteScreen", "Miembros actualizados: ${viewModel.members.value.size}")
+    }
+
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             snackbarHostState.showSnackbar(it)
@@ -148,9 +152,7 @@ fun AgregarEstudianteScreen(
                                 viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
                                     if (usuarioEncontrado != null) {
                                         viewModel.addMember(usuarioEncontrado)
-                                        Log.d("AgregarEstudianteScreen", "Usuario encontrado y agregado: ${usuarioEncontrado.nombres}")
                                         navController.popBackStack()
-                                        Log.d("AgregarEstudianteScreen", "Navegando de vuelta a la pantalla anterior")
                                     } else {
                                         viewModel.setError("Matrícula no válida")
                                     }
