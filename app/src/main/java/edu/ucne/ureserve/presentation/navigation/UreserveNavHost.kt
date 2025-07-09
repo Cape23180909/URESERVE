@@ -22,6 +22,7 @@ import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
+import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
@@ -228,6 +229,21 @@ fun UreserveNavHost(navController: NavHostController) {
                         }
                     }
                 }
+            )
+        }
+
+        composable(
+            route = "ReservaCubiculoExitosa/{codigoReserva}",
+            arguments = listOf(
+                navArgument("codigoReserva") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getInt("codigoReserva")
+            ExitosaCubiculoScreen(
+                navController = navController,
+                codigoReserva = codigoReserva
             )
         }
 
