@@ -1,6 +1,8 @@
 package edu.ucne.ureserve.presentation.cubiculos
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,6 +27,7 @@ import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservaCubiculoScreen(
@@ -209,9 +212,12 @@ fun ReservaCubiculoScreen(
                 }
             }
 
-            val faltantes = (4 - allMembers.size).coerceAtLeast(0)
+            val faltantes = (3 - allMembers.size).coerceAtLeast(0)
             Text(
-                text = if (faltantes > 0) "Debe tener mínimo $faltantes miembros." else "Tienes el mínimo requerido",
+                text = if (faltantes > 0)
+                    "Faltan $faltantes ${if (faltantes == 1) "miembro" else "miembros"} para completar el mínimo requerido (3)."
+                else
+                    "Tienes el mínimo requerido (3 miembros).",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White,
                 modifier = Modifier.padding(top = 8.dp)
@@ -242,7 +248,41 @@ fun ReservaCubiculoScreen(
             }
 
             Button(
-                onClick = { navController.popBackStack() },
+                onClick = {
+                    if (allMembers.size >= 3 && hours.isNotBlank()) {
+                        try {
+                            val cantidadHoras = hours.toInt()
+                            val matricula = usuarioDTO.estudiante?.matricula ?: ""
+
+                            viewModel.confirmarReservaCubiculo(
+                                cubiculoId = cubiculoId ?: 0,
+                                cantidadHoras = cantidadHoras,
+                                matricula = matricula,
+                                onSuccess = { codigo ->
+                                    navController.navigate("ReservaCubiculoExitosa/$codigo") {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                    }
+                                },
+                                onError = { mensaje ->
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(mensaje)
+                                    }
+                                }
+                            )
+                        } catch (e: Exception) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Error al procesar reserva: ${e.message}")
+                            }
+                        }
+                    } else {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Debe tener mínimo 3 miembros y horas válidas.")
+                        }
+                    }
+                },
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 16.dp),
@@ -255,7 +295,8 @@ fun ReservaCubiculoScreen(
                 Text(
                     text = "SIGUIENTE",
                     fontSize = 16.sp,
-                    modifier = Modifier.padding(8.dp))
+                    modifier = Modifier.padding(8.dp)
+                )
             }
         }
 
