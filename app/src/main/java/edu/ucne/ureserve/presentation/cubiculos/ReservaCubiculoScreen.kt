@@ -16,12 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +36,9 @@ fun ReservaCubiculoScreen(
 ) {
     val hours by viewModel.selectedHours.collectAsState()
     val allMembers by viewModel.members.collectAsState()
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var validarCantidaHoras by remember { mutableStateOf(false) }
 
     LaunchedEffect(allMembers) {
         Log.d("ReservaCubiculoScreen", "Miembros actualizados: ${allMembers.size}")
@@ -81,23 +86,53 @@ fun ReservaCubiculoScreen(
         )
 
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-            Text("Seleccione la cantidad de horas:", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(
+                "Seleccione la cantidad de horas:",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Digite la cantidad de horas:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(
+                "Digite la cantidad de horas:",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
             Spacer(modifier = Modifier.height(8.dp))
+
             TextField(
                 value = hours,
-                onValueChange = { if (it.isEmpty() || it.all(Char::isDigit)) viewModel.setSelectedHours(it) },
-                modifier = Modifier.fillMaxWidth().height(48.dp),
+                onValueChange = {
+                    if (it.isEmpty() || it.all(Char::isDigit)) {
+                        viewModel.setSelectedHours(it)
+                        validarCantidaHoras = false // Limpiamos el error al ingresar
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
                 shape = RoundedCornerShape(8.dp),
+                textStyle = LocalTextStyle.current.copy(color = Color.Black),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.LightGray,
-                    unfocusedContainerColor = Color.LightGray,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
                     focusedIndicatorColor = Color.Blue,
-                    unfocusedIndicatorColor = Color.Gray
+                    unfocusedIndicatorColor = Color.Gray,
+                    cursorColor = Color.Black
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = validarCantidaHoras
             )
+
+            if (validarCantidaHoras) {
+                Text(
+                    text = "Debe digitar la hora antes de agregar Integrantes.",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -111,18 +146,24 @@ fun ReservaCubiculoScreen(
                 Text("Añade los integrantes de tu grupo", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = Color.White)
                 IconButton(
                     onClick = {
-                        navController.navigate("AgregarEstudiante") {
-                            launchSingleTop = true
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                        if (hours.isBlank()) {
+                            validarCantidaHoras  = true
+                        } else {
+                            validarCantidaHoras  = false
+                            navController.navigate("AgregarEstudiante") {
+                                launchSingleTop = true
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                restoreState = true
                             }
-                            restoreState = true
                         }
                     }
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.icon_agregarcubicul),
-                        contentDescription = "Agregar"
+                        contentDescription = "Agregar",
+                        modifier = Modifier.size(46.dp)
                     )
                 }
             }
@@ -168,9 +209,9 @@ fun ReservaCubiculoScreen(
                 }
             }
 
-            val faltantes = (3 - allMembers.size).coerceAtLeast(0)
+            val faltantes = (4 - allMembers.size).coerceAtLeast(0)
             Text(
-                text = if (faltantes > 0) "Debe tener mínimo $faltantes miembros más" else "Tienes el mínimo requerido",
+                text = if (faltantes > 0) "Debe tener mínimo $faltantes miembros." else "Tienes el mínimo requerido",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White,
                 modifier = Modifier.padding(top = 8.dp)
@@ -183,11 +224,38 @@ fun ReservaCubiculoScreen(
             modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(onClick = { /* TODO: Cancelar */ }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007BFF))) {
-                Text(text = "CANCELAR")
+            Button(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF004BBB),
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "VOLVER",
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(8.dp))
             }
-            Button(onClick = { /* TODO: Siguiente */ }, colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)) {
-                Text(text = "SIGUIENTE")
+
+            Button(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6895D2),
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "SIGUIENTE",
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(8.dp))
             }
         }
 
