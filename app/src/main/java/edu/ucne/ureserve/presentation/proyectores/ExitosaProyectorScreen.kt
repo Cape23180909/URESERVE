@@ -124,34 +124,6 @@ fun ReservaExitosaScreen(
                 }
             }
         }
-
-        // Barra inferior de navegación (sin cambios)
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF023E8A))
-                .padding(vertical = 12.dp)
-        ) {
-            BottomNavItem(
-                iconRes = R.drawable.icon_proyector,
-                label = "Proyectores",
-                isSelected = false,
-                onClick = { onBottomNavClick("Proyectores") }
-            )
-            BottomNavItem(
-                iconRes = R.drawable.icon_inicio,
-                label = "Inicio",
-                isSelected = true,
-                onClick = { onBottomNavClick("Inicio") }
-            )
-            BottomNavItem(
-                iconRes = R.drawable.icon_perfil,
-                label = "Perfil",
-                isSelected = false,
-                onClick = { onBottomNavClick("Perfil") }
-            )
-        }
     }
 }
 
