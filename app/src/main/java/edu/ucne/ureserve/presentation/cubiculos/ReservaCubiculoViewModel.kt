@@ -196,51 +196,41 @@ class ReservaCubiculoViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun confirmarReservaProyector(
-        proyectorId: Int,
-        fechaLocal: LocalDate,
-        horaInicio: LocalTime,
-        horaFin: LocalTime,
-        matricula: String
+    fun confirmarReservaCubiculo(
+        cubiculoId: Int,
+        cantidadHoras: Int,
+        matricula: String,
+        onSuccess: (Int) -> Unit,
+        onError: (String) -> Unit
     ) {
         viewModelScope.launch {
             try {
                 val codigoReserva = (100000..999999).random()
-                val fechaFormateada = ZonedDateTime.of(
-                    fechaLocal,
-                    horaInicio,
-                    ZoneId.systemDefault()
-                ).format(DateTimeFormatter.ISO_INSTANT)
-                val duracion = Duration.between(horaInicio, horaFin)
-                val horarioFormateado = String.format(
-                    "%02d:%02d:%02d",
-                    duracion.toHours(),
-                    duracion.toMinutes() % 60,
-                    duracion.seconds % 60
-                )
+
+                val fecha = ZonedDateTime.now(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_INSTANT)
+
+                val horario = String.format("%02d:00:00", cantidadHoras)
+
                 val reservacionDto = ReservacionesDto(
                     codigoReserva = codigoReserva,
-                    tipoReserva = 2,
-                    fecha = fechaFormateada,
-                    horario = horarioFormateado,
+                    tipoReserva = 2, // 2 = Cubículo
+                    cantidadEstudiantes = members.value.size,
+                    fecha = fecha,
+                    horario = horario,
                     estado = 1,
-                    matricula = matricula,
-                    cantidadEstudiantes = 0
+                    matricula = matricula
                 )
+
                 val response = reservaApi.insert(reservacionDto)
-                if (!response.isSuccessful) {
-                    throw Exception("Error en reserva: ${response.code()}")
+
+                if (response.isSuccessful) {
+                    onSuccess(codigoReserva)
+                } else {
+                    onError("Error ${response.code()} al registrar reserva")
                 }
-                _state.value = _state.value.copy(
-                    reservaConfirmada = true,
-                    codigoReserva = codigoReserva,
-                    error = null
-                )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    error = "Error: ${e.message ?: "Error desconocido al confirmar reserva"}",
-                    reservaConfirmada = false
-                )
+                onError("Error: ${e.message}")
             }
         }
     }
