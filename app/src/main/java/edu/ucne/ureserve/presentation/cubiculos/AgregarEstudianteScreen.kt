@@ -107,7 +107,7 @@ fun AgregarEstudianteScreen(
                     value = matricula,
                     onValueChange = { onMatriculaChange(it) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    textStyle = TextStyle(fontSize = 20.sp, textAlign = TextAlign.Center),
+                    textStyle = TextStyle(fontSize = 20.sp, textAlign = TextAlign.Center, color = Color.Black),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp),
@@ -116,7 +116,8 @@ fun AgregarEstudianteScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedContainerColor = Color(0xFFF6F8FC),
-                        unfocusedContainerColor = Color(0xFFF6F8FA)
+                        unfocusedContainerColor = Color(0xFFF6F8FA),
+                        cursorColor = Color.Black
                     )
                 )
 
