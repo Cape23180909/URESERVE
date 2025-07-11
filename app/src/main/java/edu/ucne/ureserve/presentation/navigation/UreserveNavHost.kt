@@ -26,6 +26,7 @@ import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
+import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
 import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
@@ -67,6 +68,7 @@ import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
 import kotlinx.serialization.json.Json
 import java.net.URLDecoder
+import java.util.Calendar
 
 @SuppressLint("UnrememberedGetBackStackEntry")
 @RequiresApi(Build.VERSION_CODES.O)
@@ -253,9 +255,34 @@ fun UreserveNavHost(navController: NavHostController) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                     }
+                },
+                onDateSelected = { selectedDate ->
+                    // Navegar a la pantalla de lista de laboratorios con la fecha seleccionada
+                    navController.navigate("LaboratorioList/${selectedDate.timeInMillis}")
                 }
             )
         }
+
+        composable(
+            "LaboratorioList/{fechaMillis}",
+            arguments = listOf(navArgument("fechaMillis") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val fechaMillis = backStackEntry.arguments?.getLong("fechaMillis")
+            val calendar = Calendar.getInstance().apply {
+                timeInMillis = fechaMillis ?: timeInMillis
+            }
+
+            DashboardLaboratorioListScreen(
+                selectedDate = calendar,
+                onLaboratorioSelected = { laboratorioNombre ->
+                    // Aquí podrías navegar a otra pantalla específica del laboratorio
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
 
         composable("SalaVipReservation") {
             SalaVipReservationScreen(
