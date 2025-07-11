@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,7 +44,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LaboratorioReservationScreen(
-    onBottomNavClick: (String) -> Unit = {}
+    onBottomNavClick: (String) -> Unit = {},
+    onDateSelected: (Calendar) -> Unit = {}
 ) {
     val calendar = Calendar.getInstance()
     var selectedDate by remember { mutableStateOf<Calendar?>(null) }
@@ -121,7 +123,9 @@ fun LaboratorioReservationScreen(
                 ReservationButton(
                     isEnabled = isDateValid,
                     onClick = {
-                        println("Reserva realizada para la fecha seleccionada")
+                        if (selectedDate != null && !isSunday) {
+                            onDateSelected(selectedDate!!)
+                        }
                     },
                     onBottomNavClick = onBottomNavClick
                 )
@@ -354,8 +358,20 @@ private fun ReservationButton(
     onClick: () -> Unit,
     onBottomNavClick: (String) -> Unit
 ) {
-    Spacer(modifier = Modifier.height(70.dp))
+    // Botón de reservar
+    Button(
+        onClick = onClick,
+        enabled = isEnabled,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp)
+    ) {
+        Text("Reservar", fontWeight = FontWeight.Bold)
+    }
 
+    Spacer(modifier = Modifier.height(32.dp))
+
+    // Barra inferior
     Row(
         modifier = Modifier
             .fillMaxWidth()
