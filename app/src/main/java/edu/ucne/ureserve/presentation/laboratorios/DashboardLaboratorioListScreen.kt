@@ -29,6 +29,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import java.util.Calendar
@@ -38,7 +40,8 @@ import java.util.Calendar
 fun DashboardLaboratorioListScreen(
     selectedDate: Calendar?,
     onLaboratorioSelected: (String) -> Unit = {},
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    navController: NavController
 ) {
     Column(modifier = Modifier
         .fillMaxSize()
@@ -91,7 +94,9 @@ fun DashboardLaboratorioListScreen(
                 items(getLaboratorios()) { laboratorio ->
                     LaboratorioCard(
                         nombre = laboratorio,
-                        onClick = { onLaboratorioSelected(laboratorio) }
+                        onClick = {
+                            navController.navigate("planificador_laboratorio")
+                        }
                     )
                 }
             }
@@ -172,10 +177,14 @@ private fun getLaboratorios(): List<String> {
     )
 }
 
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun DashboardLaboratorioListScreenPreview() {
-//    MaterialTheme {
-//        DashboardLaboratorioListScreen()
-//    }
-//}
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun DashboardLaboratorioListScreenPreview() {
+    MaterialTheme {
+        val navController = rememberNavController()
+        DashboardLaboratorioListScreen(
+            selectedDate = Calendar.getInstance(),
+            navController = navController
+        )
+    }
+}
