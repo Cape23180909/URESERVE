@@ -28,6 +28,7 @@ import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
+import edu.ucne.ureserve.presentation.laboratorios.PlanificadorLaboratorioScreen
 import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
@@ -279,8 +280,13 @@ fun UreserveNavHost(navController: NavHostController) {
                 },
                 onBackClick = {
                     navController.popBackStack()
-                }
+                },
+                navController = navController
             )
+        }
+
+        composable("planificador_laboratorio") {
+            PlanificadorLaboratorioScreen(navController = navController)
         }
 
 
