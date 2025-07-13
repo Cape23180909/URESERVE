@@ -29,6 +29,7 @@ import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
 import edu.ucne.ureserve.presentation.laboratorios.PlanificadorLaboratorioScreen
+import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioScreen
 import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
@@ -285,10 +286,54 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
 
-        composable("planificador_laboratorio") {
-            PlanificadorLaboratorioScreen(navController = navController)
+        composable(
+            "planificador_laboratorio/{laboratorioId}/{laboratorioNombre}",
+            arguments = listOf(
+                navArgument("laboratorioId") { type = NavType.IntType },
+                navArgument("laboratorioNombre") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val laboratorioId = backStackEntry.arguments?.getInt("laboratorioId")
+            val laboratorioNombre = backStackEntry.arguments?.getString("laboratorioNombre")
+
+            PlanificadorLaboratorioScreen(
+                navController = navController,
+                laboratorioId = laboratorioId,
+                laboratorioNombre = laboratorioNombre ?: "No definido"
+            )
         }
 
+
+        composable(
+            route = "reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}",
+            arguments = listOf(
+                navArgument("laboratorioId") { type = NavType.IntType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val laboratorioId = backStackEntry.arguments?.getInt("laboratorioId")
+            val horaInicio = backStackEntry.arguments?.getString("horaInicio").orEmpty()
+            val horaFin = backStackEntry.arguments?.getString("horaFin").orEmpty()
+            val usuario = AuthManager.currentUser ?: UsuarioDTO()
+            val estudiante = remember {
+                EstudianteDto(
+                    estudianteId = 1,
+                    matricula = "2022-0465",
+                    facultad = "Ingeniería",
+                    carrera = "Ingeniería en Sistemas"
+                )
+            }
+
+            ReservaLaboratorioScreen(
+                laboratorioId = laboratorioId,
+                navController = navController,
+                usuarioDTO = usuario,
+                estudiante = estudiante,
+                horaInicio = horaInicio,
+                horaFin = horaFin
+            )
+        }
 
         composable("SalaVipReservation") {
             SalaVipReservationScreen(
