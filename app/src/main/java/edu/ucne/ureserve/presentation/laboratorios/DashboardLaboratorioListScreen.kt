@@ -20,6 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.LaboratoriosDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import java.util.Calendar
 
@@ -43,6 +48,9 @@ fun DashboardLaboratorioListScreen(
     onBackClick: () -> Unit = {},
     navController: NavController
 ) {
+    //Laboratorio Seleccionado
+    var laboratorioSeleccionado by remember { mutableStateOf<LaboratoriosDto?>(null) }
+
     Column(modifier = Modifier
         .fillMaxSize()
         .background(Color(0xFF023E8A))) {
@@ -93,9 +101,12 @@ fun DashboardLaboratorioListScreen(
             ) {
                 items(getLaboratorios()) { laboratorio ->
                     LaboratorioCard(
-                        nombre = laboratorio,
+                        laboratorio = laboratorio,
+                        isSelected = laboratorio == laboratorioSeleccionado,
                         onClick = {
-                            navController.navigate("planificador_laboratorio")
+                            laboratorioSeleccionado = laboratorio
+                            // En DashboardLaboratorioListScreen
+                            navController.navigate("planificador_laboratorio/${laboratorio.laboratorioId}/${laboratorio.nombre}")
                         }
                     )
                 }
@@ -127,7 +138,12 @@ fun DashboardLaboratorioListScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LaboratorioCard(nombre: String, onClick: () -> Unit) {
+fun LaboratorioCard(
+    laboratorio: LaboratoriosDto,
+    onClick: () -> Unit,
+    isSelected: Boolean,
+)
+{
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -156,7 +172,7 @@ fun LaboratorioCard(nombre: String, onClick: () -> Unit) {
 
             // Nombre del laboratorio centrado
             Text(
-                text = nombre,
+                text = laboratorio.nombre,
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontSize = 18.sp  // Tamaño de texto ajustado
                 ),
@@ -167,13 +183,13 @@ fun LaboratorioCard(nombre: String, onClick: () -> Unit) {
     }
 }
 
-private fun getLaboratorios(): List<String> {
+fun getLaboratorios(): List<LaboratoriosDto> {
     return listOf(
-        "Laboratorio A",
-        "Laboratorio B",
-        "Laboratorio C",
-        "Laboratorio D",
-        "Laboratorio E"
+        LaboratoriosDto(1, "Laboratorio A", true),
+        LaboratoriosDto(2, "Laboratorio B", true),
+        LaboratoriosDto(3, "Laboratorio C", true),
+        LaboratoriosDto(4, "Laboratorio D", true),
+        LaboratoriosDto(5, "Laboratorio E", true)
     )
 }
 
