@@ -25,7 +25,9 @@ import edu.ucne.ureserve.R
 
 @Composable
 fun PlanificadorLaboratorioScreen(
-    navController: NavController
+    navController: NavController,
+    laboratorioId: Int?,
+    laboratorioNombre: String
 ) {
     val horariosDisponibles = listOf(
         "7:00AM", "7:30AM", "8:00AM", "8:30AM",
@@ -41,6 +43,9 @@ fun PlanificadorLaboratorioScreen(
 
     var mostrarSeleccionInicio by remember { mutableStateOf(false) }
     var mostrarSeleccionFin by remember { mutableStateOf(false) }
+
+    val laboratorios = remember { getLaboratorios() }
+    val laboratorio = laboratorios.find { it.laboratorioId == laboratorioId }
 
     Column(
         modifier = Modifier
@@ -66,7 +71,7 @@ fun PlanificadorLaboratorioScreen(
                     color = Color.White
                 )
                 Text(
-                    text = "LABORATORIO",
+                    text = "$laboratorioNombre",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
@@ -230,7 +235,12 @@ fun PlanificadorLaboratorioScreen(
 
             Button(
                 onClick = {
-                    // Aquí puedes usar horaInicioSeleccionada y horaFinSeleccionada
+                    laboratorioId?.let { id ->
+                        navController.navigate(
+                            "reservaLaboratorio/$id/" +
+                                    "$horaInicioSeleccionada/$horaFinSeleccionada"
+                        )
+                    }
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -251,5 +261,5 @@ fun PlanificadorLaboratorioScreen(
 @Composable
 fun PreviewPlanificadorLaboratorioScreen() {
     val navController = rememberNavController()
-    PlanificadorLaboratorioScreen(navController = navController)
+    PlanificadorLaboratorioScreen(navController = navController, laboratorioId = 1, laboratorioNombre = "Laboratorio A")
 }
