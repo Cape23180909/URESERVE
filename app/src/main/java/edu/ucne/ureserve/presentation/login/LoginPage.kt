@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -66,7 +69,7 @@ fun GradientBackground(content: @Composable () -> Unit) {
 @Composable
 fun LoginScreen(
     onLoginSuccess: (UsuarioDTO) -> Unit,
-    apiUrl: String = "https://ureserve-hghra5gdhzgzdghk.eastus2-01.azurewebsites.net/api/Usuarios" // Reemplaza con la URL de tu API
+    apiUrl: String = "https://ureserve-hghra5gdhzgzdghk.eastus2-01.azurewebsites.net/api/Usuarios"
 ) {
     val correo = remember { mutableStateOf("") }
     val clave = remember { mutableStateOf("") }
@@ -113,8 +116,8 @@ fun LoginScreen(
 
                 withContext(Dispatchers.Main) {
                     if (usuarioValido != null) {
-                        AuthManager.login(usuarioValido)  // Guarda el usuario
-                        onLoginSuccess(usuarioValido)     // Pasa el usuario
+                        AuthManager.login(usuarioValido)
+                        onLoginSuccess(usuarioValido)
                     } else {
                         loginError.value = "Usuario o clave incorrectos"
                     }
@@ -153,9 +156,19 @@ fun LoginScreen(
                     value = correo.value,
                     onValueChange = { correo.value = it },
                     label = { Text("Correo Institucional", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(50.dp)), // 👈 Bordes redondeados
                     singleLine = true,
                     isError = correoError.value != null,
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.icon_usuariologin),
+                            contentDescription = "Icono de usuario",
+                            tint = Color(0xFFFDEA28),
+                            modifier = Modifier.size(42.dp)
+                        )
+                    },
                     supportingText = {
                         correoError.value?.let {
                             Text(text = it, color = Color(0xFFFF6D6D))
@@ -164,15 +177,20 @@ fun LoginScreen(
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedLabelColor = Color.White.copy(alpha = 0.8f),
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.6f),
-                        focusedIndicatorColor = Color.White,
-                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.6f),
-                        errorIndicatorColor = Color(0xFFFF6D6D),
-                        errorLabelColor = Color(0xFFFF6D6D),
-                        errorTextColor = Color(0xFFFF6D6D)
+
+                        // 👇 Fondo del campo en color 6D87A4
+                        focusedContainerColor = Color(0xFF6D87A4),
+                        unfocusedContainerColor = Color(0xFF6D87A4),
+
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+
+                        // 👇 Borde del campo también en 6D87A4
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+
+                        errorContainerColor = Color(0xFFFF6D6D).copy(alpha = 0.3f),
+                        errorIndicatorColor = Color(0xFFFF6D6D)
                     )
                 )
 
@@ -182,10 +200,20 @@ fun LoginScreen(
                     value = clave.value,
                     onValueChange = { clave.value = it },
                     label = { Text("Clave", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(50.dp)),
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     isError = claveError.value != null,
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.icon_candado),
+                            contentDescription = "Icono de contraseña",
+                            tint = Color(0xFFFDEA28),
+                            modifier = Modifier.size(42.dp)
+                        )
+                    },
                     supportingText = {
                         claveError.value?.let {
                             Text(text = it, color = Color(0xFFFF6D6D))
@@ -194,12 +222,13 @@ fun LoginScreen(
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedLabelColor = Color.White.copy(alpha = 0.8f),
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.6f),
-                        focusedIndicatorColor = Color.White,
-                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.6f),
+                        focusedContainerColor = Color(0xFF6D87A4),
+                        unfocusedContainerColor = Color(0xFF6D87A4),
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        errorContainerColor = Color(0xFFFF6D6D).copy(alpha = 0.3f),
                         errorIndicatorColor = Color(0xFFFF6D6D),
                         errorLabelColor = Color(0xFFFF6D6D),
                         errorTextColor = Color(0xFFFF6D6D)
@@ -223,8 +252,8 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
+                        containerColor = Color(0xFF6D87A4),
+                        contentColor = Color.White
                     )
                 ) {
                     Text("Conectar", fontSize = 16.sp)
