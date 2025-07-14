@@ -16,7 +16,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
@@ -26,10 +25,13 @@ import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
+import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLaboratorio
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
+import edu.ucne.ureserve.presentation.laboratorios.ExistosaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
 import edu.ucne.ureserve.presentation.laboratorios.PlanificadorLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioScreen
+import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioViewModel
 import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
@@ -68,8 +70,6 @@ import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
 import edu.ucne.ureserve.presentation.salones.RegistroReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
-import kotlinx.serialization.json.Json
-import java.net.URLDecoder
 import java.util.Calendar
 
 @SuppressLint("UnrememberedGetBackStackEntry")
@@ -332,6 +332,45 @@ fun UreserveNavHost(navController: NavHostController) {
                 estudiante = estudiante,
                 horaInicio = horaInicio,
                 horaFin = horaFin
+            )
+        }
+
+        composable("AgregarEstudianteLaboratorio") { backStackEntry ->
+            val parentEntry = remember {
+                navController.getBackStackEntry("reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}")
+            }
+
+            val viewModel: ReservaLaboratorioViewModel = hiltViewModel(parentEntry)
+
+            AgregarEstudianteScreenLaboratorio(
+                viewModel = viewModel,
+                navController = navController,
+                onCancel = { navController.popBackStack() },
+                onAdd = { matricula ->
+                    viewModel.buscarUsuarioPorMatricula(matricula) { usuarioEncontrado ->
+                        if (usuarioEncontrado != null) {
+                            viewModel.addMember(usuarioEncontrado)
+                            Log.d("AgregarEstudianteScreen", "Usuario agregado: ${usuarioEncontrado.nombres}")
+                            navController.popBackStack()
+                        } else {
+                            viewModel.setError("Matrícula no válida")
+                        }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = "ReservaLaboratorioExitosa/{codigo}",
+            arguments = listOf(
+                navArgument("codigo") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getInt("codigo")
+
+            ExistosaLaboratorioScreen(
+                navController = navController,
+                codigoReserva = codigoReserva
             )
         }
 
