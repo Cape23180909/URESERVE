@@ -189,7 +189,7 @@ fun ReservaLaboratorioScreen(
                             validarCantidaHoras  = true
                         } else {
                             validarCantidaHoras  = false
-                            navController.navigate("AgregarEstudiante") {
+                            navController.navigate("AgregarEstudianteLaboratorio") {
                                 launchSingleTop = true
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -291,10 +291,11 @@ fun ReservaLaboratorioScreen(
                             val matricula = usuarioDTO.estudiante?.matricula ?: ""
 
                             viewModel.confirmarReservaLaboratorio(
-                                cubiculoId = laboratorioId ?: 0,
+                                laboratorioId = laboratorioId ?: 0,
                                 cantidadHoras = cantidadHoras,
                                 matricula = matricula,
                                 onSuccess = { codigo ->
+                                    // ✅ Navega a la pantalla con el código recibido
                                     navController.navigate("ReservaLaboratorioExitosa/$codigo") {
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
