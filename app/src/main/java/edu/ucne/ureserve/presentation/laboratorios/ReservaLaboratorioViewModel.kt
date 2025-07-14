@@ -6,11 +6,11 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import edu.ucne.ureserve.data.remote.CubiculosApi
 import edu.ucne.ureserve.data.remote.LaboratoriosApi
 import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import edu.ucne.ureserve.data.repository.LaboratorioRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,9 +22,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReservaLaboratorioViewModel @Inject constructor(
+    private val repository: LaboratorioRepository,
     private val reservaApi: ReservacionesApi,
     private val laboratorioApi: LaboratoriosApi
-    ): ViewModel(){
+) : ViewModel() {
+
     private val _members = MutableStateFlow<List<UsuarioDTO>>(emptyList())
     val members: StateFlow<List<UsuarioDTO>> = _members.asStateFlow()
 
@@ -34,9 +36,15 @@ class ReservaLaboratorioViewModel @Inject constructor(
     private val _laboratorioNombre = MutableStateFlow("")
     val laboratorioNombre: StateFlow<String> = _laboratorioNombre
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun confirmarReservaLaboratorio(
-        cubiculoId: Int,
+        laboratorioId: Int,
         cantidadHoras: Int,
         matricula: String,
         onSuccess: (Int) -> Unit,
@@ -96,5 +104,46 @@ class ReservaLaboratorioViewModel @Inject constructor(
                 _laboratorioNombre.value = "Desconocido"
             }
         }
+    }
+
+    fun buscarUsuarioPorMatricula(matricula: String, onResult: (UsuarioDTO?) -> Unit) {
+        _isLoading.value = true
+        _errorMessage.value = null
+        viewModelScope.launch {
+            try {
+                val usuario = repository.buscarUsuarioPorMatricula(matricula)
+                if (usuario != null) {
+                    addMember(usuario)
+                    Log.d("ViewModel", "Usuario encontrado y agregado: ${usuario.nombres}")
+                }
+                onResult(usuario)
+            } catch (e: Exception) {
+                _errorMessage.value = "Error buscando usuario: ${e.message}"
+                Log.e("ViewModel", "Error buscando usuario", e)
+                onResult(null)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun addMember(member: UsuarioDTO) {
+        val currentMembers = _members.value.toMutableList()
+        if (currentMembers.none { it.usuarioId == member.usuarioId }) {
+            currentMembers.add(member)
+            _members.value = currentMembers
+            Log.d(
+                "ViewModel",
+                "Miembro agregado: ${member.nombres}. Total miembros: ${_members.value.size}"
+            )
+        }
+    }
+
+    fun setError(message: String) {
+        _errorMessage.value = message
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
     }
 }
