@@ -33,6 +33,7 @@ import edu.ucne.ureserve.presentation.laboratorios.PlanificadorLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioViewModel
 import edu.ucne.ureserve.presentation.login.AuthManager
+import edu.ucne.ureserve.presentation.login.AuthViewModel
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
@@ -103,6 +104,16 @@ fun UreserveNavHost(navController: NavHostController) {
         }
 
         composable("Dashboard") {
+            val usuario = AuthManager.currentUser ?: UsuarioDTO()
+            // 2. Obtener el estudiante (igual que en Profile)
+            val estudiante = remember {
+                EstudianteDto(
+                    estudianteId = 1,  // Esto debería venir de tu backend
+                    matricula = "2022-0465",
+                    facultad = "Ingeniería",
+                    carrera = "Ingeniería en Sistemas"
+                )
+            }
             DashboardScreen(
                 onCategoryClick = { category ->
                     when (category) {
@@ -122,7 +133,9 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Inicio" -> {} // Ya estás en Dashboard
                         "Tutorial" -> {} // Agrega si tienes esa pantalla
                     }
-                }
+                },
+                usuario = usuario,
+                estudiante = estudiante,
             )
         }
 
@@ -614,6 +627,7 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+
         composable("RestauranteReservationcalendario") {
             RestauranteReservationcalendarioScreen(
                 onBottomNavClick = { destination ->
