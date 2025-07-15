@@ -1,5 +1,10 @@
 package edu.ucne.ureserve.presentation.login
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -21,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -78,6 +86,9 @@ fun LoginScreen(
     val claveError = remember { mutableStateOf<String?>(null) }
     val loginError = remember { mutableStateOf<String?>(null) }
 
+    val isLoading = remember { mutableStateOf(false) }
+
+
     fun validateFields(): Boolean {
         var isValid = true
 
@@ -107,6 +118,8 @@ fun LoginScreen(
     fun login() {
         if (!validateFields()) return
 
+        isLoading.value = true // Mostrar círculo de carga
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val usuarios = ApiModule.api.getAll()
@@ -115,6 +128,7 @@ fun LoginScreen(
                 }
 
                 withContext(Dispatchers.Main) {
+                    isLoading.value = false // Ocultar carga
                     if (usuarioValido != null) {
                         AuthManager.login(usuarioValido)
                         onLoginSuccess(usuarioValido)
@@ -124,11 +138,13 @@ fun LoginScreen(
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    isLoading.value = false // Ocultar carga
                     loginError.value = "Error: ${e.message}"
                 }
             }
         }
     }
+
 
     GradientBackground {
         Surface(
@@ -247,24 +263,50 @@ fun LoginScreen(
                 }
 
                 Button(
-                    onClick = { login() },
+                    onClick = {
+                        login()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF6D87A4),
                         contentColor = Color.White
-                    )
+                    ),
+                    enabled = !isLoading.value // desactiva el botón mientras carga
                 ) {
                     Text("Conectar", fontSize = 16.sp)
                 }
+
+// Imagen animada o rotatoria
+                if (isLoading.value) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Rotación simulada (si es imagen estática PNG)
+                    val infiniteTransition = rememberInfiniteTransition()
+                    val rotation by infiniteTransition.animateFloat(
+                        initialValue = 0f,
+                        targetValue = 360f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 1000, easing = LinearEasing)
+                        )
+                    )
+
+                    Image(
+                        painter = painterResource(id = R.drawable.loading_spinner),
+                        contentDescription = "Cargando...",
+                        modifier = Modifier
+                            .size(48.dp)
+                            .graphicsLayer {
+                                rotationZ = rotation
+                            }
+                            .align(Alignment.CenterHorizontally)
+                    )
+                }
+
             }
         }
     }
-}
-
-class RetrofitInstance {
-
 }
 
 @Preview(showBackground = true)
