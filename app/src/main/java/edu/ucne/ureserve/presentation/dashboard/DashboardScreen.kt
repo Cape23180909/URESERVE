@@ -25,8 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +40,7 @@ import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 fun DashboardScreen(
     onCategoryClick: (String) -> Unit = {},
     onBottomNavClick: (String) -> Unit = {},
+    onProfileIconClick: () -> Unit,
     usuario: UsuarioDTO,
     estudiante: EstudianteDto,
 ) {
@@ -67,7 +70,7 @@ fun DashboardScreen(
             ) {
                 Text(
                     text = "Bienvenido, ${usuario.nombres} ${usuario.apellidos}",
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
@@ -78,8 +81,12 @@ fun DashboardScreen(
                     painter = painterResource(id = R.drawable.icon_menu),
                     contentDescription = "Icono de menú",
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(50.dp)
                         .clip(CircleShape)
+                        .clickable {
+                            onProfileIconClick() // Nueva prop que añadiremos
+                        },
+                    contentScale = ContentScale.Crop
                 )
             }
         }
@@ -279,7 +286,8 @@ fun DashboardScreenPreview() {
             onCategoryClick = {},
             onBottomNavClick = {},
             usuario = dummyUsuario,
-            estudiante = dummyEstudiante
+            estudiante = dummyEstudiante,
+            onProfileIconClick = {}
         )
     }
 }
