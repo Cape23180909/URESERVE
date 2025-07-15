@@ -134,6 +134,9 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Tutorial" -> {} // Agrega si tienes esa pantalla
                     }
                 },
+                onProfileIconClick = {
+                    navController.navigate("Profile") // Navegación al hacer clic en el icono
+                },
                 usuario = usuario,
                 estudiante = estudiante,
             )
