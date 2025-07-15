@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.ureserve.data.remote.UsuarioApi
+import edu.ucne.ureserve.data.remote.dto.EstudianteDto
+import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
