@@ -8,6 +8,9 @@ interface ReservacionesApi {
     @GET("api/Reservaciones")
     suspend fun getAll(): List<ReservacionesDto>
 
+    @GET("api/reservaciones/usuario/{matricula}")
+    suspend fun getReservasByMatricula(@Path("matricula") matricula: String): List<ReservacionesDto>
+
     @GET("api/Reservaciones/{id}")
     suspend fun getById(@Path("id") id: Int): ReservacionesDto
 
