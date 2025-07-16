@@ -41,6 +41,8 @@ import edu.ucne.ureserve.presentation.proyectores.PrevisualizacionProyectorScree
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
+import edu.ucne.ureserve.presentation.reservas.ReservaListScreen
+import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesRestaurante
 import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesRestauranteStore
 import edu.ucne.ureserve.presentation.restaurantes.PagoRestauranteScreen
@@ -120,10 +122,10 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Proyectores" -> navController.navigate("ProjectorReservation")
                         "Cubículos" -> navController.navigate("CubiculoReservation")
                         "Laboratorios" -> navController.navigate("LaboratorioReservation")
-                        "Restaurante" -> navController.navigate("RestauranteReservation") // NUEVA
+                        "Restaurante" -> navController.navigate("RestauranteReservation")
+                        "Reservaciones" -> navController.navigate("ReservaList")
+                            {
 
-                        "Mis Reservas" -> {
-                            // Agrega aquí si tienes una pantalla para "Mis Reservas"
                         }
                     }
                 },
@@ -139,6 +141,44 @@ fun UreserveNavHost(navController: NavHostController) {
                 },
                 usuario = usuario,
                 estudiante = estudiante,
+            )
+        }
+
+        composable("ReservaList") {
+            // 1. Verificar que el usuario esté autenticado
+            val usuario = AuthManager.currentUser
+            if (usuario == null) {
+                navController.navigate("Login") {
+                    popUpTo(0) { inclusive = true }
+                }
+                return@composable
+            }
+
+            // 2. Extraer la matrícula del estudiante
+            val matricula = usuario.estudiante?.matricula
+            if (matricula.isNullOrBlank()) {
+                // Opcional: redirigir o mostrar error
+                return@composable
+            }
+
+            // 3. Inyectar el ViewModel
+            val viewModel: ReservaViewModel = hiltViewModel()
+
+            // 4. Recargar reservas cuando la pantalla aparezca
+            LaunchedEffect(Unit) {
+                viewModel.loadReservas()
+            }
+
+            // 5. Mostrar la pantalla
+            ReservaListScreen(
+                onBottomNavClick = { destination ->
+                    when (destination) {
+                        "Inicio" -> navController.navigate("Dashboard") {
+                            popUpTo("Dashboard") { inclusive = false }
+                        }
+                    }
+                },
+                viewModel = viewModel
             )
         }
 
