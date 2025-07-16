@@ -165,7 +165,7 @@ class RestaurantesViewModel @Inject constructor(
 
         val nuevaReservacion = ReservacionesDto(
             codigoReserva = codigoReserva,
-            tipoReserva = 1, // Restaurante
+            tipoReserva = 4, // Restaurante
             cantidadEstudiantes = 0,
             fecha = fechaConHora,
             horario = "01:00:00",
