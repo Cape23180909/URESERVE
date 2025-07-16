@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -19,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,14 +33,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservaListScreen(
-    onBottomNavClick: (String) -> Unit
+    onBottomNavClick: (String) -> Unit,
+    viewModel: ReservaViewModel = hiltViewModel()
 ) {
+    val state by viewModel.state.collectAsState()
+
     Scaffold(
         topBar = {
             Column {
@@ -99,13 +110,114 @@ fun ReservaListScreen(
 
             Text(
                 text = "Reservas en Curso",
-                color = Color.White, // Cambié el color del texto a blanco para mejor contraste
+                color = Color.White,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
+
+            when (state) {
+                is ReservaViewModel.ReservaListState.Loading -> {
+                    // Muestra un indicador de carga
+                    Text("Cargando reservas...", color = Color.White)
+                }
+                is ReservaViewModel.ReservaListState.Success -> {
+                    val reservas = (state as ReservaViewModel.ReservaListState.Success).reservas
+                    if (reservas.isEmpty()) {
+                        Text(
+                            text = "No tienes reservas activas",
+                            color = Color.White,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    } else {
+                        ReservaList(reservas = reservas)
+                    }
+                }
+                is ReservaViewModel.ReservaListState.Error -> {
+                    val message = (state as ReservaViewModel.ReservaListState.Error).message
+                    Text("Error: $message", color = Color.Red)
+                }
+
+                is ReservaViewModel.ReservaListState.Error -> TODO()
+            }
+
             Spacer(modifier = Modifier.weight(1f))
         }
+    }
+}
+
+@Composable
+fun ReservaList(reservas: List<ReservacionesDto>) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        items(reservas) { reserva ->
+            ReservaCard(reserva = reserva)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun ReservaCard(reserva: ReservacionesDto) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF6D87A4)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Tipo: ${getTipoReservaString(reserva.tipoReserva)}",
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Fecha: ${reserva.fecha}",
+                color = Color.White
+            )
+            Text(
+                text = "Horario: ${reserva.horario}",
+                color = Color.White
+            )
+            Text(
+                text = "Estado: ${getEstadoString(reserva.estado)}",
+                color = Color.White
+            )
+            if (reserva.tipoReserva == 1) { // Solo mostrar cantidad para restaurante
+                Text(
+                    text = "Personas: ${reserva.cantidadEstudiantes}",
+                    color = Color.White
+                )
+            }
+        }
+    }
+}
+
+fun getTipoReservaString(tipo: Int): String {
+    return when (tipo) {
+        1 -> "Proyector"
+        2 -> "Cubiculo"
+        3 -> "Laboratorio"
+        4 -> "Restaurante"
+        else -> "Desconocido"
+    }
+}
+
+fun getEstadoString(estado: Int): String {
+    return when (estado) {
+        1 -> "Disponible"
+        2 -> "En uso"
+        3 -> "Finalizada"
+        4 -> "Cancelada"
+        else -> "Desconocido"
     }
 }
 
