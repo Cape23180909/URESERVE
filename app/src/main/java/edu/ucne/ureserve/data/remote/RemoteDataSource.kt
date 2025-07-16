@@ -95,7 +95,9 @@ class RemoteDataSource @Inject constructor(
             throw Exception("Error al crear la reservación: ${response.code()} - ${response.message()}")
         }
     }
-
+    //Reservaciondes de Usuarios Individuales
+    suspend fun getReservasByMatricula(matricula: String): List<ReservacionesDto> =
+        apiReservaciones.getReservasByMatricula(matricula)
 
     suspend fun updateReservacion(id: Int, reservacion: ReservacionesDto): ReservacionesDto =
         apiReservaciones.update(id, reservacion)
