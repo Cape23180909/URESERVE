@@ -33,18 +33,15 @@ class ReservaProyectorViewModel @Inject constructor(
     private val reservaApi: ReservacionesApi
 ) : ViewModel() {
 
-    // Estado unificado del ViewModel
     private val _state = MutableStateFlow(ReservaProyectorState())
     val state: StateFlow<ReservaProyectorState> = _state.asStateFlow()
 
-    // Proyector seleccionado
     private val _proyectorSeleccionado = MutableStateFlow<ProyectoresDto?>(null)
     val proyectorSeleccionado: StateFlow<ProyectoresDto?> = _proyectorSeleccionado.asStateFlow()
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun obtenerFechaActual(): String {
-        return LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
-    }
+    fun obtenerFechaActual(): String =
+        LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun verificarDisponibilidad(fecha: String, horaInicio: String, horaFin: String) {
@@ -52,7 +49,7 @@ class ReservaProyectorViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
                 val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-                val fechaFormatted = LocalDate.parse(fecha, dateFormatter).toString() // Formato ISO
+                val fechaFormatted = LocalDate.parse(fecha, dateFormatter).toString()
 
                 val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
                 val horaInicioParsed = LocalTime.parse(horaInicio, timeFormatter)
@@ -70,11 +67,6 @@ class ReservaProyectorViewModel @Inject constructor(
                     disponibilidadVerificada = true,
                     error = null
                 )
-            } catch (e: DateTimeParseException) {
-                _state.value = _state.value.copy(
-                    error = "Error de formato: ${e.message}",
-                    isLoading = false
-                )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = "Error al verificar disponibilidad: ${e.message}",
@@ -86,9 +78,7 @@ class ReservaProyectorViewModel @Inject constructor(
 
     fun seleccionarProyector(proyector: ProyectoresDto) {
         _proyectorSeleccionado.value = proyector
-        _state.value = _state.value.copy(
-            proyectorSeleccionado = proyector
-        )
+        _state.value = _state.value.copy(proyectorSeleccionado = proyector)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -103,14 +93,12 @@ class ReservaProyectorViewModel @Inject constructor(
             try {
                 val codigoReserva = (100000..999999).random()
 
-                // 1. Formatear fecha y hora según lo que espera el backend
                 val fechaFormateada = ZonedDateTime.of(
                     fechaLocal,
                     horaInicio,
                     ZoneId.systemDefault()
                 ).format(DateTimeFormatter.ISO_INSTANT)
 
-                // 2. Calcular duración (TimeSpan) en formato HH:mm:ss
                 val duracion = Duration.between(horaInicio, horaFin)
                 val horarioFormateado = String.format(
                     "%02d:%02d:%02d",
@@ -119,35 +107,34 @@ class ReservaProyectorViewModel @Inject constructor(
                     duracion.seconds % 60
                 )
 
-                // 3. Crear DTO para enviar (sin wrapper)
+                // ✅ Usar la matrícula real del estudiante
+                val matricula = AuthManager.currentUser?.estudiante?.matricula
+                    ?: throw Exception("Usuario sin matrícula")
+
                 val reservacionDto = ReservacionesDto(
                     codigoReserva = codigoReserva,
-                    tipoReserva = 1, // 1 para proyector
+                    tipoReserva = 1,
                     fecha = fechaFormateada,
                     horario = horarioFormateado,
-                    estado = 1, // 1 para confirmada
+                    estado = 1,
                     matricula = matricula,
-                    cantidadEstudiantes = 0 // Valor por defecto
+                    cantidadEstudiantes = 0
                 )
 
-                // 4. Enviar directamente el DTO a la API
                 val response = reservaApi.insert(reservacionDto)
 
                 if (!response.isSuccessful) {
-                    val errorBody = response.errorBody()?.string()
-                    throw Exception("Error en reserva: ${response.code()} - $errorBody")
+                    throw Exception("Error ${response.code()}: ${response.errorBody()?.string()}")
                 }
 
-                // 5. Actualizar estado si fue exitoso
                 _state.value = _state.value.copy(
                     reservaConfirmada = true,
                     codigoReserva = codigoReserva,
                     error = null
                 )
-
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
-                    error = "Error: ${e.message ?: "Error desconocido al confirmar reserva"}",
+                    error = "Error: ${e.message ?: "Desconocido"}",
                     reservaConfirmada = false
                 )
                 Log.e("Reserva", "Error confirmando reserva", e)
