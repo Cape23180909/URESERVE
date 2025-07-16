@@ -153,7 +153,7 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .clickable { onCategoryClick("Mis Reservas") },
+                .clickable { onCategoryClick("Reservaciones") },
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
                 containerColor = Color(0xFF6D87A4)
@@ -168,7 +168,7 @@ fun DashboardScreen(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.icon_reserva),
-                    contentDescription = "Mis Reservas",
+                    contentDescription = "Reservaciones",
                     modifier = Modifier.size(40.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
