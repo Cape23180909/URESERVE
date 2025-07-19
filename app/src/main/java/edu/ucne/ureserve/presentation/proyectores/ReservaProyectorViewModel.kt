@@ -3,13 +3,11 @@ package edu.ucne.ureserve.presentation.proyectores
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.ureserve.data.remote.DetalleReservaProyectorsApi
 import edu.ucne.ureserve.data.remote.ReservacionesApi
-import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.repository.ProyectorRepository
@@ -18,13 +16,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import java.time.*
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.util.*
+import java.util.Locale
 import javax.inject.Inject
-import kotlinx.serialization.json.Json
 
 @HiltViewModel
 class ReservaProyectorViewModel @Inject constructor(
@@ -115,7 +114,8 @@ class ReservaProyectorViewModel @Inject constructor(
                     codigoReserva = codigoReserva,
                     tipoReserva = 1,
                     fecha = fechaFormateada,
-                    horario = horarioFormateado,
+                    horaInicio = horaInicio.toString(),
+                    horaFin = horaFin.toString(),
                     estado = 1,
                     matricula = matricula,
                     cantidadEstudiantes = 0

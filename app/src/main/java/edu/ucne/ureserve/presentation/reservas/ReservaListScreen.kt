@@ -178,15 +178,21 @@ fun ReservaCard(reserva: ReservacionesDto) {
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    text = reserva.horario,
+                    text = "Reservación",
                     color = Color.White,
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = reserva.fecha,
+                    text = reserva.fecha, // Asegúrate que esta propiedad tenga formato "2 de Marzo"
                     color = Color.White,
-                    fontSize = 14.sp
+                    fontSize = 16.sp
+                )
+                //El primero es HoraInicio y despues HoraFin
+                Text(
+                    text = "${reserva.horaInicio} A ${reserva.horaFin}", // Asegúrate que estas propiedades tengan formato "11:00 A.M" y "1:30 P.M"
+                    color = Color.White,
+                    fontSize = 16.sp
                 )
             }
         }

@@ -159,16 +159,22 @@ class RestaurantesViewModel @Inject constructor(
             }
         }
     }
-    fun crearReservacionDesdeRestaurante(fecha: String, matricula: String) {
+    fun crearReservacionDesdeRestaurante(
+        fecha: String,
+        matricula: String,
+        horaInicio: String,   // <- nuevo parámetro
+        horaFin: String       // <- nuevo parámetro
+    ) {
         val codigoReserva = (100000..999999).random()
-        val fechaConHora = "${fecha}T12:00:00" // Puedes ajustar la hora
+        val fechaConHora = "${fecha}T12:00:00"
 
         val nuevaReservacion = ReservacionesDto(
             codigoReserva = codigoReserva,
-            tipoReserva = 4, // Restaurante
+            tipoReserva = 4,
             cantidadEstudiantes = 0,
             fecha = fechaConHora,
-            horario = "01:00:00",
+            horaInicio = horaInicio,
+            horaFin = horaFin,
             estado = 1,
             matricula = matricula
         )

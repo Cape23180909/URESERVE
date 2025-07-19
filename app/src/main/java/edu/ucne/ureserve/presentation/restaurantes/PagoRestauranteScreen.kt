@@ -172,7 +172,9 @@ fun PagoRestauranteScreen(
                     // 2. Crear reservación relacionada
                     viewModel.crearReservacionDesdeRestaurante(
                         fecha = persona.fecha,
-                        matricula = persona.correo // Usamos el correo como matrícula
+                        matricula = persona.correo,
+                        horaInicio = persona.horaInicio,
+                        horaFin = persona.horaFin
                     )
                 }
 
@@ -239,7 +241,9 @@ data class DatosPersonalesRestaurante(
     val telefono: String = "",
     val correo: String = "",
     val descripcion: String = "",
-    val fecha: String = ""
+    val fecha: String = "",
+    val horaInicio: String = "",
+    val horaFin: String = ""
 )
 
 object DatosPersonalesRestauranteStore {

@@ -174,7 +174,9 @@ fun PagoSalaVipScreen(
                     viewModel.create(nuevaReserva)
                     viewModel.crearReservacionDesdeRestaurante(
                         fecha = persona.fecha,
-                        matricula = persona.correo
+                        matricula = persona.correo,
+                        horaInicio = persona.horaInicio,
+                        horaFin = persona.horaFin
                     )
                 }
                 DatosPersonalesSalaVipStore.lista.clear()
@@ -232,7 +234,9 @@ data class DatosPersonalesSalaVip(
     val telefono: String = "",
     val correo: String = "",
     val descripcion: String = "",
-    val fecha: String = ""
+    val fecha: String = "",
+    val horaInicio: String = "",
+    val horaFin: String = ""
 )
 
 object DatosPersonalesSalaVipStore {
