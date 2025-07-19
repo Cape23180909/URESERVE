@@ -200,24 +200,24 @@ class ReservaCubiculoViewModel @Inject constructor(
         cubiculoId: Int,
         cantidadHoras: Int,
         matricula: String,
+        horaInicio: String = "00:00:00",
+        horaFin: String = "01:00:00",
         onSuccess: (Int) -> Unit,
         onError: (String) -> Unit
     ) {
         viewModelScope.launch {
             try {
                 val codigoReserva = (100000..999999).random()
-
                 val fecha = ZonedDateTime.now(ZoneId.systemDefault())
-                    .format(DateTimeFormatter.ISO_INSTANT)
-
-                val horario = String.format("%02d:00:00", cantidadHoras)
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE)
 
                 val reservacionDto = ReservacionesDto(
                     codigoReserva = codigoReserva,
-                    tipoReserva = 2, // 2 = Cubículo
+                    tipoReserva = 2,
                     cantidadEstudiantes = members.value.size,
                     fecha = fecha,
-                    horario = horario,
+                    horaInicio = horaInicio,
+                    horaFin = horaFin,
                     estado = 1,
                     matricula = matricula
                 )
