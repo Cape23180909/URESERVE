@@ -9,7 +9,8 @@ data class ReservacionesDto(
     val tipoReserva: Int,
     val cantidadEstudiantes: Int = 0,
     val fecha: String,
-    val horario: String,
+    val horaInicio: String,
+    val horaFin: String,
     val estado: Int = 0,
     val matricula: String
 )
