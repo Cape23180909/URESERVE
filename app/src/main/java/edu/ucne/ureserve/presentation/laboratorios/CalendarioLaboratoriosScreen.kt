@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import java.util.Calendar
@@ -45,7 +46,8 @@ import java.util.Locale
 @Composable
 fun LaboratorioReservationScreen(
     onBottomNavClick: (String) -> Unit = {},
-    onDateSelected: (Calendar) -> Unit = {}
+    onDateSelected: (Calendar) -> Unit = {},
+    navController: NavController
 ) {
     val calendar = Calendar.getInstance()
     var selectedDate by remember { mutableStateOf<Calendar?>(null) }
@@ -388,10 +390,10 @@ private fun ReservationButton(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewLaboratorioReservationScreen() {
-    MaterialTheme {
-        LaboratorioReservationScreen(onBottomNavClick = {})
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewLaboratorioReservationScreen() {
+//    MaterialTheme {
+//        LaboratorioReservationScreen(onBottomNavClick = {})
+//    }
+//}

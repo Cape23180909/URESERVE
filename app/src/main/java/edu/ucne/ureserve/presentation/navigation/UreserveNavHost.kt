@@ -309,6 +309,7 @@ fun UreserveNavHost(navController: NavHostController) {
 
         composable("LaboratorioReservation") {
             LaboratorioReservationScreen(
+                navController = navController,
                 onBottomNavClick = { destination ->
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
@@ -351,14 +352,16 @@ fun UreserveNavHost(navController: NavHostController) {
         ) { backStackEntry ->
             val laboratorioId = backStackEntry.arguments?.getInt("laboratorioId")
             val laboratorioNombre = backStackEntry.arguments?.getString("laboratorioNombre")
+            val fecha = backStackEntry.arguments?.getLong("fecha") ?: 0L
+            val calendar = Calendar.getInstance().apply { timeInMillis = fecha }
 
             PlanificadorLaboratorioScreen(
                 navController = navController,
                 laboratorioId = laboratorioId,
-                laboratorioNombre = laboratorioNombre ?: "No definido"
+                laboratorioNombre = laboratorioNombre ?: "No definido",
+//                fechaSeleccionada = calendar
             )
         }
-
 
         composable(
             route = "reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}",
@@ -371,6 +374,7 @@ fun UreserveNavHost(navController: NavHostController) {
             val laboratorioId = backStackEntry.arguments?.getInt("laboratorioId")
             val horaInicio = backStackEntry.arguments?.getString("horaInicio").orEmpty()
             val horaFin = backStackEntry.arguments?.getString("horaFin").orEmpty()
+            val fecha = backStackEntry.arguments?.getLong("fecha") ?: 0L
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
             val estudiante = remember {
                 EstudianteDto(
@@ -387,7 +391,8 @@ fun UreserveNavHost(navController: NavHostController) {
                 usuarioDTO = usuario,
                 estudiante = estudiante,
                 horaInicio = horaInicio,
-                horaFin = horaFin
+                horaFin = horaFin,
+                fecha = fecha
             )
         }
 

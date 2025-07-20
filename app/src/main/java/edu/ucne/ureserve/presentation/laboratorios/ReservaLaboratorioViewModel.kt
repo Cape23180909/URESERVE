@@ -46,8 +46,8 @@ class ReservaLaboratorioViewModel @Inject constructor(
     fun confirmarReservaLaboratorio(
         laboratorioId: Int,
         cantidadHoras: Int,
-        horaInicio: String = "00:00:00",
-        horaFin: String = "01:00:00",
+        horaInicio: String,
+        horaFin: String,
         matricula: String,
         onSuccess: (Int) -> Unit,
         onError: (String) -> Unit

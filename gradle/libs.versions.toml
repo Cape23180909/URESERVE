@@ -17,6 +17,7 @@ kotlinSerializationPlugin = "2.0.21"
 firebaseAuthKtx = "23.2.1"
 firebaseCrashlyticsBuildtools = "3.0.4"
 runtimeLivedata = "1.8.2"
+coreI18n = "1.0.0"
 
 
 [libraries]
@@ -42,6 +43,7 @@ androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
+androidx-core-i18n = { group = "androidx.core", name = "core-i18n", version.ref = "coreI18n" }
 
 
 [plugins]

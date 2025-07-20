@@ -5,45 +5,15 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +24,7 @@ import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,25 +36,18 @@ fun ReservaLaboratorioScreen(
     usuarioDTO: UsuarioDTO,
     estudiante: EstudianteDto,
     horaInicio: String,
-    horaFin: String
-){
-
+    horaFin: String,
+    fecha: Long
+) {
     val hours by viewModel.selectedHours.collectAsState()
     val allMembers by viewModel.members.collectAsState()
     val laboratorioNombre by viewModel.laboratorioNombre.collectAsState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var validarCantidaHoras by remember { mutableStateOf(false) }
+    val fechaSeleccionada = Calendar.getInstance().apply { timeInMillis = fecha }
 
     LaunchedEffect(allMembers) {
         Log.d("ReservaLaboratorioScreen", "Miembros actualizados: ${allMembers.size}")
-        allMembers.forEach { member ->
-            Log.d("ReservaLaboratorioScreen", "Miembro: ${member.nombres}")
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        Log.d("ReservaScreen", "Usuario recibido - Nombre: ${usuarioDTO.nombres}, Matrícula: ${usuarioDTO.estudiante?.matricula ?: "N/A"}")
     }
 
     LaunchedEffect(usuarioDTO) {
@@ -107,7 +71,7 @@ fun ReservaLaboratorioScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(painter = painterResource(id = R.drawable.logo_reserve), contentDescription = "Logo", modifier = Modifier.size(60.dp))
-                    Image(painter = painterResource(id = R.drawable.icon_laboratorio), contentDescription = "Icono de laboratorio", modifier = Modifier.size(60.dp))
+                    Image(painter = painterResource(id = R.drawable.icon_laboratorio), contentDescription = "Icono", modifier = Modifier.size(60.dp))
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6D87A4))
@@ -115,87 +79,63 @@ fun ReservaLaboratorioScreen(
 
         Text(
             text = "Reserva de $laboratorioNombre",
-            style = MaterialTheme.typography.headlineMedium,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp)
-                .align(Alignment.CenterHorizontally)
+                .padding(vertical = 16.dp),
+            textAlign = TextAlign.Center
         )
 
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
             Text(
-                "Seleccione la cantidad de horas:",
-                style = MaterialTheme.typography.bodyLarge,
+                "Horas Seleccionadas:",
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                "Digite la cantidad de horas:",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
+                "Desde: $horaInicio",
                 color = Color.White
             )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            TextField(
-                value = hours,
-                onValueChange = {
-                    if (it.isEmpty() || it.all(Char::isDigit)) {
-                        viewModel.setSelectedHours(it)
-                        validarCantidaHoras = false // Limpiamos el error al ingresar
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(8.dp),
-                textStyle = LocalTextStyle.current.copy(color = Color.Black),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedIndicatorColor = Color.Blue,
-                    unfocusedIndicatorColor = Color.Gray,
-                    cursorColor = Color.Black
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = validarCantidaHoras
+            Text(
+                "Hasta: $horaFin",
+                color = Color.White
             )
-
-            if (validarCantidaHoras) {
-                Text(
-                    text = "Debe digitar la hora antes de agregar Integrantes.",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Añade los integrantes de tu grupo", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(
+                    "Añade los integrantes de tu grupo",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
                 IconButton(
                     onClick = {
-                        if (hours.isBlank()) {
-                            validarCantidaHoras  = true
-                        } else {
-                            validarCantidaHoras  = false
-                            navController.navigate("AgregarEstudianteLaboratorio") {
-                                launchSingleTop = true
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                restoreState = true
+                        navController.navigate("AgregarEstudianteLaboratorio") {
+                            launchSingleTop = true
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
+                            restoreState = true
                         }
                     }
                 ) {
@@ -231,7 +171,7 @@ fun ReservaLaboratorioScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = member.nombres.orEmpty() + " " + member.apellidos.orEmpty(),
+                            text = "${member.nombres.orEmpty()} ${member.apellidos.orEmpty()}",
                             modifier = Modifier.weight(1f).padding(start = 16.dp),
                             color = Color.Black
                         )
@@ -254,7 +194,6 @@ fun ReservaLaboratorioScreen(
                     "Faltan $faltantes ${if (faltantes == 1) "miembro" else "miembros"} para completar el mínimo requerido (3)."
                 else
                     "Tienes el mínimo requerido (3 miembros).",
-                style = MaterialTheme.typography.bodySmall,
                 color = Color.White,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -263,7 +202,9 @@ fun ReservaLaboratorioScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(
@@ -277,72 +218,83 @@ fun ReservaLaboratorioScreen(
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text(
-                    text = "VOLVER",
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(8.dp))
+                Text("VOLVER", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
+            }
+
+            @RequiresApi(Build.VERSION_CODES.O)
+            fun calcularHoras(inicio: String, fin: String): Int {
+                val formatter = java.time.format.DateTimeFormatter.ofPattern("h:mma", java.util.Locale.US)
+                val inicioTime = java.time.LocalTime.parse(inicio, formatter)
+                val finTime = java.time.LocalTime.parse(fin, formatter)
+                return java.time.Duration.between(inicioTime, finTime).toHours().toInt().coerceAtLeast(1)
+            }
+
+            @RequiresApi(Build.VERSION_CODES.O)
+            fun convertirA24Horas(hora12: String): String {
+                val formatter12 = java.time.format.DateTimeFormatter.ofPattern("h:mma", java.util.Locale.US)
+                val formatter24 = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
+                return java.time.LocalTime.parse(hora12, formatter12).format(formatter24)
             }
 
             Button(
                 onClick = {
-                    if (allMembers.size >= 3 && hours.isNotBlank()) {
-                        try {
-                            val cantidadHoras = hours.toInt()
-                            val matricula = usuarioDTO.estudiante?.matricula ?: ""
-
-                            viewModel.confirmarReservaLaboratorio(
-                                laboratorioId = laboratorioId ?: 0,
-                                cantidadHoras = cantidadHoras,
-                                matricula = matricula,
-                                onSuccess = { codigo ->
-                                    // ✅ Navega a la pantalla con el código recibido
-                                    navController.navigate("ReservaLaboratorioExitosa/$codigo") {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
+                    if (allMembers.size >= 3) {
+                        val matricula = usuarioDTO.estudiante?.matricula ?: ""
+                        val cantidadHoras = calcularHoras(horaInicio, horaFin)
+                        val horaInicio24 = convertirA24Horas(horaInicio)
+                        val horaFin24 = convertirA24Horas(horaFin)
+                        viewModel.confirmarReservaLaboratorio(
+                            laboratorioId = laboratorioId ?: 0,
+                            cantidadHoras = cantidadHoras,
+                            horaInicio = horaInicio24,
+                            horaFin = horaFin24,
+                            matricula = matricula,
+                            onSuccess = { codigo ->
+                                navController.navigate("ReservaLaboratorioExitosa/$codigo") {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
                                     }
-                                },
-                                onError = { mensaje ->
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(mensaje)
-                                    }
+                                    launchSingleTop = true
                                 }
-                            )
-                        } catch (e: Exception) {
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Error al procesar reserva: ${e.message}")
+                            },
+                            onError = { mensaje ->
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(mensaje)
+                                }
                             }
-                        }
+                        )
                     } else {
                         scope.launch {
-                            snackbarHostState.showSnackbar("Debe tener mínimo 3 miembros y horas válidas.")
+                            snackbarHostState.showSnackbar("Debe tener mínimo 3 miembros.")
                         }
                     }
                 },
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 16.dp),
+                    .padding(start = 8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF6895D2),
                     contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text(
-                    text = "SIGUIENTE",
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(8.dp)
-                )
+                Text("SIGUIENTE", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
             }
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().background(Color(0xFF2E5C94)).padding(vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF2E5C94))
+                .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             IconButton(onClick = { /* TODO: Ir a Inicio */ }) {
-                Icon(painter = painterResource(id = R.drawable.icon_inicio), contentDescription = "Inicio", tint = Color.White)
+                Icon(
+                    painter = painterResource(id = R.drawable.icon_inicio),
+                    contentDescription = "Inicio",
+                    tint = Color.White
+                )
             }
         }
     }
