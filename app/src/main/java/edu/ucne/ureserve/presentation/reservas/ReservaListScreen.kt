@@ -170,29 +170,38 @@ fun ReservaCard(reserva: ReservacionesDto) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Icono (se mantiene a la izquierda)
             Image(
                 painter = painterResource(id = getIconForTipo(reserva.tipoReserva)),
                 contentDescription = "Icono",
                 modifier = Modifier.size(40.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Column {
+
+            // Contenido de textos CENTRADO
+            Column(
+                modifier = Modifier.fillMaxWidth(), // Ocupa todo el espacio restante
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(
                     text = "Reservación",
-                    color = Color.White,
+                    color = Color.Black,
                     fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Text(
+                    text = reserva.fechaFormateada,
+                    color = Color.Black,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+                Text(
+                    text = "${reserva.horaInicio} A ${reserva.horaFin}",
+                    color = Color.Black,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = reserva.fecha, // Asegúrate que esta propiedad tenga formato "2 de Marzo"
-                    color = Color.White,
-                    fontSize = 16.sp
-                )
-                //El primero es HoraInicio y despues HoraFin
-                Text(
-                    text = "${reserva.horaInicio} A ${reserva.horaFin}", // Asegúrate que estas propiedades tengan formato "11:00 A.M" y "1:30 P.M"
-                    color = Color.White,
-                    fontSize = 16.sp
                 )
             }
         }
