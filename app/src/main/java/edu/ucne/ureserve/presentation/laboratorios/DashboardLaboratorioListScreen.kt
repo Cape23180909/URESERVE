@@ -105,8 +105,10 @@ fun DashboardLaboratorioListScreen(
                         isSelected = laboratorio == laboratorioSeleccionado,
                         onClick = {
                             laboratorioSeleccionado = laboratorio
-                            // En DashboardLaboratorioListScreen
-                            navController.navigate("planificador_laboratorio/${laboratorio.laboratorioId}/${laboratorio.nombre}")
+                            selectedDate?.let {
+                                val fechaMillis = it.timeInMillis
+                                navController.navigate("planificador_laboratorio/${laboratorio.laboratorioId}/${laboratorio.nombre}/$fechaMillis")
+                            }
                         }
                     )
                 }
@@ -135,6 +137,15 @@ fun DashboardLaboratorioListScreen(
         }
     }
 }
+
+fun formatoFecha(fecha: Calendar?): String {
+    if (fecha == null) return ""
+    val year = fecha.get(Calendar.YEAR)
+    val month = fecha.get(Calendar.MONTH) + 1
+    val day = fecha.get(Calendar.DAY_OF_MONTH)
+    return "%04d-%02d-%02d".format(year, month, day)
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

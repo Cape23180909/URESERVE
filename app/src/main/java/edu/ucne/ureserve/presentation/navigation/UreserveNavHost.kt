@@ -344,10 +344,11 @@ fun UreserveNavHost(navController: NavHostController) {
         }
 
         composable(
-            "planificador_laboratorio/{laboratorioId}/{laboratorioNombre}",
+            "planificador_laboratorio/{laboratorioId}/{laboratorioNombre}/{fecha}",
             arguments = listOf(
                 navArgument("laboratorioId") { type = NavType.IntType },
-                navArgument("laboratorioNombre") { type = NavType.StringType }
+                navArgument("laboratorioNombre") { type = NavType.StringType },
+                navArgument("fecha") { type = NavType.LongType } // 👈 AÑADIDO
             )
         ) { backStackEntry ->
             val laboratorioId = backStackEntry.arguments?.getInt("laboratorioId")
@@ -359,9 +360,32 @@ fun UreserveNavHost(navController: NavHostController) {
                 navController = navController,
                 laboratorioId = laboratorioId,
                 laboratorioNombre = laboratorioNombre ?: "No definido",
-//                fechaSeleccionada = calendar
+                fechaSeleccionada = calendar
             )
         }
+
+        composable(
+            "planificador_laboratorio/{laboratorioId}/{nombre}/{fecha}",
+            arguments = listOf(
+                navArgument("laboratorioId") { type = NavType.IntType },
+                navArgument("nombre") { type = NavType.StringType },
+                navArgument("fecha") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("laboratorioId")
+            val nombre = backStackEntry.arguments?.getString("nombre") ?: ""
+            val fechaMillis = backStackEntry.arguments?.getLong("fecha") ?: 0L
+
+            val calendar = Calendar.getInstance().apply { timeInMillis = fechaMillis }
+
+            PlanificadorLaboratorioScreen(
+                navController = navController,
+                laboratorioId = id,
+                laboratorioNombre = nombre,
+                fechaSeleccionada = calendar
+            )
+        }
+
 
         composable(
             route = "reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}",

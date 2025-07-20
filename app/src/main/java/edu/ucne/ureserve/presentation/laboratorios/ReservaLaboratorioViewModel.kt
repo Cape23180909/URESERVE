@@ -36,6 +36,9 @@ class ReservaLaboratorioViewModel @Inject constructor(
     private val _laboratorioNombre = MutableStateFlow("")
     val laboratorioNombre: StateFlow<String> = _laboratorioNombre
 
+    private val _fechaSeleccionada = MutableStateFlow<String?>(null)
+    val fechaSeleccionada: StateFlow<String?> = _fechaSeleccionada.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -56,8 +59,9 @@ class ReservaLaboratorioViewModel @Inject constructor(
             try {
                 val codigoReserva = (100000..999999).random()
 
-                val fecha = ZonedDateTime.now(ZoneId.systemDefault())
-                    .format(DateTimeFormatter.ISO_INSTANT)
+                val fecha = _fechaSeleccionada.value
+                    ?: ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_INSTANT)
+
 
                 val horario = String.format("%02d:00:00", cantidadHoras)
 
@@ -96,6 +100,10 @@ class ReservaLaboratorioViewModel @Inject constructor(
 
     fun setSelectedHours(hours: String) {
         _selectedHours.value = hours
+    }
+
+    fun setFechaSeleccionada(fecha: String) {
+        _fechaSeleccionada.value = fecha
     }
 
     fun getLaboratorioNombreById(id: Int) {

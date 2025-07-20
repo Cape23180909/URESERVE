@@ -22,12 +22,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
+import java.util.Calendar
 
 @Composable
 fun PlanificadorLaboratorioScreen(
     navController: NavController,
     laboratorioId: Int?,
-    laboratorioNombre: String
+    laboratorioNombre: String,
+    fechaSeleccionada: Calendar
 ) {
     val horariosDisponibles = listOf(
         "7:00AM", "7:30AM", "8:00AM", "8:30AM",
@@ -257,9 +259,9 @@ fun PlanificadorLaboratorioScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewPlanificadorLaboratorioScreen() {
-    val navController = rememberNavController()
-    PlanificadorLaboratorioScreen(navController = navController, laboratorioId = 1, laboratorioNombre = "Laboratorio A")
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewPlanificadorLaboratorioScreen() {
+//    val navController = rememberNavController()
+//    PlanificadorLaboratorioScreen(navController = navController, laboratorioId = 1, laboratorioNombre = "Laboratorio A")
+//}
