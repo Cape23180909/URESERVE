@@ -38,24 +38,23 @@ import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.LaboratoriosDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardLaboratorioListScreen(
-    selectedDate: Calendar?,
-    onLaboratorioSelected: (String) -> Unit = {},
-    onBackClick: () -> Unit = {},
+    selectedDate: Calendar,
+    onLaboratorioSelected: (laboratorioId: Int, laboratorioNombre: String) -> Unit,
+    onBackClick: () -> Unit,
     navController: NavController
 ) {
-    //Laboratorio Seleccionado
+    // Laboratorio Seleccionado
     var laboratorioSeleccionado by remember { mutableStateOf<LaboratoriosDto?>(null) }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(Color(0xFF023E8A))) {
-
-        // TopAppBar (se mantiene igual)
+    Column(modifier = Modifier.fillMaxSize().background(Color(0xFF023E8A))) {
+        // ... (código del TopAppBar igual)
         TopAppBar(
             title = {
                 Row(
@@ -80,13 +79,19 @@ fun DashboardLaboratorioListScreen(
             )
         )
 
-        // Contenido principal con weight
+        // Contenido principal
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(16.dp),
+            modifier = Modifier.weight(1f).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Mostrar la fecha seleccionada
+            Text(
+                text = "Fecha seleccionada: ${formatoFecha(selectedDate)}",
+                color = Color.White,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
             Text(
                 text = "Elige el laboratorio deseado:",
                 color = Color.White,
@@ -105,10 +110,8 @@ fun DashboardLaboratorioListScreen(
                         isSelected = laboratorio == laboratorioSeleccionado,
                         onClick = {
                             laboratorioSeleccionado = laboratorio
-                            selectedDate?.let {
-                                val fechaMillis = it.timeInMillis
-                                navController.navigate("planificador_laboratorio/${laboratorio.laboratorioId}/${laboratorio.nombre}/$fechaMillis")
-                            }
+                            val fechaMillis = selectedDate.timeInMillis
+                            navController.navigate("planificador_laboratorio/${laboratorio.laboratorioId}/${laboratorio.nombre}/$fechaMillis")
                         }
                     )
                 }
@@ -138,13 +141,14 @@ fun DashboardLaboratorioListScreen(
     }
 }
 
-fun formatoFecha(fecha: Calendar?): String {
-    if (fecha == null) return ""
-    val year = fecha.get(Calendar.YEAR)
-    val month = fecha.get(Calendar.MONTH) + 1
-    val day = fecha.get(Calendar.DAY_OF_MONTH)
+fun formatoFecha(calendar: Calendar): String {
+    if (calendar == null) return ""
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH) + 1
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
     return "%04d-%02d-%02d".format(year, month, day)
 }
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -204,14 +208,14 @@ fun getLaboratorios(): List<LaboratoriosDto> {
     )
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun DashboardLaboratorioListScreenPreview() {
-    MaterialTheme {
-        val navController = rememberNavController()
-        DashboardLaboratorioListScreen(
-            selectedDate = Calendar.getInstance(),
-            navController = navController
-        )
-    }
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun DashboardLaboratorioListScreenPreview() {
+//    MaterialTheme {
+//        val navController = rememberNavController()
+//        DashboardLaboratorioListScreen(
+//            selectedDate = Calendar.getInstance(),
+//            navController = navController
+//        )
+//    }
+//}
