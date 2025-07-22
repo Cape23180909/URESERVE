@@ -51,6 +51,7 @@ class ReservaLaboratorioViewModel @Inject constructor(
         cantidadHoras: Int,
         horaInicio: String,
         horaFin: String,
+        fecha: String,
         matricula: String,
         onSuccess: (Int) -> Unit,
         onError: (String) -> Unit
@@ -58,26 +59,20 @@ class ReservaLaboratorioViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val codigoReserva = (100000..999999).random()
-
-                val fecha = _fechaSeleccionada.value
+                val fechaSeleccionada = fecha // Usa el parámetro fecha que se pasa a la función
                     ?: ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_INSTANT)
-
-
                 val horario = String.format("%02d:00:00", cantidadHoras)
-
                 val reservacionDto = ReservacionesDto(
                     codigoReserva = codigoReserva,
                     tipoReserva = 3, // 3 = Laboratorio
                     cantidadEstudiantes = members.value.size,
-                    fecha = fecha,
+                    fecha = fechaSeleccionada,
                     horaInicio = horaInicio,
                     horaFin = horaFin,
                     estado = 1,
                     matricula = matricula
                 )
-
                 val response = reservaApi.insert(reservacionDto)
-
                 if (response.isSuccessful) {
                     onSuccess(codigoReserva)
                 } else {
