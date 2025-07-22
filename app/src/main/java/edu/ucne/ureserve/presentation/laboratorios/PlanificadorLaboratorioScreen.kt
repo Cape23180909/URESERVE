@@ -43,6 +43,9 @@ fun PlanificadorLaboratorioScreen(
     var horaInicioSeleccionada by remember { mutableStateOf("12:00PM") }
     var horaFinSeleccionada by remember { mutableStateOf("02:30PM") }
 
+    var horaInicio by remember { mutableStateOf("") }
+    var horaFin by remember { mutableStateOf("") }
+
     var mostrarSeleccionInicio by remember { mutableStateOf(false) }
     var mostrarSeleccionFin by remember { mutableStateOf(false) }
 
@@ -80,6 +83,13 @@ fun PlanificadorLaboratorioScreen(
                 )
             }
         }
+
+        Text(
+            text = "Fecha seleccionada: ${formatoFecha(fechaSeleccionada)}",
+            color = Color.White,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -237,12 +247,9 @@ fun PlanificadorLaboratorioScreen(
 
             Button(
                 onClick = {
-                    laboratorioId?.let { id ->
-                        navController.navigate(
-                            "reservaLaboratorio/$id/" +
-                                    "$horaInicioSeleccionada/$horaFinSeleccionada"
-                        )
-                    }
+                    val fechaMillis = fechaSeleccionada.timeInMillis
+                    val route = "reservaLaboratorio/${laboratorioId}/${horaInicioSeleccionada}/${horaFinSeleccionada}/${fechaMillis}"
+                    navController.navigate(route)
                 },
                 modifier = Modifier
                     .weight(1f)
