@@ -316,7 +316,6 @@ fun UreserveNavHost(navController: NavHostController) {
                     }
                 },
                 onDateSelected = { selectedDate ->
-                    // Navegar a la pantalla de lista de laboratorios con la fecha seleccionada
                     navController.navigate("LaboratorioList/${selectedDate.timeInMillis}")
                 }
             )
@@ -333,66 +332,42 @@ fun UreserveNavHost(navController: NavHostController) {
 
             DashboardLaboratorioListScreen(
                 selectedDate = calendar,
-                onLaboratorioSelected = { laboratorioNombre ->
-                    // Aquí podrías navegar a otra pantalla específica del laboratorio
+                onLaboratorioSelected = { laboratorioId, laboratorioNombre ->
+                    navController.navigate("planificador_laboratorio/${laboratorioId}/${laboratorioNombre}/${fechaMillis}")
                 },
-                onBackClick = {
-                    navController.popBackStack()
-                },
+                onBackClick = { navController.popBackStack() },
                 navController = navController
             )
         }
 
         composable(
-            "planificador_laboratorio/{laboratorioId}/{laboratorioNombre}/{fecha}",
+            "planificador_laboratorio/{laboratorioId}/{laboratorioNombre}/{fechaMillis}",
             arguments = listOf(
                 navArgument("laboratorioId") { type = NavType.IntType },
                 navArgument("laboratorioNombre") { type = NavType.StringType },
-                navArgument("fecha") { type = NavType.LongType } // 👈 AÑADIDO
+                navArgument("fechaMillis") { type = NavType.LongType }
             )
         ) { backStackEntry ->
             val laboratorioId = backStackEntry.arguments?.getInt("laboratorioId")
-            val laboratorioNombre = backStackEntry.arguments?.getString("laboratorioNombre")
-            val fecha = backStackEntry.arguments?.getLong("fecha") ?: 0L
-            val calendar = Calendar.getInstance().apply { timeInMillis = fecha }
+            val laboratorioNombre = backStackEntry.arguments?.getString("laboratorioNombre") ?: "No definido"
+            val fechaMillis = backStackEntry.arguments?.getLong("fechaMillis") ?: 0L
+            val fechaSeleccionada = Calendar.getInstance().apply { timeInMillis = fechaMillis }
 
             PlanificadorLaboratorioScreen(
                 navController = navController,
                 laboratorioId = laboratorioId,
-                laboratorioNombre = laboratorioNombre ?: "No definido",
-                fechaSeleccionada = calendar
+                laboratorioNombre = laboratorioNombre,
+                fechaSeleccionada = fechaSeleccionada
             )
         }
 
         composable(
-            "planificador_laboratorio/{laboratorioId}/{nombre}/{fecha}",
-            arguments = listOf(
-                navArgument("laboratorioId") { type = NavType.IntType },
-                navArgument("nombre") { type = NavType.StringType },
-                navArgument("fecha") { type = NavType.LongType }
-            )
-        ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("laboratorioId")
-            val nombre = backStackEntry.arguments?.getString("nombre") ?: ""
-            val fechaMillis = backStackEntry.arguments?.getLong("fecha") ?: 0L
-
-            val calendar = Calendar.getInstance().apply { timeInMillis = fechaMillis }
-
-            PlanificadorLaboratorioScreen(
-                navController = navController,
-                laboratorioId = id,
-                laboratorioNombre = nombre,
-                fechaSeleccionada = calendar
-            )
-        }
-
-
-        composable(
-            route = "reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}",
+            route = "reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}/{fecha}",
             arguments = listOf(
                 navArgument("laboratorioId") { type = NavType.IntType },
                 navArgument("horaInicio") { type = NavType.StringType },
-                navArgument("horaFin") { type = NavType.StringType }
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("fecha") { type = NavType.LongType }
             )
         ) { backStackEntry ->
             val laboratorioId = backStackEntry.arguments?.getInt("laboratorioId")
@@ -408,7 +383,6 @@ fun UreserveNavHost(navController: NavHostController) {
                     carrera = "Ingeniería en Sistemas"
                 )
             }
-
             ReservaLaboratorioScreen(
                 laboratorioId = laboratorioId,
                 navController = navController,
@@ -421,8 +395,8 @@ fun UreserveNavHost(navController: NavHostController) {
         }
 
         composable("AgregarEstudianteLaboratorio") { backStackEntry ->
-            val parentEntry = remember {
-                navController.getBackStackEntry("reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}")
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry("reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}/{fecha}")
             }
 
             val viewModel: ReservaLaboratorioViewModel = hiltViewModel(parentEntry)
@@ -444,6 +418,7 @@ fun UreserveNavHost(navController: NavHostController) {
                 }
             )
         }
+
 
         composable(
             route = "ReservaLaboratorioExitosa/{codigo}",
