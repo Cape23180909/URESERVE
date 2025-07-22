@@ -255,11 +255,18 @@ fun ReservaCubiculoScreen(
                         try {
                             val cantidadHoras = hours.toInt()
                             val matricula = usuarioDTO.estudiante?.matricula ?: ""
+                            val horaActual = LocalTime.now()
+                            val horaInicio = horaActual
+                            val horaFin = horaInicio.plusHours(cantidadHoras.toLong())
+
+                            val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 
                             viewModel.confirmarReservaCubiculo(
                                 cubiculoId = cubiculoId ?: 0,
                                 cantidadHoras = cantidadHoras,
                                 matricula = matricula,
+                                horaInicio = horaInicio.format(formatter),
+                                horaFin = horaFin.format(formatter),
                                 onSuccess = { codigo ->
                                     navController.navigate("ReservaCubiculoExitosa/$codigo") {
                                         popUpTo(navController.graph.findStartDestination().id) {
