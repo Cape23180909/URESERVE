@@ -244,11 +244,14 @@ fun ReservaLaboratorioScreen(
                         val cantidadHoras = calcularHoras(horaInicio, horaFin)
                         val horaInicio24 = convertirA24Horas(horaInicio)
                         val horaFin24 = convertirA24Horas(horaFin)
+                        val fechaSeleccionada = formatoFecha(fechaSeleccionada)
+
                         viewModel.confirmarReservaLaboratorio(
                             laboratorioId = laboratorioId ?: 0,
                             cantidadHoras = cantidadHoras,
                             horaInicio = horaInicio24,
                             horaFin = horaFin24,
+                            fecha = fechaSeleccionada,
                             matricula = matricula,
                             onSuccess = { codigo ->
                                 navController.navigate("ReservaLaboratorioExitosa/$codigo") {
