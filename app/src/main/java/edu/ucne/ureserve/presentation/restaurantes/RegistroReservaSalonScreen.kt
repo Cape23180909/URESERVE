@@ -78,7 +78,7 @@ fun RegistroReservaSalonScreen(
                 // Guardar en Store
                 DatosPersonalesSalonStore.lista.add(
                     DatosPersonalesSalon(
-                        nombre = nombre,
+                        nombres = nombre,
                         ubicacion = ubicacion,
                         capacidad = capacidad,
                         telefono = telefono,
@@ -89,7 +89,6 @@ fun RegistroReservaSalonScreen(
                 )
 
                 viewModel.setFecha(fecha)
-                viewModel.create()
 
                 onConfirmarClick()
             }
