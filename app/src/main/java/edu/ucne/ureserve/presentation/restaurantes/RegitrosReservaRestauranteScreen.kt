@@ -44,7 +44,6 @@ fun RegistrosReservaRestauranteScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Actualizar la fecha al iniciar
     LaunchedEffect(fecha) {
         viewModel.setFecha(fecha)
     }
@@ -94,29 +93,38 @@ fun RegistrosReservaRestauranteScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = uiState.nombre,
-                onValueChange = viewModel::setNombre,
-                label = { Text("Nombre *") },
+                value = uiState.nombres,
+                onValueChange = viewModel::setNombres,
+                label = { Text("Nombres *") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = uiState.ubicacion,
-                onValueChange = viewModel::setUbicacion,
-                label = { Text("Ubicación *") },
+                value = uiState.apellidos,
+                onValueChange = viewModel::setApellidos,
+                label = { Text("Apellidos *") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = uiState.capacidad.toString(),
-                onValueChange = { viewModel.setCapacidad(it.toIntOrNull() ?: 0) },
-                label = { Text("Capacidad *") },
+                value = uiState.cedula,
+                onValueChange = viewModel::setCedula,
+                label = { Text("Cédula *") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = uiState.matricula,
+                onValueChange = viewModel::setMatricula,
+                label = { Text("Matrícula *") },
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -142,9 +150,9 @@ fun RegistrosReservaRestauranteScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = uiState.descripcion,
-                onValueChange = viewModel::setDescripcion,
-                label = { Text("Descripción *") },
+                value = uiState.direccion,
+                onValueChange = viewModel::setDireccion,
+                label = { Text("Ubicación *") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -167,32 +175,38 @@ fun RegistrosReservaRestauranteScreen(
                         onConfirmarClick(
                             DatosPersonalesRestaurante(
                                 restauranteId = uiState.restauranteId,
-                                nombre = uiState.nombre,
-                                ubicacion = uiState.ubicacion,
-                                capacidad = uiState.capacidad,
+                                nombres = uiState.nombres,
+                                apellidos = uiState.apellidos,
+                                cedula = uiState.cedula,
+                                matricula = uiState.matricula,
                                 telefono = uiState.telefono,
                                 correo = uiState.correo,
-                                descripcion = uiState.descripcion,
+                                ubicacion = uiState.direccion,
                                 fecha = uiState.fecha
                             )
                         )
                     },
                     enabled = listOf(
-                        uiState.nombre,
-                        uiState.ubicacion,
+                        uiState.nombres,
+                        uiState.apellidos,
+                        uiState.cedula,
+                        uiState.matricula,
                         uiState.telefono,
                         uiState.correo,
-                        uiState.descripcion
-                    ).all { it.isNotBlank() } && uiState.capacidad > 0,
+                        uiState.direccion
+                    ).all { it.isNotBlank() },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (
-                            uiState.nombre.isNotBlank() &&
-                            uiState.ubicacion.isNotBlank() &&
-                            uiState.capacidad > 0 &&
-                            uiState.telefono.isNotBlank() &&
-                            uiState.correo.isNotBlank() &&
-                            uiState.descripcion.isNotBlank()
+                            listOf(
+                                uiState.nombres,
+                                uiState.apellidos,
+                                uiState.cedula,
+                                uiState.matricula,
+                                uiState.telefono,
+                                uiState.correo,
+                                uiState.direccion
+                            ).all { it.isNotBlank() }
                         ) Color(0xFF388E3C) else Color.Gray
                     )
                 ) {
