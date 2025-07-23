@@ -195,22 +195,22 @@ class RemoteDataSource @Inject constructor(
 
     suspend fun deleteDetalleReservaProyector(id: Int) {}
 
-        // DetalleReservaRestaurantes
-        suspend fun getDetalleReservaRestaurantes(): List<DetalleReservaRestaurantesDto> =
-            apiDetalleReservaRestaurantes.getAll()
+    // DetalleReservaRestaurantes
+    suspend fun getDetalleReservaRestaurantes(): List<DetalleReservaRestaurantesDto> =
+        apiDetalleReservaRestaurantes.getAll()
 
-        suspend fun getDetalleReservaRestaurante(id: Int): DetalleReservaRestaurantesDto =
-            apiDetalleReservaRestaurantes.getById(id)
+    suspend fun getDetalleReservaRestaurante(id: Int): DetalleReservaRestaurantesDto =
+        apiDetalleReservaRestaurantes.getById(id)
 
-        suspend fun createDetalleReservaRestaurante(detalle: DetalleReservaRestaurantesDto): DetalleReservaRestaurantesDto =
-            apiDetalleReservaRestaurantes.insert(detalle)
+    suspend fun createDetalleReservaRestaurante(detalle: DetalleReservaRestaurantesDto): DetalleReservaRestaurantesDto =
+        apiDetalleReservaRestaurantes.insert(detalle)
 
-        suspend fun updateDetalleReservaRestaurante(
-            id: Int,
-            detalle: DetalleReservaRestaurantesDto
-        ): DetalleReservaRestaurantesDto =
-            apiDetalleReservaRestaurantes.update(id, detalle)
+    suspend fun updateDetalleReservaRestaurante(
+        id: Int,
+        detalle: DetalleReservaRestaurantesDto
+    ): DetalleReservaRestaurantesDto =
+        apiDetalleReservaRestaurantes.update(id, detalle)
 
-        suspend fun deleteDetalleReservaRestaurante(id: Int) =
-            apiDetalleReservaRestaurantes.delete(id)
+    suspend fun deleteDetalleReservaRestaurante(id: Int) =
+        apiDetalleReservaRestaurantes.delete(id)
 }
