@@ -1,15 +1,20 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,7 +24,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
+import kotlinx.coroutines.flow.update
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PagoSalaVipScreen(
     fecha: String,
@@ -27,182 +38,277 @@ fun PagoSalaVipScreen(
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var metodoPagoSeleccionado by remember { mutableStateOf(DatosPersonalesSalaVipStore.metodoPagoSeleccionado) }
+    val scrollState = rememberScrollState()
+    val context = LocalContext.current
+
+    val datosPersonales = DatosPersonalesSalaVipStore.lista
+    val codigoReserva = remember { (100000..999999).random() }
+
+    val botonHabilitado by remember {
+        derivedStateOf {
+            metodoPagoSeleccionado != null && datosPersonales.isNotEmpty()
+        }
+    }
+
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(fecha) {
         viewModel.setFecha(fecha)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF023E8A))
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo_reserve),
-                contentDescription = "Logo",
-                modifier = Modifier.size(40.dp)
-            )
-            Text(
-                text = "Pago Sala VIP",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Image(
-                painter = painterResource(id = R.drawable.comer),
-                contentDescription = "Sala VIP",
-                modifier = Modifier.size(40.dp)
-            )
-        }
-
-        Text(
-            text = "Fecha seleccionada: $fecha",
-            color = Color.White,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "SELECCIONE EL MÉTODO DE PAGO",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF023E8A),
-                    fontSize = 14.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                MetodoPagoSalaVipItem("Efectivo", R.drawable.dinero) {
-                    navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
-                }
-                MetodoPagoSalaVipItem("Tarjeta de crédito", R.drawable.credito) {
-                    navController.navigate("TarjetaCreditoSalaVip?fecha=$fecha")
-                }
-                MetodoPagoSalaVipItem("Transferencia bancaria", R.drawable.trasnferencia) {
-                    navController.navigate("SalaVipTransferencia?fecha=$fecha")
-                }
+    // Observa si la reserva fue confirmada o falló
+    LaunchedEffect(uiState.reservaConfirmada) {
+        if (uiState.reservaConfirmada) {
+            navController.navigate("ReservaRestauranteExitosa?numeroReserva=$codigoReserva") {
+                popUpTo("pagoSalaVip") { inclusive = true }
             }
         }
+    }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    "RESUMEN DE PEDIDO",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF023E8A),
-                    fontSize = 14.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                    Text("Reserva Sala VIP", color = Color.Black)
-                    Text("RD$ 4,000", color = Color.Black)
-                }
-                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                    Text("Fecha:", color = Color.Black)
-                    Text(fecha, color = Color.Black)
-                }
-                Divider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray)
-                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                    Text("TOTAL", fontWeight = FontWeight.Bold, color = Color.Black)
-                    Text("RD$ 4,000", fontWeight = FontWeight.Bold, color = Color.Black)
-                }
-            }
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
         }
+    }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (DatosPersonalesSalaVipStore.lista.isNotEmpty()) {
-            Text(
-                text = "DATOS PERSONALES REGISTRADOS",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-            DatosPersonalesSalaVipStore.lista.forEach { persona ->
-                Card(
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF023E8A))
+                .padding(padding)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(16.dp)
+            ) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp),
+                        .padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_reserve),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Text(
+                        text = "Pago Sala VIP",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.comer),
+                        contentDescription = "Sala VIP",
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                Text(
+                    text = "Fecha seleccionada: $fecha",
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Nombre: ${persona.nombre}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Ubicación: ${persona.ubicacion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Capacidad: ${persona.capacidad}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Teléfono: ${persona.telefono}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Correo: ${persona.correo}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Descripción: ${persona.descripcion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Fecha: ${persona.fecha}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text(
+                            text = "SELECCIONE EL MÉTODO DE PAGO",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF023E8A),
+                            fontSize = 14.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        MetodoPagoSalaVipItem("Efectivo", R.drawable.dinero, metodoPagoSeleccionado == "Efectivo") {
+                            metodoPagoSeleccionado = "Efectivo"
+                            DatosPersonalesSalaVipStore.metodoPagoSeleccionado = "Efectivo"
+                            navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
+                        }
+
+                        MetodoPagoSalaVipItem("Tarjeta de crédito", R.drawable.credito, metodoPagoSeleccionado == "Tarjeta de crédito") {
+                            metodoPagoSeleccionado = "Tarjeta de crédito"
+                            navController.navigate("TarjetaCreditoSalaVip?fecha=$fecha")
+                        }
+
+                        MetodoPagoSalaVipItem("Transferencia bancaria", R.drawable.trasnferencia, metodoPagoSeleccionado == "Transferencia bancaria") {
+                            metodoPagoSeleccionado = "Transferencia bancaria"
+                            navController.navigate("SalaVipTransferencia?fecha=$fecha")
+                        }
                     }
                 }
-            }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                DatosPersonalesSalaVipStore.lista.forEach { persona ->
-                    val nuevaReserva = DatosPersonalesRestaurante(
-                        restauranteId = persona.restauranteId ?: 0,
-                        nombre = persona.nombre,
-                        ubicacion = persona.ubicacion,
-                        capacidad = persona.capacidad,
-                        telefono = persona.telefono,
-                        correo = persona.correo,
-                        descripcion = persona.descripcion,
-                        fecha = persona.fecha
-                    )
-                    viewModel.create(nuevaReserva)
-                    viewModel.crearReservacionDesdeRestaurante(
-                        fecha = persona.fecha,
-                        matricula = persona.correo,
-                        horaInicio = persona.horaInicio,
-                        horaFin = persona.horaFin
-                    )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("RESUMEN DE PEDIDO", fontWeight = FontWeight.Bold, color = Color(0xFF023E8A), fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                            Text("Reserva Sala VIP", color = Color.Black)
+                            Text("RD$ 4,000", color = Color.Black)
+                        }
+                        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                            Text("Fecha:", color = Color.Black)
+                            Text(fecha, color = Color.Black)
+                        }
+                        Divider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray)
+                        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                            Text("TOTAL", fontWeight = FontWeight.Bold, color = Color.Black)
+                            Text("RD$ 4,000", fontWeight = FontWeight.Bold, color = Color.Black)
+                        }
+                    }
                 }
-                DatosPersonalesSalaVipStore.lista.clear()
-                val numeroReserva = (1000..9999).random().toString()
-                navController.navigate("ReservaSalaVipExitosa?numeroReserva=$numeroReserva")
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF0077B6),
-                contentColor = Color.White
-            )
-        ) {
-            Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (datosPersonales.isNotEmpty()) {
+                    Text(
+                        text = "DATOS PERSONALES REGISTRADOS",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                    datosPersonales.forEach { persona ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("Correo Electrónico: ${persona.correoElectronico}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                Text("Nombres: ${persona.nombre}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                Text("Apellidos: ${persona.apellidos}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                Text("Teléfono: ${persona.telefono}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                Text("Matrícula: ${persona.matricula}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                Text("Cédula: ${persona.cedula}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                Text("Dirección: ${persona.direccion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            try {
+                                // Obtener matrícula del primer miembro (o de donde corresponda)
+                                val matricula = datosPersonales.firstOrNull()?.matricula ?: run {
+                                    viewModel._uiState.update {
+                                        it.copy(errorMessage = "No se encontró matrícula en los datos personales")
+                                    }
+                                    return@Button
+                                }
+
+                                // Configuración automática de horarios
+                                val (horaInicio, horaFin, cantidadHoras) = if (viewModel.uiState.value.horaInicio.isBlank() ||
+                                    viewModel.uiState.value.horaFin.isBlank()) {
+                                    val horaActual = LocalTime.now()
+                                    val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+                                    val horasReserva = 2 // Duración por defecto para restaurante
+
+                                    Triple(
+                                        horaActual.format(formatter),
+                                        horaActual.plusHours(horasReserva.toLong()).format(formatter),
+                                        horasReserva
+                                    )
+                                } else {
+                                    Triple(
+                                        viewModel.uiState.value.horaInicio,
+                                        viewModel.uiState.value.horaFin,
+                                        calcularHoras(viewModel.uiState.value.horaInicio, viewModel.uiState.value.horaFin)
+                                    )
+                                }
+
+                                viewModel.confirmarReservacionRestaurante(
+                                    restauranteId = viewModel.uiState.value.restauranteId ?: 0,
+                                    horaInicio = horaInicio,
+                                    horaFin = horaFin,
+                                    fecha = viewModel.uiState.value.fecha.ifEmpty {
+                                        LocalDate.now().toString()
+                                    },
+                                    matricula = matricula, // Usamos la matrícula obtenida
+                                    cantidadHoras = cantidadHoras,
+                                    miembros = datosPersonales.map { it.matricula }
+                                )
+
+                            } catch (e: Exception) {
+                                viewModel._uiState.update {
+                                    it.copy(errorMessage = "Error al procesar reserva: ${e.localizedMessage}")
+                                }
+                            }
+                        } else {
+                            viewModel._uiState.update {
+                                it.copy(errorMessage = "Se requiere Android 8.0 o superior")
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    enabled = botonHabilitado && !uiState.isLoading,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (botonHabilitado && !uiState.isLoading) Color(0xFF0077B6) else Color.Gray,
+                        contentColor = Color.White
+                    )
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White
+                        )
+                    } else {
+                        Text("CONFIRMAR RESERVA", fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Método: ${metodoPagoSeleccionado ?: "Ninguno"}, Datos: ${datosPersonales.size}",
+                    color = Color.White
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+            }
         }
     }
 }
 
 @Composable
-fun MetodoPagoSalaVipItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
+fun MetodoPagoSalaVipItem(
+    titulo: String,
+    iconRes: Int,
+    seleccionado: Boolean,
+    onClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 12.dp),
+            .padding(vertical = 12.dp)
+            .background(if (seleccionado) Color.LightGray else Color.Transparent)
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -216,23 +322,38 @@ fun MetodoPagoSalaVipItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewPagoSalaVipScreen() {
-    val navController = rememberNavController()
-    PagoSalaVipScreen(
-        fecha = "15/06/2025",
-        navController = navController
-    )
+@RequiresApi(Build.VERSION_CODES.O)
+private fun calcularHoras(horaInicio: String, horaFin: String): Int {
+    return try {
+        val formato = DateTimeFormatter.ofPattern("HH:mm")
+        val inicio = LocalTime.parse(horaInicio, formato)
+        val fin = LocalTime.parse(horaFin, formato)
+        Duration.between(inicio, fin).toHours().toInt()
+    } catch (e: Exception) {
+        2 // Valor por defecto
+    }
 }
+
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewPagoSalaVipScreen() {
+//    val navController = rememberNavController()
+//    PagoSalaVipScreen(
+//        fecha = "15/06/2025",
+//        navController = navController
+//    )
+//}
 
 data class DatosPersonalesSalaVip(
     val restauranteId: Int? = null,
     val nombre: String = "",
-    val ubicacion: String = "",
+    val apellidos: String = "",
+    val cedula: String = "",
+    val matricula: String = "",
+    val direccion: String = "",
     val capacidad: Int = 0,
     val telefono: String = "",
-    val correo: String = "",
+    val correoElectronico: String = "",
     val descripcion: String = "",
     val fecha: String = "",
     val horaInicio: String = "",
@@ -241,4 +362,5 @@ data class DatosPersonalesSalaVip(
 
 object DatosPersonalesSalaVipStore {
     val lista = mutableStateListOf<DatosPersonalesSalaVip>()
+    var metodoPagoSeleccionado: String? by mutableStateOf(null)
 }
