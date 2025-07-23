@@ -64,21 +64,19 @@ fun RegistroReservaRestauranteScreen(
         RegistroReservaRestauranteForm(
             fecha = fecha,
             onCancelarClick = onCancelarClick,
-            onConfirmarClick = { nombre, ubicacion, capacidad, telefono, correo, descripcion ->
+            onConfirmarClick = { nombre, direccion, capacidad, telefono, correo, descripcion ->
                 DatosPersonalesSalaVipStore.lista.add(
                     DatosPersonalesSalaVip(
+                        correoElectronico = correo,
                         nombre = nombre,
-                        ubicacion = ubicacion,
-                        capacidad = capacidad.toIntOrNull() ?: 0,
+                        direccion = direccion,
                         telefono = telefono,
-                        correo = correo,
                         descripcion = descripcion,
                         fecha = fecha
                     )
                 )
 
                 viewModel.setFecha(fecha)
-                viewModel.create()
 
                 onConfirmarClick()
             }
