@@ -66,28 +66,24 @@ fun RegistroReservaScreen(
         RegistroSalaVipForm(
             fecha = fecha,
             onCancelarClick = onCancelarClick,
-            onConfirmarClick = { nombre, ubicacion, capacidad, telefono, correo, descripcion ->
+            onConfirmarClick = { correoElectronico, nombres, apellidos, telefono, matricula, cedula, direccion ->
                 DatosPersonalesSalaVipStore.lista.add(
                     DatosPersonalesSalaVip(
-                        nombre = nombre,
-                        ubicacion = ubicacion,
-                        capacidad = capacidad.toIntOrNull() ?: 0,
+                        correoElectronico = correoElectronico,
+                        nombre = nombres,
+                        apellidos = apellidos,
                         telefono = telefono,
-                        correo = correo,
-                        descripcion = descripcion,
-                        fecha = fecha
+                        matricula = matricula,
+                        cedula = cedula,
+                        direccion = direccion
                     )
                 )
 
-                viewModel.setNombre(nombre)
-                viewModel.setUbicacion(ubicacion)
-                viewModel.setCapacidad(capacidad.toIntOrNull() ?: 0)
+                viewModel.setNombres(nombres)
+                viewModel.setDireccion(direccion)
                 viewModel.setTelefono(telefono)
-                viewModel.setCorreo(correo)
-                viewModel.setDescripcion(descripcion)
+                viewModel.setCorreo(correoElectronico)
                 viewModel.setFecha(fecha)
-
-                viewModel.create()
 
                 onConfirmarClick()
             }
@@ -100,23 +96,25 @@ fun RegistroSalaVipForm(
     fecha: String,
     onCancelarClick: () -> Unit,
     onConfirmarClick: (
-        nombre: String,
-        ubicacion: String,
-        capacidad: String,
+        correoElectronico: String,
+        nombres: String,
+        apellidos: String,
         telefono: String,
-        correo: String,
-        descripcion: String
+        matricula: String,
+        cedula: String,
+        direccion: String
     ) -> Unit
 ) {
-    var nombre by remember { mutableStateOf("") }
-    var ubicacion by remember { mutableStateOf("") }
-    var capacidad by remember { mutableStateOf("") }
+    var correoElectronico by remember { mutableStateOf("") }
+    var nombres by remember { mutableStateOf("") }
+    var apellidos by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
+    var matricula by remember { mutableStateOf("") }
+    var cedula by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
 
     val formularioCompleto = listOf(
-        nombre, ubicacion, capacidad, telefono, correo, descripcion
+        correoElectronico, nombres, apellidos, telefono, matricula, cedula, direccion
     ).all { it.isNotBlank() }
 
     Column(
@@ -134,26 +132,25 @@ fun RegistroSalaVipForm(
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-            label = { Text("Nombre *") },
+            value = correoElectronico,
+            onValueChange = { correoElectronico = it },
+            label = { Text("Correo Electronico *") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = ubicacion,
-            onValueChange = { ubicacion = it },
-            label = { Text("Ubicación *") },
+            value = nombres,
+            onValueChange = { nombres = it },
+            label = { Text("Nombres *") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = capacidad,
-            onValueChange = { capacidad = it.filter { c -> c.isDigit() } },
-            label = { Text("Capacidad *") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            value = apellidos,
+            onValueChange = { apellidos = it},
+            label = { Text("apellidos *") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -168,18 +165,46 @@ fun RegistroSalaVipForm(
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = correo,
-            onValueChange = { correo = it },
-            label = { Text("Correo electrónico *") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            value = matricula,
+            onValueChange = {
+                // Filtra solo números y limita a 8 dígitos
+                val cleaned = it.filter { char -> char.isDigit() }.take(8)
+
+                matricula = when {
+                    cleaned.length <= 4 -> cleaned
+                    else -> "${cleaned.take(4)}-${cleaned.drop(4)}"
+                }
+            },
+            label = { Text("Matrícula *") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = cedula,
+            onValueChange = { input ->
+                // Filtra solo dígitos
+                val digits = input.filter { it.isDigit() }.take(11)
+
+                // Aplica formato: xxx-xxxxxxx-x
+                cedula = when {
+                    digits.length <= 3 -> digits
+                    digits.length <= 10 -> "${digits.take(3)}-${digits.drop(3).take(7)}"
+                    else -> "${digits.take(3)}-${digits.drop(3).take(7)}-${digits.drop(10)}"
+                }
+            },
+            label = { Text("Cédula *") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = descripcion,
-            onValueChange = { descripcion = it },
-            label = { Text("Descripción *") },
+            value = direccion,
+            onValueChange = { direccion = it },
+            label = { Text("Direccion *") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(24.dp))
@@ -190,12 +215,13 @@ fun RegistroSalaVipForm(
         ) {
             OutlinedButton(
                 onClick = {
-                    nombre = ""
-                    ubicacion = ""
-                    capacidad = ""
+                    correoElectronico = ""
+                    nombres = ""
+                    apellidos = ""
                     telefono = ""
-                    correo = ""
-                    descripcion = ""
+                    matricula = ""
+                    cedula = ""
+                    direccion = ""
                     onCancelarClick()
                 },
                 modifier = Modifier.weight(1f)
@@ -207,7 +233,7 @@ fun RegistroSalaVipForm(
 
             Button(
                 onClick = {
-                    onConfirmarClick(nombre, ubicacion, capacidad, telefono, correo, descripcion)
+                    onConfirmarClick(correoElectronico, nombres, apellidos, telefono, matricula, cedula, direccion)
                 },
                 enabled = formularioCompleto,
                 modifier = Modifier.weight(1f),
