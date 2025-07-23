@@ -124,7 +124,7 @@ fun UreserveNavHost(navController: NavHostController) {
                         "Laboratorios" -> navController.navigate("LaboratorioReservation")
                         "Restaurante" -> navController.navigate("RestauranteReservation")
                         "Reservaciones" -> navController.navigate("ReservaList")
-                            {
+                        {
 
                         }
                     }
@@ -843,9 +843,6 @@ fun UreserveNavHost(navController: NavHostController) {
             PagoSalaVipScreen(fecha = fecha, navController = navController)
         }
 
-
-
-
         composable(
             route = "ReservaRestauranteExitosa?numeroReserva={numeroReserva}",
             arguments = listOf(
@@ -892,18 +889,12 @@ fun UreserveNavHost(navController: NavHostController) {
         }
 
         composable(
-            route = "ReservaSalaVipExitosa?numeroReserva={numeroReserva}",
-            arguments = listOf(
-                navArgument("numeroReserva") {
-                    type = NavType.StringType
-                    defaultValue = "0000"
-                }
-            )
+            route = "ReservaSalaVipExitosa/{numeroReserva}",
+            arguments = listOf(navArgument("numeroReserva") { type = NavType.StringType })
         ) { backStackEntry ->
-            val numeroReserva = backStackEntry.arguments?.getString("numeroReserva") ?: "0000"
+            val numeroReserva = backStackEntry.arguments?.getString("numeroReserva") ?: ""
             ReservaSalaVipExitosaScreen(numeroReserva = numeroReserva, navController = navController)
         }
-
 
         composable(
             route = "TarjetaCreditoSalaVip?fecha={fecha}",
@@ -922,20 +913,10 @@ fun UreserveNavHost(navController: NavHostController) {
             )
         }
 
-
-
-        composable("ReservaSalaVip?fecha={fecha}") { backStackEntry ->
+        composable("PagoSalaVipScreen?fecha={fecha}") { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
-
-            ReservaSalaVipScreen(
-                fecha = fecha,
-                onCancelarClick = { navController.popBackStack() },
-                onConfirmarClick = {
-                    navController.navigate("PagoSalaVip?fecha=$fecha")
-                }
-            )
+            PagoSalaVipScreen(fecha = fecha, navController = navController)
         }
-
 
         composable("RegistroReservaRestaurante?fecha={fecha}") { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
@@ -946,7 +927,7 @@ fun UreserveNavHost(navController: NavHostController) {
                     DatosPersonalesRestauranteStore.lista.add(
                         DatosPersonalesRestaurante(
                             restauranteId = datos.restauranteId,
-                            nombre = datos.nombre,
+                            nombres = datos.nombres,
                             ubicacion = datos.ubicacion,
                             capacidad = datos.capacidad,
                             telefono = datos.telefono,
@@ -974,15 +955,10 @@ fun UreserveNavHost(navController: NavHostController) {
 
             ReservaSalaVipScreen(
                 fecha = fecha,
-                onCancelarClick = { navController.popBackStack() },
-                onConfirmarClick = {
-                    // Aquí puedes guardar datos en alguna store si lo necesitas
-                    navController.navigate("PagoSalaVip?fecha=$fecha")
-
-                }
+                navController = navController,
+                onCancelarClick = { navController.popBackStack() }
             )
         }
-
 
         composable(
             "TarjetaCreditoRestaurante?fecha={fecha}",
@@ -1009,7 +985,6 @@ fun UreserveNavHost(navController: NavHostController) {
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
             TarjetaCreditoSalonScreen(fecha = fecha, navController = navController)
         }
-
 
         composable(
             route = "SalaVipTransferencia?fecha={fecha}",
