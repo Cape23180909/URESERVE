@@ -15,27 +15,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 
 @Composable
 fun ReservaSalaVipScreen(
     fecha: String,
     onCancelarClick: () -> Unit = {},
-    onConfirmarClick: () -> Unit = {},
+    navController: NavController,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
-    var nombre by remember { mutableStateOf("") }
-    var ubicacion by remember { mutableStateOf("") }
-    var capacidadStr by remember { mutableStateOf("") }
+    var nombres by remember { mutableStateOf("") }
+    var apellidos by remember { mutableStateOf("") }
+    var matricula by remember { mutableStateOf("") }
+    var cedula by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-
-    val capacidad = capacidadStr.toIntOrNull() ?: 0
+    var ubicacion by remember { mutableStateOf("") }
 
     val formularioCompleto = listOf(
-        nombre, ubicacion, telefono, correo, descripcion
-    ).all { it.isNotBlank() } && capacidad > 0
+        nombres, apellidos, matricula, cedula, telefono, correo, ubicacion
+    ).all { it.isNotBlank() }
 
     Column(
         modifier = Modifier
@@ -82,28 +82,40 @@ fun ReservaSalaVipScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
-                label = { Text("Nombre *") },
+                value = nombres,
+                onValueChange = { nombres = it },
+                label = { Text("Nombres *") },
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = ubicacion,
-                onValueChange = { ubicacion = it },
-                label = { Text("Ubicación *") },
+                value = apellidos,
+                onValueChange = { apellidos = it },
+                label = { Text("Apellidos *") },
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = capacidadStr,
-                onValueChange = { capacidadStr = it.filter { it.isDigit() } },
-                label = { Text("Capacidad *") },
+                value = cedula,
+                onValueChange = { cedula = it.filter { char -> char.isDigit() } },
+                label = { Text("Cédula *") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = matricula,
+                onValueChange = { matricula = it },
+                label = { Text("Matrícula *") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -113,6 +125,7 @@ fun ReservaSalaVipScreen(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
             )
+
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -122,14 +135,16 @@ fun ReservaSalaVipScreen(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
+
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = descripcion,
-                onValueChange = { descripcion = it },
-                label = { Text("Descripción *") },
+                value = ubicacion,
+                onValueChange = { ubicacion = it },
+                label = { Text("Ubicación *") },
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
@@ -138,12 +153,13 @@ fun ReservaSalaVipScreen(
             ) {
                 Button(
                     onClick = {
-                        nombre = ""
-                        ubicacion = ""
-                        capacidadStr = ""
+                        nombres = ""
+                        apellidos = ""
+                        cedula = ""
+                        matricula = ""
                         telefono = ""
                         correo = ""
-                        descripcion = ""
+                        ubicacion = ""
                         onCancelarClick()
                     },
                     modifier = Modifier.weight(1f),
@@ -156,30 +172,29 @@ fun ReservaSalaVipScreen(
 
                 Button(
                     onClick = {
-                        // Guardar en el Store correcto
                         DatosPersonalesSalaVipStore.lista.add(
                             DatosPersonalesSalaVip(
-                                nombre = nombre,
-                                ubicacion = ubicacion,
-                                capacidad = capacidad,
+                                nombre = nombres,
+                                apellidos = apellidos,
+                                cedula = cedula,
+                                matricula = matricula,
                                 telefono = telefono,
-                                correo = correo,
-                                descripcion = descripcion,
+                                correoElectronico = correo,
+                                direccion = ubicacion,
                                 fecha = fecha
                             )
                         )
 
-                        // Actualizar ViewModel y guardar
-                        viewModel.setNombre(nombre)
-                        viewModel.setUbicacion(ubicacion)
-                        viewModel.setCapacidad(capacidad)
+                        viewModel.setNombres(nombres)
+                        viewModel.setApellidos(apellidos)
+                        viewModel.setCedula(cedula)
+                        viewModel.setMatricula(matricula)
                         viewModel.setTelefono(telefono)
                         viewModel.setCorreo(correo)
-                        viewModel.setDescripcion(descripcion)
+                        viewModel.setDireccion(ubicacion)
                         viewModel.setFecha(fecha)
-                        viewModel.create()
 
-                        onConfirmarClick()
+                        navController.navigate("PagoSalaVipScreen?fecha=$fecha")
                     },
                     enabled = formularioCompleto,
                     modifier = Modifier.weight(1f),
@@ -193,5 +208,3 @@ fun ReservaSalaVipScreen(
         }
     }
 }
-
-
