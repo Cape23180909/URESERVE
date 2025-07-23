@@ -4,11 +4,14 @@ import android.util.Log
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.Resource
+import edu.ucne.ureserve.data.remote.dto.DetalleReservaRestaurantesDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
 import javax.inject.Inject
+import retrofit2.Response
+
 
 class ReservacionRepository @Inject constructor(
     private val remoteDataSource: RemoteDataSource,
@@ -30,6 +33,36 @@ class ReservacionRepository @Inject constructor(
 
     suspend fun getReservasByMatricula(matricula: String): List<ReservacionesDto> =
         remoteDataSource.getReservasByMatricula(matricula)
+
+    suspend fun guardarReserva(
+        reservacionDto: ReservacionesDto
+    ): Flow<Resource<ReservacionesDto>> = flow {
+        try {
+            emit(Resource.Loading())
+            val response = api.insert(reservacionDto) // usa tu POST declarado
+            if (response.isSuccessful && response.body() != null) {
+                emit(Resource.Success(response.body()!!))
+            } else {
+                emit(Resource.Error("Error al guardar la reserva: ${response.message()}"))
+            }
+        } catch (e: HttpException) {
+            emit(Resource.Error("Error de red: ${e.message}"))
+        } catch (e: Exception) {
+            emit(Resource.Error("Error inesperado: ${e.message}"))
+        }
+    }
+
+
+    suspend fun guardarDetalleRestaurante(detalleDto: DetalleReservaRestaurantesDto): Boolean {
+        return try {
+            // Usando tu método existente en RemoteDataSource
+            remoteDataSource.createDetalleReservaRestaurante(detalleDto)
+            true
+        } catch (e: Exception) {
+            Log.e("Repository", "Error al guardar detalle restaurante", e)
+            false
+        }
+    }
 
     suspend fun getReservacion(id: Int): ReservacionesDto = remoteDataSource.getReservacion(id)
 
