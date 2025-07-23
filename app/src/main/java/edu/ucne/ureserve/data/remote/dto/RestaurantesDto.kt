@@ -11,4 +11,3 @@ data class RestaurantesDto(
     val correo: String,
     val descripcion: String
 )
-
