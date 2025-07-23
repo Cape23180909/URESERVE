@@ -1,5 +1,8 @@
 package edu.ucne.ureserve.data.remote.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class DetalleReservaLaboratoriosDto(
     val detalleReservaLaboratorioId: Int = 0,
     val codigoReserva: Int,
@@ -10,6 +13,3 @@ data class DetalleReservaLaboratoriosDto(
     val cantidadEstudiantes: Int = 0,
     val estado: Int,
 )
-
-
-
