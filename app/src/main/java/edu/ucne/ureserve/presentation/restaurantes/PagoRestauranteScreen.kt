@@ -137,7 +137,7 @@ fun PagoRestauranteScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        Text("Nombre: ${persona.nombre}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Nombre: ${persona.nombres}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Text("Ubicación: ${persona.ubicacion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Text("Capacidad: ${persona.capacidad}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Text("Teléfono: ${persona.telefono}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
@@ -157,7 +157,7 @@ fun PagoRestauranteScreen(
                 DatosPersonalesRestauranteStore.lista.forEach { persona ->
                     val nuevaReserva = DatosPersonalesRestaurante(
                         restauranteId = persona.restauranteId ?: 0,
-                        nombre = persona.nombre,
+                        nombres = persona.nombres,
                         ubicacion = persona.ubicacion,
                         capacidad = persona.capacidad,
                         telefono = persona.telefono,
@@ -165,9 +165,6 @@ fun PagoRestauranteScreen(
                         descripcion = persona.descripcion,
                         fecha = persona.fecha // Ya viene con la fecha asignada si se registró antes
                     )
-
-                    // 1. Crear restaurante
-                    viewModel.create(nuevaReserva)
 
                     // 2. Crear reservación relacionada
                     viewModel.crearReservacionDesdeRestaurante(
@@ -235,7 +232,10 @@ fun PreviewPagoRestauranteScreen() {
 
 data class DatosPersonalesRestaurante(
     val restauranteId: Int? = 0,
-    val nombre: String = "",
+    val nombres: String = "",
+    val apellidos: String = "",
+    val cedula: String = "",
+    val matricula: String = "",
     val ubicacion: String = "",
     val capacidad: Int = 0,
     val telefono: String = "",
