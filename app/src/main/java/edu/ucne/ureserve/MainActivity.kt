@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.firebase.FirebaseApp
 import dagger.hilt.android.AndroidEntryPoint
 import edu.ucne.ureserve.presentation.navigation.UreserveNavHost
+import edu.ucne.ureserve.presentation.proyectores.MainScreen
 import edu.ucne.ureserve.ui.theme.URESERVETheme
 
 @AndroidEntryPoint
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             URESERVETheme {
+                MainScreen(context = this)
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
