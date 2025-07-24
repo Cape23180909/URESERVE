@@ -76,6 +76,8 @@ dependencies {
     // Serialization
     implementation(libs.kotlin.serialization.json)
 
+    //notificaciones
+    implementation("com.google.accompanist:accompanist-permissions:0.31.1-alpha")
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
     implementation(libs.androidx.room.runtime.android)
