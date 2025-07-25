@@ -64,7 +64,7 @@ fun RegistroReservaSalonScreen(
                         telefono = telefono,
                         matricula = matricula,
                         cedula = cedula,
-                        correo = correoElectronico,
+                        correoElectronico = correoElectronico,
                         direccion = direccion,
                         fecha = fecha
                     )
