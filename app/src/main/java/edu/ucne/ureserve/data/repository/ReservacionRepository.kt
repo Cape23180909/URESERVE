@@ -4,18 +4,20 @@ import android.util.Log
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.Resource
+import edu.ucne.ureserve.data.remote.TarjetaCreditoApi
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaRestaurantesDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
+import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
 import javax.inject.Inject
-import retrofit2.Response
 
 
 class ReservacionRepository @Inject constructor(
     private val remoteDataSource: RemoteDataSource,
-    private val api: ReservacionesApi
+    private val api: ReservacionesApi,
+    private val apiTarjeta: TarjetaCreditoApi
 ) {
     fun getReservaciones(): Flow<Resource<List<ReservacionesDto>>> = flow {
         try {
@@ -29,6 +31,10 @@ class ReservacionRepository @Inject constructor(
             Log.e("Error", "Error desconocido: ${e.message}", e)
             emit(Resource.Error("Error desconocido: ${e.message}"))
         }
+    }
+
+    suspend fun guardarTarjeta(tarjeta: TarjetaCreditoDto) {
+        apiTarjeta.insert(tarjeta)
     }
 
     suspend fun getReservasByMatricula(matricula: String): List<ReservacionesDto> =
