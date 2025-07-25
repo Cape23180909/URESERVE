@@ -181,7 +181,7 @@ fun RegistrosReservaRestauranteScreen(
                                 matricula = uiState.matricula,
                                 telefono = uiState.telefono,
                                 correo = uiState.correo,
-                                ubicacion = uiState.direccion,
+                                direccion = uiState.direccion,
                                 fecha = uiState.fecha
                             )
                         )
