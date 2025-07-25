@@ -17,13 +17,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
 import kotlinx.coroutines.flow.update
 import java.time.Duration
 import java.time.LocalDate
@@ -141,6 +140,7 @@ fun PagoSalaVipScreen(
 
                         MetodoPagoSalaVipItem("Tarjeta de crédito", R.drawable.credito, metodoPagoSeleccionado == "Tarjeta de crédito") {
                             metodoPagoSeleccionado = "Tarjeta de crédito"
+                            DatosPersonalesSalaVipStore.metodoPagoSeleccionado = "Tarjeta de crédito"
                             navController.navigate("TarjetaCreditoSalaVip?fecha=$fecha")
                         }
 
@@ -212,7 +212,7 @@ fun PagoSalaVipScreen(
                     onClick = {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             try {
-                                // Obtener matrícula del primer miembro (o de donde corresponda)
+                                val datosPersonales = DatosPersonalesSalaVipStore.lista
                                 val matricula = datosPersonales.firstOrNull()?.matricula ?: run {
                                     viewModel._uiState.update {
                                         it.copy(errorMessage = "No se encontró matrícula en los datos personales")
@@ -220,12 +220,23 @@ fun PagoSalaVipScreen(
                                     return@Button
                                 }
 
-                                // Configuración automática de horarios
-                                val (horaInicio, horaFin, cantidadHoras) = if (viewModel.uiState.value.horaInicio.isBlank() ||
-                                    viewModel.uiState.value.horaFin.isBlank()) {
+                                val fechaFormateada = try {
+                                    val fechaRaw = viewModel.uiState.value.fecha.ifEmpty {
+                                        LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"))
+                                    }
+                                    // Validar que la fecha esté en formato correcto
+                                    LocalDate.parse(fechaRaw, DateTimeFormatter.ofPattern("d/M/yyyy"))
+                                    fechaRaw
+                                } catch (e: Exception) {
+                                    LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"))
+                                }
+
+                                val (horaInicio, horaFin, cantidadHoras) = if (
+                                    viewModel.uiState.value.horaInicio.isBlank() || viewModel.uiState.value.horaFin.isBlank()
+                                ) {
                                     val horaActual = LocalTime.now()
                                     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-                                    val horasReserva = 2 // Duración por defecto para restaurante
+                                    val horasReserva = 2
 
                                     Triple(
                                         horaActual.format(formatter),
@@ -244,10 +255,8 @@ fun PagoSalaVipScreen(
                                     restauranteId = viewModel.uiState.value.restauranteId ?: 0,
                                     horaInicio = horaInicio,
                                     horaFin = horaFin,
-                                    fecha = viewModel.uiState.value.fecha.ifEmpty {
-                                        LocalDate.now().toString()
-                                    },
-                                    matricula = matricula, // Usamos la matrícula obtenida
+                                    fecha = fechaFormateada,
+                                    matricula = matricula,
                                     cantidadHoras = cantidadHoras,
                                     miembros = datosPersonales.map { it.matricula }
                                 )
@@ -363,4 +372,5 @@ data class DatosPersonalesSalaVip(
 object DatosPersonalesSalaVipStore {
     val lista = mutableStateListOf<DatosPersonalesSalaVip>()
     var metodoPagoSeleccionado: String? by mutableStateOf(null)
+    var tarjetaCredito: TarjetaCreditoDto? by mutableStateOf(null)
 }
