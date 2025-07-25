@@ -167,7 +167,7 @@ fun PagoSalonScreen(
                     val nuevaReserva = DatosPersonalesRestaurante(
                         restauranteId = persona.restauranteId ?: 0,
                         nombres = persona.nombres,
-                        ubicacion = persona.ubicacion,
+                        direccion = persona.ubicacion,
                         capacidad = persona.capacidad,
                         telefono = persona.telefono,
                         correo = persona.correo,
