@@ -172,7 +172,7 @@ class RestaurantesViewModel @Inject constructor(
                 } else {
                     val parsedDate = LocalDate.parse(
                         fecha,
-                        DateTimeFormatter.ofPattern("d/M/yyyy") // formato de entrada
+                        DateTimeFormatter.ofPattern("d/M/yyyy")
                     )
                     parsedDate.atStartOfDay(ZoneId.systemDefault())
                         .format(DateTimeFormatter.ISO_INSTANT)
@@ -202,16 +202,9 @@ class RestaurantesViewModel @Inject constructor(
                 val resultadoReserva = try {
                     reservacionRepository.guardarReserva(reservacionDto).collect { resource ->
                         when (resource) {
-                            is Resource.Success -> {
-                                // Reserva guardada con éxito
-                                Log.d("Reserva", "Reserva guardada: ${resource.data}")
-                            }
-                            is Resource.Error -> {
-                                Log.e("Reserva", "Error al guardar: ${resource.message}")
-                            }
-                            is Resource.Loading -> {
-                                // Opcional: mostrar loading
-                            }
+                            is Resource.Success -> Log.d("Reserva", "Reserva guardada: ${resource.data}")
+                            is Resource.Error -> Log.e("Reserva", "Error: ${resource.message}")
+                            is Resource.Loading -> {}
                         }
                     }
                     true
@@ -228,23 +221,42 @@ class RestaurantesViewModel @Inject constructor(
                     false
                 }
 
+                // ✅ Guardar tarjeta si se seleccionó
+                if (DatosPersonalesSalaVipStore.metodoPagoSeleccionado == "Tarjeta de crédito") {
+                    val tarjeta = DatosPersonalesSalaVipStore.tarjetaCredito
+                    if (tarjeta != null) {
+                        try {
+                            reservacionRepository.guardarTarjeta(tarjeta)
+                            Log.d("Reserva", "Tarjeta guardada")
+                        } catch (e: Exception) {
+                            Log.e("Reserva", "Error al guardar tarjeta: ${e.message}")
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = "Error al procesar tarjeta: ${e.localizedMessage}"
+                                )
+                            }
+                            return@launch
+                        }
+                    }
+                }
+
                 _uiState.update {
                     when {
                         !resultadoReserva -> it.copy(
                             isLoading = false,
-                            errorMessage = "Error al guardar la reserva principal. Intente nuevamente."
+                            errorMessage = "Error al guardar la reserva."
                         )
                         !resultadoDetalle -> it.copy(
                             isLoading = false,
-                            errorMessage = "Error al guardar los detalles. Contacte al soporte."
+                            errorMessage = "Error al guardar detalles."
                         )
                         else -> {
                             limpiarDatosAlmacenados()
                             it.copy(
                                 isLoading = false,
                                 reservaConfirmada = true,
-                                mensaje = "Reserva #$codigoReserva creada exitosamente",
-                                errorMessage = null
+                                mensaje = "Reserva #$codigoReserva creada exitosamente"
                             )
                         }
                     }
@@ -254,7 +266,7 @@ class RestaurantesViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error inesperado: ${e.localizedMessage ?: "Por favor intente más tarde"}"
+                        errorMessage = "Error inesperado: ${e.localizedMessage}"
                     )
                 }
             }
