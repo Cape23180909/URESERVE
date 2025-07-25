@@ -30,11 +30,11 @@ fun ReservaSalaVipScreen(
     var matricula by remember { mutableStateOf("") }
     var cedula by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var ubicacion by remember { mutableStateOf("") }
+    var correoElectronico by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
 
     val formularioCompleto = listOf(
-        nombres, apellidos, matricula, cedula, telefono, correo, ubicacion
+        nombres, apellidos, matricula, cedula, telefono, correoElectronico, direccion
     ).all { it.isNotBlank() }
 
     Column(
@@ -82,6 +82,15 @@ fun ReservaSalaVipScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
+                value = correoElectronico,
+                onValueChange = { correoElectronico = it },
+                label = { Text("Correo electrónico *") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
                 value = nombres,
                 onValueChange = { nombres = it },
                 label = { Text("Nombres *") },
@@ -100,25 +109,6 @@ fun ReservaSalaVipScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = cedula,
-                onValueChange = { cedula = it.filter { char -> char.isDigit() } },
-                label = { Text("Cédula *") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = matricula,
-                onValueChange = { matricula = it },
-                label = { Text("Matrícula *") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
                 value = telefono,
                 onValueChange = { telefono = it },
                 label = { Text("Teléfono *") },
@@ -129,20 +119,48 @@ fun ReservaSalaVipScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = correo,
-                onValueChange = { correo = it },
-                label = { Text("Correo electrónico *") },
+                value = buildString {
+                    append(matricula.take(8)) // Tomar máximo 8 dígitos
+                    if (length > 4) insert(4, "-")
+                },
+                onValueChange = { newValue ->
+                    matricula = newValue.filter { it.isDigit() }.take(8)
+                },
+                label = { Text("Matrícula *") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                placeholder = { Text("XXXX-XXXX") }
+            )
+
+            OutlinedTextField(
+                value = cedula.run {
+                    // Formatear automáticamente mientras se escribe
+                    when {
+                        length <= 3 -> this
+                        length <= 10 -> "${substring(0, 3)}-${substring(3)}"
+                        else -> "${substring(0, 3)}-${substring(3, 10)}-${substring(10)}"
+                    }
+                },
+                onValueChange = { newValue ->
+                    // Eliminar guiones existentes para el procesamiento
+                    val cleanValue = newValue.filter { it.isDigit() }
+                    // Limitar a 11 dígitos (3 + 7 + 1)
+                    cedula = cleanValue.take(11)
+                },
+                label = { Text("Cédula *") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                placeholder = { Text("XXX-XXXXXXX-X") }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = ubicacion,
-                onValueChange = { ubicacion = it },
-                label = { Text("Ubicación *") },
-                modifier = Modifier.fillMaxWidth()
+                value = direccion,
+                onValueChange = { direccion = it },
+                label = { Text("Dirección *") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -158,8 +176,8 @@ fun ReservaSalaVipScreen(
                         cedula = ""
                         matricula = ""
                         telefono = ""
-                        correo = ""
-                        ubicacion = ""
+                        correoElectronico = ""
+                        direccion = ""
                         onCancelarClick()
                     },
                     modifier = Modifier.weight(1f),
@@ -179,8 +197,8 @@ fun ReservaSalaVipScreen(
                                 cedula = cedula,
                                 matricula = matricula,
                                 telefono = telefono,
-                                correoElectronico = correo,
-                                direccion = ubicacion,
+                                correoElectronico = correoElectronico,
+                                direccion = direccion,
                                 fecha = fecha
                             )
                         )
@@ -190,8 +208,8 @@ fun ReservaSalaVipScreen(
                         viewModel.setCedula(cedula)
                         viewModel.setMatricula(matricula)
                         viewModel.setTelefono(telefono)
-                        viewModel.setCorreo(correo)
-                        viewModel.setDireccion(ubicacion)
+                        viewModel.setCorreo(correoElectronico)
+                        viewModel.setDireccion(direccion)
                         viewModel.setFecha(fecha)
 
                         navController.navigate("PagoSalaVipScreen?fecha=$fecha")
