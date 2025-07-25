@@ -138,7 +138,7 @@ fun PagoRestauranteScreen(
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
                         Text("Nombre: ${persona.nombres}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Ubicación: ${persona.ubicacion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Dirección: ${persona.direccion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Text("Capacidad: ${persona.capacidad}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Text("Teléfono: ${persona.telefono}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Text("Correo: ${persona.correo}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
@@ -158,7 +158,7 @@ fun PagoRestauranteScreen(
                     val nuevaReserva = DatosPersonalesRestaurante(
                         restauranteId = persona.restauranteId ?: 0,
                         nombres = persona.nombres,
-                        ubicacion = persona.ubicacion,
+                        direccion = persona.direccion,
                         capacidad = persona.capacidad,
                         telefono = persona.telefono,
                         correo = persona.correo,
@@ -236,7 +236,7 @@ data class DatosPersonalesRestaurante(
     val apellidos: String = "",
     val cedula: String = "",
     val matricula: String = "",
-    val ubicacion: String = "",
+    val direccion: String = "",
     val capacidad: Int = 0,
     val telefono: String = "",
     val correo: String = "",
