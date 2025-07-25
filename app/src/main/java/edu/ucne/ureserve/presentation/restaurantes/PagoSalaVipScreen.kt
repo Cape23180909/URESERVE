@@ -253,6 +253,10 @@ fun PagoSalaVipScreen(
                                 }
 
                                 viewModel.confirmarReservacionRestaurante(
+                                    getLista = { DatosPersonalesSalaVipStore.lista },
+                                    getMetodoPagoSeleccionado = { DatosPersonalesSalaVipStore.metodoPagoSeleccionado },
+                                    getTarjetaCredito = { DatosPersonalesSalaVipStore.tarjetaCredito },
+                                    getDatosPersonales = { DatosPersonalesSalaVipStore.lista.first() },
                                     restauranteId = viewModel.uiState.value.restauranteId ?: 0,
                                     horaInicio = horaInicio,
                                     horaFin = horaFin,
