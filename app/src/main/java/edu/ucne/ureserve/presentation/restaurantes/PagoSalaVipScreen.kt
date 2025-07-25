@@ -333,7 +333,7 @@ fun MetodoPagoSalaVipItem(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun calcularHoras(horaInicio: String, horaFin: String): Int {
+fun calcularHoras(horaInicio: String, horaFin: String): Int {
     return try {
         val formato = DateTimeFormatter.ofPattern("HH:mm")
         val inicio = LocalTime.parse(horaInicio, formato)
