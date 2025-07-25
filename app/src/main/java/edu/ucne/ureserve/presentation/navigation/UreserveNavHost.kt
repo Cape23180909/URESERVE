@@ -928,7 +928,7 @@ fun UreserveNavHost(navController: NavHostController) {
                         DatosPersonalesRestaurante(
                             restauranteId = datos.restauranteId,
                             nombres = datos.nombres,
-                            ubicacion = datos.ubicacion,
+                            direccion = datos.direccion,
                             capacidad = datos.capacidad,
                             telefono = datos.telefono,
                             correo = datos.correo,
