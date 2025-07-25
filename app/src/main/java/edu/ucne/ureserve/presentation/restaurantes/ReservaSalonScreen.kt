@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.salones
 
+import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -7,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,11 +33,15 @@ fun ReservaSalonScreen(
     var cedula by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
-    var ubicacion by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
 
     val formularioCompleto = listOf(
-        nombres, apellidos, matricula, cedula, telefono, correo, ubicacion
+        nombres, apellidos, matricula, cedula, telefono, correo, direccion
     ).all { it.isNotBlank() }
+
+    var mostrarError by remember { mutableStateOf(false) }
+    var mensajeError by remember { mutableStateOf("") }
+    val datosGuardados = rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -138,9 +144,9 @@ fun ReservaSalonScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = ubicacion,
-                onValueChange = { ubicacion = it },
-                label = { Text("Ubicación *") },
+                value = direccion,
+                onValueChange = { direccion = it },
+                label = { Text("Dirección *") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -159,7 +165,7 @@ fun ReservaSalonScreen(
                         matricula = ""
                         telefono = ""
                         correo = ""
-                        ubicacion = ""
+                        direccion = ""
                         onCancelarClick()
                     },
                     modifier = Modifier.weight(1f),
@@ -172,30 +178,45 @@ fun ReservaSalonScreen(
 
                 Button(
                     onClick = {
-                        // Guardar reserva
-                        DatosPersonalesSalonStore.lista.add(
-                            DatosPersonalesSalon(
-                                nombres = nombres,
-                                apellidos = apellidos,
-                                cedula = cedula,
-                                matricula = matricula,
-                                telefono = telefono,
-                                correo = correo,
-                                ubicacion = ubicacion,
-                                fecha = fecha
-                            )
-                        )
+                        // Validaciones reforzadas
+                        val cedulaValida = cedula.filter { it.isDigit() }.length == 11
+                        val telefonoValido = telefono.filter { it.isDigit() }.length == 10
+                        val matriculaValida = matricula.length == 8
+                        val correoValido = Patterns.EMAIL_ADDRESS.matcher(correo).matches()
 
-                        viewModel.setNombres(nombres)
-                        viewModel.setApellidos(apellidos)
-                        viewModel.setCedula(cedula)
-                        viewModel.setMatricula(matricula)
-                        viewModel.setTelefono(telefono)
-                        viewModel.setCorreo(correo)
-                        viewModel.setDireccion(ubicacion)
-                        viewModel.setFecha(fecha)
-
-                        onConfirmarClick()
+                        when {
+                            !cedulaValida -> {
+                                mostrarError = true
+                                mensajeError = "La cédula debe tener 11 dígitos"
+                            }
+                            !telefonoValido -> {
+                                mostrarError = true
+                                mensajeError = "El teléfono debe tener 10 dígitos"
+                            }
+                            !matriculaValida -> {
+                                mostrarError = true
+                                mensajeError = "La matrícula debe tener 8 caracteres"
+                            }
+                            !correoValido -> {
+                                mostrarError = true
+                                mensajeError = "Correo electrónico inválido"
+                            }
+                            else -> {
+                                mostrarError = false
+//                                DatosPersonalesSalonStore.guardarDatos(
+//                                    nombres = nombres,
+//                                    apellidos = apellidos,
+//                                    cedula = cedula,
+//                                    matricula = matricula,
+//                                    telefono = telefono,
+//                                    correo = correo,
+//                                    direccion = direccion,
+//                                    fecha = fecha
+//                                )
+                                datosGuardados.value = true
+                                onConfirmarClick()
+                            }
+                        }
                     },
                     enabled = formularioCompleto,
                     modifier = Modifier.weight(1f),
