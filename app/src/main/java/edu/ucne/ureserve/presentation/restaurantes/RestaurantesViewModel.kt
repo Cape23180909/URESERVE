@@ -12,8 +12,11 @@ import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaRestaurantesDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.RestaurantesDto
+import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
 import edu.ucne.ureserve.data.repository.ReservacionRepository
 import edu.ucne.ureserve.data.repository.RestauranteRepository
+import edu.ucne.ureserve.presentation.salones.DatosPersonalesSalon
+import edu.ucne.ureserve.presentation.salones.DatosPersonalesSalonStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -147,6 +150,10 @@ class RestaurantesViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun confirmarReservacionRestaurante(
+        getLista: () -> List<*>,
+        getMetodoPagoSeleccionado: () -> String?,
+        getTarjetaCredito: () -> TarjetaCreditoDto?,
+        getDatosPersonales: () -> Any, // Retorna DatosPersonalesSalaVip o DatosPersonalesSalon
         restauranteId: Int,
         horaInicio: String,
         horaFin: String,
@@ -157,7 +164,7 @@ class RestaurantesViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                if (DatosPersonalesSalaVipStore.lista.isEmpty()) {
+                if (getLista().isEmpty()) {
                     _uiState.update { it.copy(errorMessage = "No hay datos personales registrados.") }
                     return@launch
                 }
@@ -190,14 +197,27 @@ class RestaurantesViewModel @Inject constructor(
                     matricula = matricula
                 )
 
-                val detalleDto = DetalleReservaRestaurantesDto(
-                    nombre = DatosPersonalesSalaVipStore.lista.first().nombre,
-                    apellidos = DatosPersonalesSalaVipStore.lista.first().apellidos,
-                    cedula = DatosPersonalesSalaVipStore.lista.first().cedula,
-                    telefono = DatosPersonalesSalaVipStore.lista.first().telefono,
-                    direccion = DatosPersonalesSalaVipStore.lista.first().direccion,
-                    correoElectronico = DatosPersonalesSalaVipStore.lista.first().correoElectronico
-                )
+                // Obtener datos personales
+                val datosPersonales = getDatosPersonales()
+                val detalleDto = when (datosPersonales) {
+                    is DatosPersonalesSalaVip -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombre,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    is DatosPersonalesSalon -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombres,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    else -> throw IllegalArgumentException("Tipo de dato no soportado")
+                }
 
                 val resultadoReserva = try {
                     reservacionRepository.guardarReserva(reservacionDto).collect { resource ->
@@ -222,8 +242,8 @@ class RestaurantesViewModel @Inject constructor(
                 }
 
                 // ✅ Guardar tarjeta si se seleccionó
-                if (DatosPersonalesSalaVipStore.metodoPagoSeleccionado == "Tarjeta de crédito") {
-                    val tarjeta = DatosPersonalesSalaVipStore.tarjetaCredito
+                if (getMetodoPagoSeleccionado() == "Tarjeta de crédito") {
+                    val tarjeta = getTarjetaCredito()
                     if (tarjeta != null) {
                         try {
                             reservacionRepository.guardarTarjeta(tarjeta)
@@ -252,7 +272,7 @@ class RestaurantesViewModel @Inject constructor(
                             errorMessage = "Error al guardar detalles."
                         )
                         else -> {
-                            limpiarDatosAlmacenados()
+                            //limpiarDatosAlmacenados()
                             it.copy(
                                 isLoading = false,
                                 reservaConfirmada = true,
@@ -272,6 +292,7 @@ class RestaurantesViewModel @Inject constructor(
             }
         }
     }
+
 
     // Función auxiliar para crear el DTO
     private fun crearReservacionDto(persona: DatosPersonalesSalaVip): ReservacionesDto {
