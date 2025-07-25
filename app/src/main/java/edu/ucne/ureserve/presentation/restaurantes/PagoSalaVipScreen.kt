@@ -146,6 +146,7 @@ fun PagoSalaVipScreen(
 
                         MetodoPagoSalaVipItem("Transferencia bancaria", R.drawable.trasnferencia, metodoPagoSeleccionado == "Transferencia bancaria") {
                             metodoPagoSeleccionado = "Transferencia bancaria"
+                            DatosPersonalesSalaVipStore.metodoPagoSeleccionado = "Transferencia bancaria"
                             navController.navigate("SalaVipTransferencia?fecha=$fecha")
                         }
                     }
