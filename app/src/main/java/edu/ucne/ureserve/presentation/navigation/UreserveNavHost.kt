@@ -884,7 +884,8 @@ fun UreserveNavHost(navController: NavHostController) {
                 onCancelarClick = { navController.popBackStack() },
                 onConfirmarClick = {
                     navController.navigate("ReservaSalon?fecha=$fecha")
-                }
+                },
+                navController = navController
             )
         }
 
