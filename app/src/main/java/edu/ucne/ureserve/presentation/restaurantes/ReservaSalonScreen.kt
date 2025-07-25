@@ -17,7 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesSalaVipStore
 import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
 @Composable
@@ -25,18 +27,21 @@ fun ReservaSalonScreen(
     fecha: String,
     onCancelarClick: () -> Unit = {},
     onConfirmarClick: () -> Unit = {},
+    navController: NavController,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+    var correoElectronico by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
     var matricula by remember { mutableStateOf("") }
     var cedula by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
+    var horaInicio by remember { mutableStateOf("") } // ✅ Agregado
+    var horaFin by remember { mutableStateOf("") }
 
     val formularioCompleto = listOf(
-        nombres, apellidos, matricula, cedula, telefono, correo, direccion
+        nombres, apellidos, matricula, cedula, telefono, correoElectronico, direccion
     ).all { it.isNotBlank() }
 
     var mostrarError by remember { mutableStateOf(false) }
@@ -87,6 +92,15 @@ fun ReservaSalonScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
+                value = correoElectronico,
+                onValueChange = { correoElectronico = it },
+                label = { Text("Correo electrónico *") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
                 value = nombres,
                 onValueChange = { nombres = it },
                 label = { Text("Nombres *") },
@@ -105,25 +119,6 @@ fun ReservaSalonScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = cedula,
-                onValueChange = { cedula = it.filter { char -> char.isDigit() } },
-                label = { Text("Cédula *") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = matricula,
-                onValueChange = { matricula = it },
-                label = { Text("Matrícula *") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
                 value = telefono,
                 onValueChange = { telefono = it },
                 label = { Text("Teléfono *") },
@@ -134,11 +129,38 @@ fun ReservaSalonScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = correo,
-                onValueChange = { correo = it },
-                label = { Text("Correo electrónico *") },
+                value = buildString {
+                    append(matricula.take(8)) // Tomar máximo 8 dígitos
+                    if (length > 4) insert(4, "-")
+                },
+                onValueChange = { newValue ->
+                    matricula = newValue.filter { it.isDigit() }.take(8)
+                },
+                label = { Text("Matrícula *") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                placeholder = { Text("XXXX-XXXX") }
+            )
+
+            OutlinedTextField(
+                value = cedula.run {
+                    // Formatear automáticamente mientras se escribe
+                    when {
+                        length <= 3 -> this
+                        length <= 10 -> "${substring(0, 3)}-${substring(3)}"
+                        else -> "${substring(0, 3)}-${substring(3, 10)}-${substring(10)}"
+                    }
+                },
+                onValueChange = { newValue ->
+                    // Eliminar guiones existentes para el procesamiento
+                    val cleanValue = newValue.filter { it.isDigit() }
+                    // Limitar a 11 dígitos (3 + 7 + 1)
+                    cedula = cleanValue.take(11)
+                },
+                label = { Text("Cédula *") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                placeholder = { Text("XXX-XXXXXXX-X") }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -147,7 +169,8 @@ fun ReservaSalonScreen(
                 value = direccion,
                 onValueChange = { direccion = it },
                 label = { Text("Dirección *") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -158,13 +181,12 @@ fun ReservaSalonScreen(
             ) {
                 Button(
                     onClick = {
-                        // Limpia campos y ejecuta acción cancelar
                         nombres = ""
                         apellidos = ""
                         cedula = ""
                         matricula = ""
                         telefono = ""
-                        correo = ""
+                        correoElectronico = ""
                         direccion = ""
                         onCancelarClick()
                     },
@@ -178,45 +200,21 @@ fun ReservaSalonScreen(
 
                 Button(
                     onClick = {
-                        // Validaciones reforzadas
-                        val cedulaValida = cedula.filter { it.isDigit() }.length == 11
-                        val telefonoValido = telefono.filter { it.isDigit() }.length == 10
-                        val matriculaValida = matricula.length == 8
-                        val correoValido = Patterns.EMAIL_ADDRESS.matcher(correo).matches()
-
-                        when {
-                            !cedulaValida -> {
-                                mostrarError = true
-                                mensajeError = "La cédula debe tener 11 dígitos"
-                            }
-                            !telefonoValido -> {
-                                mostrarError = true
-                                mensajeError = "El teléfono debe tener 10 dígitos"
-                            }
-                            !matriculaValida -> {
-                                mostrarError = true
-                                mensajeError = "La matrícula debe tener 8 caracteres"
-                            }
-                            !correoValido -> {
-                                mostrarError = true
-                                mensajeError = "Correo electrónico inválido"
-                            }
-                            else -> {
-                                mostrarError = false
-//                                DatosPersonalesSalonStore.guardarDatos(
-//                                    nombres = nombres,
-//                                    apellidos = apellidos,
-//                                    cedula = cedula,
-//                                    matricula = matricula,
-//                                    telefono = telefono,
-//                                    correo = correo,
-//                                    direccion = direccion,
-//                                    fecha = fecha
-//                                )
-                                datosGuardados.value = true
-                                onConfirmarClick()
-                            }
-                        }
+                        DatosPersonalesSalonStore.lista.add(
+                            DatosPersonalesSalon(
+                                nombres = nombres,
+                                apellidos = apellidos,
+                                cedula = cedula,
+                                matricula = matricula,
+                                telefono = telefono,
+                                correoElectronico = correoElectronico,
+                                direccion = direccion,
+                                fecha = fecha,
+                                horaInicio = horaInicio,
+                                horaFin = horaFin
+                            )
+                        )
+                        navController.navigate("PagoSalonScreen?fecha=$fecha")
                     },
                     enabled = formularioCompleto,
                     modifier = Modifier.weight(1f),
