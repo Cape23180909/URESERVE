@@ -17,6 +17,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
@@ -78,7 +79,8 @@ import java.util.Calendar
 @SuppressLint("UnrememberedGetBackStackEntry")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UreserveNavHost(navController: NavHostController) {
+fun UreserveNavHost(navController: NavHostController,
+                    uReserveDb: UReserveDb) {
     NavHost(
         navController = navController,
         startDestination = "LoadStart"
