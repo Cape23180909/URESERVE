@@ -27,14 +27,59 @@ import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 val Amarillo = Color(0xFFFFDF00)
 val Azul = Color(0xFF154AD5)
 
+// Administrador simple para usuario en sesión (offline-first)
+object AuthManager {
+    var currentUser: UsuarioDTO? = null
+        private set
+
+    fun login(usuario: UsuarioDTO) {
+        currentUser = usuario
+    }
+
+    fun logout() {
+        currentUser = null
+    }
+}
+
+@Composable
+fun ProfileScreenOfflineFirst(
+    onLogout: () -> Unit,
+    onBottomNavClick: (String) -> Unit = {}
+) {
+    // Obtener usuario local guardado o usuario vacío
+    val usuario = AuthManager.currentUser ?: UsuarioDTO(
+        usuarioId = 0,
+        nombres = "Desconocido",
+        apellidos = "",
+        correoInstitucional = "",
+        clave = "",
+        estudiante = EstudianteDto(
+            estudianteId = 0,
+            matricula = "",
+            facultad = "",
+            carrera = ""
+        )
+    )
+
+    ProfileScreen(
+        usuario = usuario,
+        estudiante = usuario.estudiante ?: EstudianteDto(0, "", "", ""),
+        onLogout = {
+            AuthManager.logout()
+            onLogout()
+        },
+        onBottomNavClick = onBottomNavClick
+    )
+}
+
 @Composable
 fun ProfileScreen(
     usuario: UsuarioDTO,
     estudiante: EstudianteDto,
     onLogout: () -> Unit,
-    onBottomNavClick: (String) -> Unit = {}) {
+    onBottomNavClick: (String) -> Unit = {}
+) {
     Box(modifier = Modifier.fillMaxSize()) {
-        // Fondo superior amarillo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -42,14 +87,12 @@ fun ProfileScreen(
                 .background(Amarillo)
         )
 
-        // Contenido principal en un Column que ocupa todo el espacio
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Fondo inferior azul con contenido
             Box(
                 modifier = Modifier
-                    .weight(1f) // Ocupa todo el espacio disponible
+                    .weight(1f)
                     .padding(top = 100.dp)
                     .clip(RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp))
                     .background(Azul)
@@ -60,22 +103,20 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .padding(top = 60.dp, start = 16.dp, end = 16.dp)
                 ) {
-                    // Nombre
                     Text(
-                        text = "${usuario.nombres}",
+                        text = usuario.nombres,
                         fontSize = 18.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "${usuario.apellidos}",
+                        text = usuario.apellidos,
                         fontSize = 14.sp,
                         color = Color.White
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Información del usuario
                     UserInfoRow(
                         icon = painterResource(id = R.drawable.icon_mensaje),
                         label = "Correo Electrónico",
@@ -84,17 +125,16 @@ fun ProfileScreen(
                     UserInfoRow(
                         icon = painterResource(id = R.drawable.icon_home),
                         label = "Carrera",
-                        value = usuario.estudiante?.carrera?: ""
+                        value = estudiante.carrera
                     )
                     UserInfoRow(
                         icon = painterResource(id = R.drawable.icon_number),
                         label = "Matrícula",
-                        value = usuario.estudiante?.matricula?: ""
+                        value = estudiante.matricula
                     )
 
                     Spacer(modifier = Modifier.height(122.dp))
 
-                    // Botón cerrar sesión
                     Button(
                         onClick = onLogout,
                         modifier = Modifier
@@ -112,7 +152,6 @@ fun ProfileScreen(
                         )
                     }
 
-                    // Espacio flexible para empujar el contenido hacia arriba
                     Spacer(modifier = Modifier.height(122.dp))
                 }
             }
@@ -143,7 +182,6 @@ fun ProfileScreen(
             }
         }
 
-        // Imagen de perfil flotante
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -226,19 +264,18 @@ fun ProfileScreenPreview() {
         nombres = "Juan",
         apellidos = "Perez",
         correoInstitucional = "juan.perez@example.com",
-        clave = "123456"
-    )
-
-    val estudiantePrueba = EstudianteDto(
-        estudianteId = 1,
-        matricula = "",
-        facultad = "",
-        carrera = ""
+        clave = "123456",
+        estudiante = EstudianteDto(
+            estudianteId = 1,
+            matricula = "123456789",
+            facultad = "Facultad X",
+            carrera = "Ingeniería de Sistemas"
+        )
     )
 
     ProfileScreen(
         usuario = usuarioPrueba,
-        estudiante = estudiantePrueba,  // Añade este parámetro
+        estudiante = usuarioPrueba.estudiante ?: EstudianteDto(0, "", "", ""),
         onLogout = {}
     )
 }
