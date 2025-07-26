@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -38,7 +37,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -88,7 +86,6 @@ fun LoginScreen(
 
     val isLoading = remember { mutableStateOf(false) }
 
-
     fun validateFields(): Boolean {
         var isValid = true
 
@@ -118,33 +115,47 @@ fun LoginScreen(
     fun login() {
         if (!validateFields()) return
 
-        isLoading.value = true // Mostrar círculo de carga
+        isLoading.value = true
+        loginError.value = null
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val usuarios = ApiModule.api.getAll()
-                val usuarioValido = usuarios.find { usuario ->
-                    usuario.correoInstitucional == correo.value && usuario.clave == clave.value
-                }
+                val localUser = AuthManager.currentUser
+                if (localUser != null
+                    && localUser.correoInstitucional == correo.value
+                    && localUser.clave == clave.value
+                ) {
+                    // Login offline exitoso
+                    withContext(Dispatchers.Main) {
+                        isLoading.value = false
+                        onLoginSuccess(localUser)
+                    }
+                } else {
+                    // No hay usuario local o no coincide, intentar login remoto
+                    val usuarios = ApiModule.api.getAll()
+                    val usuarioValido = usuarios.find {
+                        it.correoInstitucional == correo.value && it.clave == clave.value
+                    }
 
-                withContext(Dispatchers.Main) {
-                    isLoading.value = false // Ocultar carga
-                    if (usuarioValido != null) {
-                        AuthManager.login(usuarioValido)
-                        onLoginSuccess(usuarioValido)
-                    } else {
-                        loginError.value = "Usuario o clave incorrectos"
+                    withContext(Dispatchers.Main) {
+                        isLoading.value = false
+                        if (usuarioValido != null) {
+                            // Guardar localmente para próxima vez
+                            AuthManager.login(usuarioValido)
+                            onLoginSuccess(usuarioValido)
+                        } else {
+                            loginError.value = "Usuario o clave incorrectos"
+                        }
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    isLoading.value = false // Ocultar carga
+                    isLoading.value = false
                     loginError.value = "Error: ${e.message}"
                 }
             }
         }
     }
-
 
     GradientBackground {
         Surface(
@@ -174,7 +185,7 @@ fun LoginScreen(
                     label = { Text("Correo Institucional", color = Color.White) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(50.dp)), // 👈 Bordes redondeados
+                        .clip(RoundedCornerShape(50.dp)),
                     singleLine = true,
                     isError = correoError.value != null,
                     leadingIcon = {
@@ -193,18 +204,12 @@ fun LoginScreen(
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-
-                        // 👇 Fondo del campo en color 6D87A4
                         focusedContainerColor = Color(0xFF6D87A4),
                         unfocusedContainerColor = Color(0xFF6D87A4),
-
                         focusedLabelColor = Color.White,
                         unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-
-                        // 👇 Borde del campo también en 6D87A4
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-
                         errorContainerColor = Color(0xFFFF6D6D).copy(alpha = 0.3f),
                         errorIndicatorColor = Color(0xFFFF6D6D)
                     )
@@ -263,9 +268,7 @@ fun LoginScreen(
                 }
 
                 Button(
-                    onClick = {
-                        login()
-                    },
+                    onClick = { login() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -273,16 +276,14 @@ fun LoginScreen(
                         containerColor = Color(0xFF6D87A4),
                         contentColor = Color.White
                     ),
-                    enabled = !isLoading.value // desactiva el botón mientras carga
+                    enabled = !isLoading.value
                 ) {
                     Text("Conectar", fontSize = 16.sp)
                 }
 
-// Imagen animada o rotatoria
                 if (isLoading.value) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Rotación simulada (si es imagen estática PNG)
                     val infiniteTransition = rememberInfiniteTransition()
                     val rotation by infiniteTransition.animateFloat(
                         initialValue = 0f,
@@ -303,27 +304,9 @@ fun LoginScreen(
                             .align(Alignment.CenterHorizontally)
                     )
                 }
-
             }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    LoginScreen(onLoginSuccess = {}) // Ahora cumple con la firma
-}
 
-object AuthManager {
-    var currentUser: UsuarioDTO? = null
-        private set
-
-    fun login(usuario: UsuarioDTO) {
-        currentUser = usuario
-    }
-
-    fun logout() {
-        currentUser = null
-    }
-}
