@@ -7,19 +7,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
 import com.google.firebase.FirebaseApp
 import dagger.hilt.android.AndroidEntryPoint
+import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.presentation.navigation.UreserveNavHost
-import edu.ucne.ureserve.presentation.proyectores.MainScreen
 import edu.ucne.ureserve.ui.theme.URESERVETheme
 
 @AndroidEntryPoint
@@ -28,7 +24,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 👇 Inicializa Firebase aquí
+        // Inicializar Firebase solo si no se ha inicializado
         if (FirebaseApp.getApps(this).isEmpty()) {
             FirebaseApp.initializeApp(this)
         }
@@ -36,31 +32,23 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             URESERVETheme {
-                MainScreen(context = this)
+                val navController = rememberNavController()
+                val uReserveDb = Room.databaseBuilder(
+                    applicationContext,
+                    UReserveDb::class.java,
+                    "UReserveDb"
+                ).build()
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navController = rememberNavController()
-                    UreserveNavHost(navController = navController)
+                    UreserveNavHost(
+                        navController = navController,
+                        uReserveDb = uReserveDb
+                    )
                 }
             }
         }
     }
 }
-
-//@Composable
-//fun Greeting(name: String, modifier: Modifier = Modifier) {
-//    Text(
-//        text = "Hello $name!",
-//        modifier = modifier
-//    )
-//}
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    URESERVETheme {
-//        Greeting("Android")
-//    }
-//}
