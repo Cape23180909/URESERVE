@@ -15,6 +15,14 @@ interface UsuarioDao {
     @Query("""
         SELECT *
         FROM Usuarios
+        WHERE correoInstitucional = :email
+        LIMIT 1
+    """)
+    fun getUserByEmail(email: String): Flow<UsuarioEntity?>
+
+    @Query("""
+        SELECT *
+        FROM Usuarios
         WHERE usuarioId = :id
         LIMIT 1
     """)
@@ -26,3 +34,4 @@ interface UsuarioDao {
     @Query("SELECT * FROM Usuarios")
     fun getAll(): Flow<List<UsuarioEntity>>
 }
+
