@@ -23,7 +23,7 @@ import edu.ucne.ureserve.data.local.entity.*
         DetalleReservaCubiculosEntity::class,
         CubiculosEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
