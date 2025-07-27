@@ -79,8 +79,7 @@ import java.util.Calendar
 @SuppressLint("UnrememberedGetBackStackEntry")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UreserveNavHost(navController: NavHostController,
-                    uReserveDb: UReserveDb) {
+fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
     NavHost(
         navController = navController,
         startDestination = "LoadStart"
@@ -872,24 +871,23 @@ fun UreserveNavHost(navController: NavHostController,
         }
 
         composable(
-            route = "ReservaSalon?fecha={fecha}",
+            route = "RegistroReservaSalon?fecha={fecha}",
             arguments = listOf(
-                navArgument("fecha") {
-                    type = NavType.StringType
-                    defaultValue = ""
-                    nullable = false
-                }
+                navArgument("fecha") { defaultValue = "" }
             )
         ) { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
-            ReservaSalonScreen(fecha = fecha,
-                onCancelarClick = { navController.popBackStack() },
-                onConfirmarClick = {
-                    navController.navigate("ReservaSalon?fecha=$fecha")
+            RegistroReservaSalonScreen(
+                fecha = fecha,
+                onCancelarClick = {
+                    navController.popBackStack()
                 },
-                navController = navController
+                onConfirmarClick = {
+                    navController.navigate("pagoSalon?fecha=$fecha")
+                }
             )
         }
+
 
         composable(
             route = "ReservaSalaVipExitosa/{numeroReserva}",
@@ -934,7 +932,7 @@ fun UreserveNavHost(navController: NavHostController,
                             direccion = datos.direccion,
                             capacidad = datos.capacidad,
                             telefono = datos.telefono,
-                            correo = datos.correo,
+                            correoElectronico = datos.correoElectronico,
                             descripcion = datos.descripcion,
                             fecha = fecha // Pasamos la fecha desde el parámetro de la ruta
                         )
@@ -942,6 +940,18 @@ fun UreserveNavHost(navController: NavHostController,
                     navController.navigate("PagoRestaurante?fecha=$fecha")
                 }
             )
+        }
+
+        composable(
+            route = "ReservaSalon?fecha={fecha}",
+            arguments = listOf(navArgument("fecha") {
+                type = NavType.StringType
+                defaultValue = ""
+                nullable = true
+            })
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            ReservaSalonScreen(fecha = fecha, navController = navController)
         }
 
         composable(
@@ -973,7 +983,6 @@ fun UreserveNavHost(navController: NavHostController,
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
             TarjetaCreditoRestauranteScreen(fecha = fecha, navController = navController)
         }
-
 
         composable(
             route = "TarjetaCreditoSalon?fecha={fecha}",
