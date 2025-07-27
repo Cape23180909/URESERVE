@@ -16,7 +16,6 @@ import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
 import edu.ucne.ureserve.data.repository.ReservacionRepository
 import edu.ucne.ureserve.data.repository.RestauranteRepository
 import edu.ucne.ureserve.presentation.salones.DatosPersonalesSalon
-import edu.ucne.ureserve.presentation.salones.DatosPersonalesSalonStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -24,8 +23,10 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import javax.inject.Inject
+import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesRestaurante
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
+
 
 @HiltViewModel
 class RestaurantesViewModel @Inject constructor(
@@ -153,7 +154,7 @@ class RestaurantesViewModel @Inject constructor(
         getLista: () -> List<*>,
         getMetodoPagoSeleccionado: () -> String?,
         getTarjetaCredito: () -> TarjetaCreditoDto?,
-        getDatosPersonales: () -> Any, // Retorna DatosPersonalesSalaVip o DatosPersonalesSalon
+        getDatosPersonales: () -> Any,
         restauranteId: Int,
         horaInicio: String,
         horaFin: String,
@@ -197,7 +198,7 @@ class RestaurantesViewModel @Inject constructor(
                     matricula = matricula
                 )
 
-                // Obtener datos personales
+                // Obtener datos personales con soporte para DatosPersonalesRestaurante
                 val datosPersonales = getDatosPersonales()
                 val detalleDto = when (datosPersonales) {
                     is DatosPersonalesSalaVip -> DetalleReservaRestaurantesDto(
@@ -216,7 +217,15 @@ class RestaurantesViewModel @Inject constructor(
                         direccion = datosPersonales.direccion,
                         correoElectronico = datosPersonales.correoElectronico
                     )
-                    else -> throw IllegalArgumentException("Tipo de dato no soportado")
+                    is DatosPersonalesRestaurante -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombres,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    else -> throw IllegalArgumentException("Tipo de dato no soportado: ${datosPersonales::class.java.simpleName}")
                 }
 
                 val resultadoReserva = try {
@@ -241,7 +250,6 @@ class RestaurantesViewModel @Inject constructor(
                     false
                 }
 
-                // ✅ Guardar tarjeta si se seleccionó
                 if (getMetodoPagoSeleccionado() == "Tarjeta de crédito") {
                     val tarjeta = getTarjetaCredito()
                     if (tarjeta != null) {
@@ -272,7 +280,6 @@ class RestaurantesViewModel @Inject constructor(
                             errorMessage = "Error al guardar detalles."
                         )
                         else -> {
-                            //limpiarDatosAlmacenados()
                             it.copy(
                                 isLoading = false,
                                 reservaConfirmada = true,
