@@ -176,7 +176,6 @@ fun TarjetaCreditoSalonScreen(
                 ) {
                     Text("CONFIRMAR")
                 }
-
             }
         }
     }
