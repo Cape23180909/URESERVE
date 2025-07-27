@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,10 +16,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.LocalDate
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
+import kotlinx.coroutines.flow.update
 
 @Composable
 fun PagoRestauranteScreen(
@@ -27,6 +33,7 @@ fun PagoRestauranteScreen(
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val botonHabilitado = DatosPersonalesRestauranteStore.lista.isNotEmpty()
 
     Column(
         modifier = Modifier
@@ -83,12 +90,15 @@ fun PagoRestauranteScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 MetodoPagoItem("Efectivo", R.drawable.dinero) {
+                    DatosPersonalesRestauranteStore.metodoPagoSeleccionado = "Efectivo"
                     navController.navigate("RegistroReservaRestaurante?fecha=$fecha")
                 }
                 MetodoPagoItem("Tarjeta de crédito", R.drawable.credito) {
+                    DatosPersonalesRestauranteStore.metodoPagoSeleccionado = "Tarjeta de crédito"
                     navController.navigate("TarjetaCreditoRestaurante?fecha=$fecha")
                 }
                 MetodoPagoItem("Transferencia bancaria", R.drawable.trasnferencia) {
+                    DatosPersonalesRestauranteStore.metodoPagoSeleccionado = "Transferencia bancaria"
                     navController.navigate("RestauranteTransferencia?fecha=$fecha")
                 }
             }
@@ -137,13 +147,13 @@ fun PagoRestauranteScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        Text("Nombre: ${persona.nombres}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Dirección: ${persona.direccion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Capacidad: ${persona.capacidad}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Correo Electrónico: ${persona.correoElectronico}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Nombres: ${persona.nombres}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Apellidos: ${persona.apellidos}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                         Text("Teléfono: ${persona.telefono}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Correo: ${persona.correo}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Descripción: ${persona.descripcion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text("Fecha: ${persona.fecha}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Matrícula: ${persona.matricula}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Cédula: ${persona.cedula}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("Dirección: ${persona.direccion}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                     }
                 }
             }
@@ -153,51 +163,99 @@ fun PagoRestauranteScreen(
 
         Button(
             onClick = {
-                // Recorre y guarda cada persona registrada en la API
-                DatosPersonalesRestauranteStore.lista.forEach { persona ->
-                    val nuevaReserva = DatosPersonalesRestaurante(
-                        restauranteId = persona.restauranteId ?: 0,
-                        nombres = persona.nombres,
-                        direccion = persona.direccion,
-                        capacidad = persona.capacidad,
-                        telefono = persona.telefono,
-                        correo = persona.correo,
-                        descripcion = persona.descripcion,
-                        fecha = persona.fecha // Ya viene con la fecha asignada si se registró antes
-                    )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    try {
+                        val datosPersonales = DatosPersonalesRestauranteStore.lista
+                        val matricula = datosPersonales.firstOrNull()?.matricula ?: run {
+                            viewModel._uiState.update {
+                                it.copy(errorMessage = "No se encontró matrícula en los datos personales")
+                            }
+                            return@Button
+                        }
 
-                    // 2. Crear reservación relacionada
-                    viewModel.crearReservacionDesdeRestaurante(
-                        fecha = persona.fecha,
-                        matricula = persona.correo,
-                        horaInicio = persona.horaInicio,
-                        horaFin = persona.horaFin
-                    )
+                        val fechaFormateada = try {
+                            val fechaRaw = viewModel.uiState.value.fecha.ifEmpty {
+                                LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"))
+                            }
+                            LocalDate.parse(fechaRaw, DateTimeFormatter.ofPattern("d/M/yyyy"))
+                            fechaRaw
+                        } catch (e: Exception) {
+                            LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"))
+                        }
+
+                        val (horaInicio, horaFin, cantidadHoras) = if (
+                            viewModel.uiState.value.horaInicio.isBlank() || viewModel.uiState.value.horaFin.isBlank()
+                        ) {
+                            val horaActual = LocalTime.now()
+                            val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+                            val horasReserva = 2
+
+                            Triple(
+                                horaActual.format(formatter),
+                                horaActual.plusHours(horasReserva.toLong()).format(formatter),
+                                horasReserva
+                            )
+                        } else {
+                            Triple(
+                                viewModel.uiState.value.horaInicio,
+                                viewModel.uiState.value.horaFin,
+                                calcularHoras(
+                                    viewModel.uiState.value.horaInicio,
+                                    viewModel.uiState.value.horaFin
+                                )
+                            )
+                        }
+
+                        viewModel.confirmarReservacionRestaurante(
+                            getLista = { DatosPersonalesRestauranteStore.lista },
+                            getMetodoPagoSeleccionado = { DatosPersonalesRestauranteStore.metodoPagoSeleccionado },
+                            getTarjetaCredito = { DatosPersonalesRestauranteStore.tarjetaCredito },
+                            getDatosPersonales = { DatosPersonalesRestauranteStore.lista.first() },
+                            restauranteId = viewModel.uiState.value.restauranteId ?: 0,
+                            horaInicio = horaInicio,
+                            horaFin = horaFin,
+                            fecha = fechaFormateada,
+                            matricula = matricula,
+                            cantidadHoras = cantidadHoras,
+                            miembros = datosPersonales.map { it.matricula }
+                        )
+                        navController.navigate("ReservaRestauranteExitosa?numeroReserva=RES-${System.currentTimeMillis().toString().takeLast(6)}") {
+                            popUpTo("Dashboard") { inclusive = false }
+                        }
+
+                    } catch (e: Exception) {
+                        viewModel._uiState.update {
+                            it.copy(errorMessage = "Error al procesar reserva: ${e.localizedMessage}")
+                        }
+                    }
+                } else {
+                    viewModel._uiState.update {
+                        it.copy(errorMessage = "Se requiere Android 8.0 o superior")
+                    }
                 }
-
-                // 3. Limpia los datos después del envío
-                DatosPersonalesRestauranteStore.lista.clear()
-
-                // 4. Navega a la pantalla de éxito
-                val numeroReserva = (1000..9999).random().toString()
-                navController.navigate("ReservaRestauranteExitosa?numeroReserva=$numeroReserva")
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
+            enabled = botonHabilitado && !uiState.isLoading,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF0077B6),
+                containerColor = if (botonHabilitado && !uiState.isLoading) Color(0xFF0077B6) else Color.Gray,
                 contentColor = Color.White
             )
         ) {
-            Text("COMPLETAR RESERVA", fontWeight = FontWeight.Bold)
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White
+                )
+            } else {
+                Text("CONFIRMAR RESERVA", fontWeight = FontWeight.Bold)
+            }
         }
-
-
-
-
     }
 }
+
+// COMPONENTE EXTRA QUE ESTABA DENTRO (AHORA FUERA)
 
 @Composable
 fun MetodoPagoItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
@@ -229,7 +287,7 @@ fun PreviewPagoRestauranteScreen() {
     )
 }
 
-
+// DATOS PERSONALES (puedes mover esto a otro archivo si quieres)
 data class DatosPersonalesRestaurante(
     val restauranteId: Int? = 0,
     val nombres: String = "",
@@ -239,7 +297,7 @@ data class DatosPersonalesRestaurante(
     val direccion: String = "",
     val capacidad: Int = 0,
     val telefono: String = "",
-    val correo: String = "",
+    val correoElectronico: String = "",
     val descripcion: String = "",
     val fecha: String = "",
     val horaInicio: String = "",
@@ -248,4 +306,6 @@ data class DatosPersonalesRestaurante(
 
 object DatosPersonalesRestauranteStore {
     val lista = mutableStateListOf<DatosPersonalesRestaurante>()
+    var metodoPagoSeleccionado: String? by mutableStateOf(null)
+    var tarjetaCredito: TarjetaCreditoDto? by mutableStateOf(null)
 }
