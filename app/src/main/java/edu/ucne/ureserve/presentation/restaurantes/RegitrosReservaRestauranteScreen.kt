@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import edu.ucne.ureserve.R
 
-
 @Composable
 fun RegistrosReservaRestauranteScreen(
     fecha: String = "",
@@ -93,8 +92,17 @@ fun RegistrosReservaRestauranteScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
+                value = uiState.correo,
+                onValueChange = { viewModel.setCorreo(it) },
+                label = { Text("Correo electrónico *") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
                 value = uiState.nombres,
-                onValueChange = viewModel::setNombres,
+                onValueChange = { viewModel.setNombres(it) },
                 label = { Text("Nombres *") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -103,7 +111,7 @@ fun RegistrosReservaRestauranteScreen(
 
             OutlinedTextField(
                 value = uiState.apellidos,
-                onValueChange = viewModel::setApellidos,
+                onValueChange = { viewModel.setApellidos(it) },
                 label = { Text("Apellidos *") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -111,27 +119,8 @@ fun RegistrosReservaRestauranteScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = uiState.cedula,
-                onValueChange = viewModel::setCedula,
-                label = { Text("Cédula *") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = uiState.matricula,
-                onValueChange = viewModel::setMatricula,
-                label = { Text("Matrícula *") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
                 value = uiState.telefono,
-                onValueChange = viewModel::setTelefono,
+                onValueChange = { viewModel.setTelefono(it) },
                 label = { Text("Teléfono *") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
@@ -140,20 +129,48 @@ fun RegistrosReservaRestauranteScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = uiState.correo,
-                onValueChange = viewModel::setCorreo,
-                label = { Text("Correo electrónico *") },
+                value = buildString {
+                    append(uiState.matricula.take(8)) // Tomar máximo 8 dígitos
+                    if (length > 4) insert(4, "-")
+                },
+                onValueChange = { newValue ->
+                    viewModel.setMatricula(newValue.filter { it.isDigit() }.take(8))
+                },
+                label = { Text("Matrícula *") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                placeholder = { Text("XXXX-XXXX") }
+            )
+
+            OutlinedTextField(
+                value = uiState.cedula.run {
+                    // Formatear automáticamente mientras se escribe
+                    when {
+                        length <= 3 -> this
+                        length <= 10 -> "${substring(0, 3)}-${substring(3)}"
+                        else -> "${substring(0, 3)}-${substring(3, 10)}-${substring(10)}"
+                    }
+                },
+                onValueChange = { newValue ->
+                    // Eliminar guiones existentes para el procesamiento
+                    val cleanValue = newValue.filter { it.isDigit() }
+                    // Limitar a 11 dígitos (3 + 7 + 1)
+                    viewModel.setCedula(cleanValue.take(11))
+                },
+                label = { Text("Cédula *") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                placeholder = { Text("XXX-XXXXXXX-X") }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = uiState.direccion,
-                onValueChange = viewModel::setDireccion,
-                label = { Text("Ubicación *") },
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = { viewModel.setDireccion(it) },
+                label = { Text("Dirección *") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -180,7 +197,7 @@ fun RegistrosReservaRestauranteScreen(
                                 cedula = uiState.cedula,
                                 matricula = uiState.matricula,
                                 telefono = uiState.telefono,
-                                correo = uiState.correo,
+                                correoElectronico = uiState.correo,
                                 direccion = uiState.direccion,
                                 fecha = uiState.fecha
                             )
@@ -216,8 +233,6 @@ fun RegistrosReservaRestauranteScreen(
         }
     }
 }
-
-
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
