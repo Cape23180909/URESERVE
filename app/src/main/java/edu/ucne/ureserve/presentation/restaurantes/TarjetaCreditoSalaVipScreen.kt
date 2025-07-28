@@ -175,6 +175,7 @@ fun TarjetaCreditoSalaVipScreen(
                 Button(
                     onClick = {
                         navController.navigate("ReservaSalaVip")
+                        navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
                     },
                     enabled = isFormValid,
                     colors = ButtonDefaults.buttonColors(
