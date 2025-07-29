@@ -217,7 +217,8 @@ fun PagoRestauranteScreen(
                             fecha = fechaFormateada,
                             matricula = matricula,
                             cantidadHoras = cantidadHoras,
-                            miembros = datosPersonales.map { it.matricula }
+                            miembros = datosPersonales.map { it.matricula },
+                            tipoReserva = 6
                         )
                         navController.navigate("ReservaRestauranteExitosa?numeroReserva=RES-${System.currentTimeMillis().toString().takeLast(6)}") {
                             popUpTo("Dashboard") { inclusive = false }
