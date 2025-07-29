@@ -7,7 +7,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -18,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
+import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +28,10 @@ fun ReservaListScreen(
     viewModel: ReservaViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.getReservasUsuario()
+    }
 
     Scaffold(
         topBar = {
@@ -44,7 +50,7 @@ fun ReservaListScreen(
                             )
                             Image(
                                 painter = painterResource(id = R.drawable.icon_reserva),
-                                contentDescription = "Cubiculo",
+                                contentDescription = "Reserva",
                                 modifier = Modifier.size(60.dp)
                             )
                         }
@@ -96,34 +102,16 @@ fun ReservaListScreen(
 
                 is ReservaViewModel.ReservaListState.Success -> {
                     val reservas = (state as ReservaViewModel.ReservaListState.Success).reservas
-
-                    val enCurso = reservas.filter { it.estado == 2 }
-                    val planificadas = reservas.filter { it.estado == 1 }
-
-                    if (enCurso.isNotEmpty()) {
+                    if (reservas.isNotEmpty()) {
                         Text(
-                            text = "Reservas en Curso",
+                            text = "Reservas",
                             color = Color.White,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
-                        ReservaList(enCurso)
-                    }
-
-                    if (planificadas.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            text = "Reservas Planificadas",
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                        ReservaList(planificadas)
-                    }
-
-                    if (reservas.isEmpty()) {
+                        ReservaList(reservas)
+                    } else {
                         Text(
                             text = "No tienes reservas activas",
                             color = Color.White,
@@ -170,7 +158,6 @@ fun ReservaCard(reserva: ReservacionesDto) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icono (se mantiene a la izquierda)
             Image(
                 painter = painterResource(id = getIconForTipo(reserva.tipoReserva)),
                 contentDescription = "Icono",
@@ -178,9 +165,8 @@ fun ReservaCard(reserva: ReservacionesDto) {
             )
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Contenido de textos CENTRADO
             Column(
-                modifier = Modifier.fillMaxWidth(), // Ocupa todo el espacio restante
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
@@ -213,7 +199,9 @@ fun getIconForTipo(tipo: Int): Int {
         1 -> R.drawable.icon_proyector
         2 -> R.drawable.icon_cubiculo
         3 -> R.drawable.icon_laboratorio
-        4 -> R.drawable.icon_restaurante
+        4 -> R.drawable.sala
+        5 -> R.drawable.salon
+        6 -> R.drawable.icon_restaurante
         else -> R.drawable.icon_reserva
     }
 }
