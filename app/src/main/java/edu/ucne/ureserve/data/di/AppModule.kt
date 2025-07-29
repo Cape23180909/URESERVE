@@ -9,6 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import edu.ucne.ureserve.data.local.database.UReserveDb
+import edu.ucne.ureserve.presentation.login.AuthManager
 import javax.inject.Singleton
 
 @Module
@@ -81,4 +82,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideCubiculosDao(db: UReserveDb) = db.cubiculosDao()
+
+    @Provides
+    @Singleton
+    fun provideAuthManager(): AuthManager {
+        return AuthManager
+    }
 }
