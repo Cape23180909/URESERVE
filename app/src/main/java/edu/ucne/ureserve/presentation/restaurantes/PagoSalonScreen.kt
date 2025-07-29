@@ -39,18 +39,16 @@ fun PagoSalonScreen(
     var metodoPagoSeleccionado by remember { mutableStateOf(DatosPersonalesSalonStore.metodoPagoSeleccionado) }
     val scrollState = rememberScrollState()
     val context = LocalContext.current
-
     val datosPersonales = DatosPersonalesSalonStore.lista
     val codigoReserva = remember { (100000..999999).random() }
-
     val botonHabilitado by remember {
         derivedStateOf { metodoPagoSeleccionado != null && datosPersonales.isNotEmpty() }
     }
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(fecha) { viewModel.setFecha(fecha) }
 
+    // Navegación tras éxito
     LaunchedEffect(uiState.reservaConfirmada) {
         if (uiState.reservaConfirmada) {
             navController.navigate("ReservaExitosaSalon?numeroReserva=$codigoReserva") {
@@ -59,6 +57,7 @@ fun PagoSalonScreen(
         }
     }
 
+    // Mostrar errores
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
     }
@@ -76,50 +75,24 @@ fun PagoSalonScreen(
                     .verticalScroll(scrollState)
                     .padding(16.dp)
             ) {
+                // Encabezado
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo_reserve),
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(40.dp)
-                    )
-                    Text(
-                        text = "Pago Salón de Reuniones",
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.salon),
-                        contentDescription = "Salón",
-                        modifier = Modifier.size(40.dp)
-                    )
+                    Image(painter = painterResource(id = R.drawable.logo_reserve), contentDescription = "Logo", modifier = Modifier.size(40.dp))
+                    Text(text = "Pago Salón de Reuniones", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Image(painter = painterResource(id = R.drawable.salon), contentDescription = "Salón", modifier = Modifier.size(40.dp))
                 }
 
-                Text(
-                    text = "Fecha seleccionada: $fecha",
-                    color = Color.White,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-                )
+                Text(text = "Fecha seleccionada: $fecha", color = Color.White, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
 
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
-                ) {
+                // Método de pago
+                Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(
-                            text = "SELECCIONE EL MÉTODO DE PAGO",
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF023E8A),
-                            fontSize = 14.sp
-                        )
+                        Text("SELECCIONE EL MÉTODO DE PAGO", fontWeight = FontWeight.Bold, color = Color(0xFF023E8A), fontSize = 14.sp)
                         Spacer(Modifier.height(8.dp))
-
                         MetodoPagoSalonItem("Efectivo", R.drawable.dinero) {
                             metodoPagoSeleccionado = "Efectivo"
                             DatosPersonalesSalonStore.metodoPagoSeleccionado = "Efectivo"
@@ -140,10 +113,8 @@ fun PagoSalonScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
-                ) {
+                // Resumen
+                Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Column(Modifier.padding(16.dp)) {
                         Text("RESUMEN DE PEDIDO", fontWeight = FontWeight.Bold, color = Color(0xFF023E8A), fontSize = 14.sp)
                         Spacer(Modifier.height(8.dp))
@@ -165,6 +136,7 @@ fun PagoSalonScreen(
 
                 Spacer(Modifier.height(16.dp))
 
+                // Datos personales
                 if (datosPersonales.isNotEmpty()) {
                     Text(
                         text = "DATOS PERSONALES REGISTRADOS",
@@ -175,16 +147,15 @@ fun PagoSalonScreen(
                     )
                     datosPersonales.forEach { persona ->
                         Card(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                            Modifier.fillMaxWidth().padding(vertical = 4.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.White)
                         ) {
                             Column(Modifier.padding(16.dp)) {
                                 Text("Correo: ${persona.correoElectronico}", fontWeight = FontWeight.Bold, color = Color.Black)
                                 Text("Nombre: ${persona.nombres} ${persona.apellidos}", fontWeight = FontWeight.Bold, color = Color.Black)
                                 Text("Teléfono: ${persona.telefono}", fontWeight = FontWeight.Bold, color = Color.Black)
-                                Text("Matrícula: ${persona.matricula}", fontWeight = FontWeight.Bold, color = Color.Black)
+                                // ✅ Mostramos con formato xxxx-xxxx
+                                Text("Matrícula: ${formatearMatricula(persona.matricula)}", fontWeight = FontWeight.Bold, color = Color.Black)
                                 Text("Cédula: ${persona.cedula}", fontWeight = FontWeight.Bold, color = Color.Black)
                                 Text("Dirección: ${persona.direccion}", fontWeight = FontWeight.Bold, color = Color.Black)
                             }
@@ -194,64 +165,56 @@ fun PagoSalonScreen(
 
                 Spacer(Modifier.height(24.dp))
 
+                // Botón confirmar
                 Button(
                     onClick = {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             try {
-                                // Usar DatosPersonalesSalonStore en lugar de DatosPersonalesSalaVipStore
                                 val datosPersonales = DatosPersonalesSalonStore.lista
-                                val matricula = datosPersonales.firstOrNull()?.matricula ?: run {
-                                    viewModel._uiState.update {
-                                        it.copy(errorMessage = "No se encontró matrícula en los datos personales")
+                                val matriculaSinFormato = datosPersonales.firstOrNull()?.matricula
+                                    ?: run {
+                                        viewModel._uiState.update {
+                                            it.copy(errorMessage = "No se encontró matrícula en los datos personales")
+                                        }
+                                        return@Button
                                     }
-                                    return@Button
-                                }
+
+                                // ✅ Aplicamos formato y limpieza
+                                val matriculaFormateada = formatearMatricula(matriculaSinFormato)
+                                val matriculaParaApi = matriculaFormateada // ✅ Usa el formato xxxx-xxxx si tu backend lo acepta
 
                                 val fechaFormateada = try {
-                                    val fechaRaw = viewModel.uiState.value.fecha.ifEmpty {
+                                    val fechaRaw = uiState.fecha.ifEmpty {
                                         LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"))
                                     }
-                                    // Validar que la fecha esté en formato correcto
                                     LocalDate.parse(fechaRaw, DateTimeFormatter.ofPattern("d/M/yyyy"))
                                     fechaRaw
                                 } catch (e: Exception) {
                                     LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"))
                                 }
 
-                                val (horaInicio, horaFin, cantidadHoras) = if (
-                                    viewModel.uiState.value.horaInicio.isBlank() || viewModel.uiState.value.horaFin.isBlank()
-                                ) {
+                                val (horaInicio, horaFin, cantidadHoras) = if (uiState.horaInicio.isBlank() || uiState.horaFin.isBlank()) {
                                     val horaActual = LocalTime.now()
                                     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-                                    val horasReserva = 2
-                                    Triple(
-                                        horaActual.format(formatter),
-                                        horaActual.plusHours(horasReserva.toLong()).format(formatter),
-                                        horasReserva
-                                    )
+                                    Triple(horaActual.format(formatter), horaActual.plusHours(2).format(formatter), 2)
                                 } else {
-                                    Triple(
-                                        viewModel.uiState.value.horaInicio,
-                                        viewModel.uiState.value.horaFin,
-                                        edu.ucne.ureserve.presentation.restaurantes.calcularHoras(
-                                            viewModel.uiState.value.horaInicio,
-                                            viewModel.uiState.value.horaFin
-                                        )
-                                    )
+                                    Triple(uiState.horaInicio, uiState.horaFin, calcularHoras(uiState.horaInicio, uiState.horaFin))
                                 }
 
+                                // ✅ Enviamos la matrícula con formato xxxx-xxxx
                                 viewModel.confirmarReservacionSalonReuniones(
                                     getLista = { DatosPersonalesSalonStore.lista },
                                     getMetodoPagoSeleccionado = { DatosPersonalesSalonStore.metodoPagoSeleccionado },
                                     getTarjetaCredito = { DatosPersonalesSalonStore.tarjetaCredito },
                                     getDatosPersonales = { DatosPersonalesSalonStore.lista.first() },
-                                    restauranteId = viewModel.uiState.value.restauranteId ?: 0,
+                                    restauranteId = uiState.restauranteId ?: 0,
                                     horaInicio = horaInicio,
                                     horaFin = horaFin,
                                     fecha = fechaFormateada,
-                                    matricula = matricula,
+                                    matricula = matriculaParaApi, // ← ahora sí existe
                                     cantidadHoras = cantidadHoras,
-                                    miembros = datosPersonales.map { it.matricula }
+                                    miembros = datosPersonales.map { it.matricula },
+                                    tipoReserva = 5
                                 )
                             } catch (e: Exception) {
                                 viewModel._uiState.update {
@@ -264,9 +227,7 @@ fun PagoSalonScreen(
                             }
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
                     enabled = botonHabilitado && !uiState.isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (botonHabilitado && !uiState.isLoading) Color(0xFF0077B6) else Color.Gray,
@@ -274,10 +235,7 @@ fun PagoSalonScreen(
                     )
                 ) {
                     if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = Color.White
-                        )
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
                     } else {
                         Text("CONFIRMAR RESERVA", fontWeight = FontWeight.Bold)
                     }
@@ -342,6 +300,19 @@ fun calcularHoras(horaInicio: String, horaFin: String): Int =
         val fin = LocalTime.parse(horaFin, fmt)
         Duration.between(ini, fin).toHours().toInt()
     } catch (e: Exception) { 2 }
+
+fun formatearMatricula(matricula: String): String {
+    val limpia = matricula.replace("-", "").replace(" ", "")
+    return if (limpia.length == 8 && limpia.all { it.isDigit() }) {
+        "${limpia.substring(0, 4)}-${limpia.substring(4)}"
+    } else {
+        matricula // devuelve sin cambios si no es válida
+    }
+}
+
+fun limpiarMatricula(matricula: String): String {
+    return matricula.replace("-", "").replace(" ", "")
+}
 
 //@Preview(showBackground = true)
 //@Composable
