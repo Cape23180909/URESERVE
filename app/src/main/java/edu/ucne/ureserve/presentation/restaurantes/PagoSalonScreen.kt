@@ -240,7 +240,7 @@ fun PagoSalonScreen(
                                     )
                                 }
 
-                                viewModel.confirmarReservacionRestaurante(
+                                viewModel.confirmarReservacionSalonReuniones(
                                     getLista = { DatosPersonalesSalonStore.lista },
                                     getMetodoPagoSeleccionado = { DatosPersonalesSalonStore.metodoPagoSeleccionado },
                                     getTarjetaCredito = { DatosPersonalesSalonStore.tarjetaCredito },
@@ -282,16 +282,16 @@ fun PagoSalonScreen(
                         Text("CONFIRMAR RESERVA", fontWeight = FontWeight.Bold)
                     }
                 }
-                }
-
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = "Método: ${metodoPagoSeleccionado ?: "Ninguno"}, Datos: ${datosPersonales.size}",
-                    color = Color.White
-                )
             }
+
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Método: ${metodoPagoSeleccionado ?: "Ninguno"}, Datos: ${datosPersonales.size}",
+                color = Color.White
+            )
         }
     }
+}
 
 @Composable
 fun MetodoPagoSalonItem(titulo: String, iconRes: Int, onClick: () -> Unit) {
