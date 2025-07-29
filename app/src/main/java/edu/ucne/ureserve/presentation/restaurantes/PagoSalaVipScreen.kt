@@ -263,7 +263,8 @@ fun PagoSalaVipScreen(
                                     fecha = fechaFormateada,
                                     matricula = matricula,
                                     cantidadHoras = cantidadHoras,
-                                    miembros = datosPersonales.map { it.matricula }
+                                    miembros = datosPersonales.map { it.matricula },
+                                    tipoReserva = 4
                                 )
 
                             } catch (e: Exception) {
