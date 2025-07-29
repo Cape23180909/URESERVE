@@ -104,7 +104,7 @@ fun ReservaListScreen(
                     val reservas = (state as ReservaViewModel.ReservaListState.Success).reservas
                     if (reservas.isNotEmpty()) {
                         Text(
-                            text = "Reservas",
+                            text = "Reservas Planificadas:",
                             color = Color.White,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
