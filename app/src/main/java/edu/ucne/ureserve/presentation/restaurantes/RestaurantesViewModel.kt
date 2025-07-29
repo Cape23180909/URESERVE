@@ -340,7 +340,8 @@ class RestaurantesViewModel @Inject constructor(
         fecha: String,
         matricula: String,
         cantidadHoras: Int,
-        miembros: List<String>
+        miembros: List<String>,
+        tipoReserva: Int
     ) {
         viewModelScope.launch {
             try {
@@ -365,6 +366,9 @@ class RestaurantesViewModel @Inject constructor(
                         .format(DateTimeFormatter.ISO_INSTANT)
                 }
 
+                // ✅ APLICAMOS EL FORMATO A LA MATRÍCULA ANTES DE CREAR EL DTO
+                val matriculaFormateada = formatearMatricula(matricula)
+
                 // RESERVACIÓN BASE
                 val reservacionDto = ReservacionesDto(
                     reservacionId = 0,
@@ -375,7 +379,7 @@ class RestaurantesViewModel @Inject constructor(
                     horaInicio = horaInicio,
                     horaFin = horaFin,
                     estado = 1,
-                    matricula = matricula
+                    matricula = matriculaFormateada // ✅ Ahora con formato xxxx-xxxx
                 )
 
                 val datosPersonales = getDatosPersonales()
@@ -480,6 +484,15 @@ class RestaurantesViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun formatearMatricula(matricula: String): String {
+        val limpia = matricula.replace("-", "").replace(" ", "")
+        return if (limpia.length == 8 && limpia.all { it.isDigit() }) {
+            "${limpia.substring(0, 4)}-${limpia.substring(4)}"
+        } else {
+            matricula // si no es válida, devuelve sin cambios
         }
     }
 
