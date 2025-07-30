@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.cubiculos
 
+import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,12 +48,18 @@ import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.net.URLEncoder
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun DashboardCubiculoScreen(
     fecha: String = "Hoy",
@@ -60,6 +68,22 @@ fun DashboardCubiculoScreen(
     usuarioDTO: UsuarioDTO,
     navController: NavController
 ) {
+    val context = LocalContext.current
+
+    // Notificación
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    // Permiso para Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = android.Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     val cubiculos by viewModel.cubiculos.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFF023E8A))) {
@@ -120,6 +144,11 @@ fun DashboardCubiculoScreen(
                     cubiculo = cubiculo,
                     onClick = {
                         if (cubiculo.disponible) {
+                            // Notificación
+                            notificationHandler.showNotification(
+                                title = "Cubículo Seleccionado",
+                                message = "Seleccionaste el ${cubiculo.nombre}"
+                            )
                             val jsonUsuario = Json.encodeToString(usuarioDTO)
                             navController.navigate("reserva/${cubiculo.cubiculoId}?usuario=${URLEncoder.encode(jsonUsuario, "UTF-8")}")
                         }
