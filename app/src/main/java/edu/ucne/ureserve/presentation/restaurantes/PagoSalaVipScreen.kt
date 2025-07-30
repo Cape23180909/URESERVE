@@ -252,7 +252,7 @@ fun PagoSalaVipScreen(
                                     )
                                 }
 
-                                viewModel.confirmarReservacionRestaurante(
+                                viewModel.confirmarReservacionSalaVIP(
                                     getLista = { DatosPersonalesSalaVipStore.lista },
                                     getMetodoPagoSeleccionado = { DatosPersonalesSalaVipStore.metodoPagoSeleccionado },
                                     getTarjetaCredito = { DatosPersonalesSalaVipStore.tarjetaCredito },
