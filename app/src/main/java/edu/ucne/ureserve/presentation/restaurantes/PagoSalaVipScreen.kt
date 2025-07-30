@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
+import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -21,6 +22,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
 import kotlinx.coroutines.flow.update
@@ -29,6 +34,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PagoSalaVipScreen(
@@ -36,10 +42,25 @@ fun PagoSalaVipScreen(
     navController: NavController,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     val uiState by viewModel.uiState.collectAsState()
     var metodoPagoSeleccionado by remember { mutableStateOf(DatosPersonalesSalaVipStore.metodoPagoSeleccionado) }
     val scrollState = rememberScrollState()
-    val context = LocalContext.current
 
     val datosPersonales = DatosPersonalesSalaVipStore.lista
     val codigoReserva = remember { (100000..999999).random() }
@@ -135,20 +156,33 @@ fun PagoSalaVipScreen(
                         MetodoPagoSalaVipItem("Efectivo", R.drawable.dinero, metodoPagoSeleccionado == "Efectivo") {
                             metodoPagoSeleccionado = "Efectivo"
                             DatosPersonalesSalaVipStore.metodoPagoSeleccionado = "Efectivo"
+                            notificationHandler.showNotification(
+                                title = "Método de Pago",
+                                message = "Seleccionaste pago en efectivo."
+                            )
                             navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
                         }
 
                         MetodoPagoSalaVipItem("Tarjeta de crédito", R.drawable.credito, metodoPagoSeleccionado == "Tarjeta de crédito") {
                             metodoPagoSeleccionado = "Tarjeta de crédito"
                             DatosPersonalesSalaVipStore.metodoPagoSeleccionado = "Tarjeta de crédito"
+                            notificationHandler.showNotification(
+                                title = "Método de Pago",
+                                message = "Seleccionaste tarjeta de crédito."
+                            )
                             navController.navigate("TarjetaCreditoSalaVip?fecha=$fecha")
                         }
 
                         MetodoPagoSalaVipItem("Transferencia bancaria", R.drawable.trasnferencia, metodoPagoSeleccionado == "Transferencia bancaria") {
                             metodoPagoSeleccionado = "Transferencia bancaria"
                             DatosPersonalesSalaVipStore.metodoPagoSeleccionado = "Transferencia bancaria"
+                            notificationHandler.showNotification(
+                                title = "Método de Pago",
+                                message = "Seleccionaste transferencia bancaria."
+                            )
                             navController.navigate("SalaVipTransferencia?fecha=$fecha")
                         }
+
                     }
                 }
 
@@ -251,6 +285,10 @@ fun PagoSalaVipScreen(
                                         calcularHoras(viewModel.uiState.value.horaInicio, viewModel.uiState.value.horaFin)
                                     )
                                 }
+                                notificationHandler.showNotification(
+                                    title = "Reserva Confirmada",
+                                    message = "Tu reserva en el restaurante se está procesando."
+                                )
 
                                 viewModel.confirmarReservacionSalaVIP(
                                     getLista = { DatosPersonalesSalaVipStore.lista },
