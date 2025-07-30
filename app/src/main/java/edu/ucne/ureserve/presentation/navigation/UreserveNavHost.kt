@@ -74,6 +74,7 @@ import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
 import edu.ucne.ureserve.presentation.salones.RegistroReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
+import edu.ucne.ureserve.presentation.welcome.WelcomeScreen
 import java.util.Calendar
 
 @SuppressLint("UnrememberedGetBackStackEntry")
@@ -98,11 +99,20 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             LoginScreen(
                 onLoginSuccess = { usuario ->
                     AuthManager.login(usuario)
-                    navController.navigate("Dashboard") {
+                    navController.navigate("Welcome") {
                         popUpTo("Login") { inclusive = true }
                     }
                 },
                 apiUrl = ""
+            )
+        }
+        composable("Welcome") {
+            WelcomeScreen(
+                onContinue = {
+                    navController.navigate("Dashboard") {
+                        popUpTo("Welcome") { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -1068,5 +1078,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 }
             )
         }
+
+
     }
 }
