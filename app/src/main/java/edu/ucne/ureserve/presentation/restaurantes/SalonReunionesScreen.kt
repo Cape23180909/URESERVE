@@ -106,7 +106,7 @@ fun SalonReunionesScreen(
                 painter = painterResource(id = R.drawable.esclamacion),
                 contentDescription = "Icono de exclamación",
                 modifier = Modifier.size(32.dp)
-                .clickable { onExclamacionClick() }, // Aquí se navega
+                    .clickable { onExclamacionClick() }, // Aquí se navega
                 colorFilter = ColorFilter.tint(Color.White)
             )
             Spacer(modifier = Modifier.height(8.dp))
