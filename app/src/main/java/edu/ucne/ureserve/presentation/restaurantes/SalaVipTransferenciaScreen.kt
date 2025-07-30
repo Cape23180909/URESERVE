@@ -149,4 +149,3 @@ fun SalaVipTransferenciaPreview() {
         onConfirmarClick = {}
     )
 }
-
