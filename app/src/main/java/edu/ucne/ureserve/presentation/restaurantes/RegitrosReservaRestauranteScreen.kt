@@ -1,28 +1,13 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,20 +17,27 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 
 @Composable
-fun RegistrosReservaRestauranteScreen(
-    fecha: String = "",
-    onCancelarClick: () -> Unit = {},
-    onConfirmarClick: (DatosPersonalesRestaurante) -> Unit = {},
+fun RegistroReservaRestauranteScreen(
+    fecha: String,
+    navController: NavController,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    var correoElectronico by remember { mutableStateOf("") }
+    var nombres by remember { mutableStateOf("") }
+    var apellidos by remember { mutableStateOf("") }
+    var matricula by remember { mutableStateOf("") }
+    var cedula by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
 
-    LaunchedEffect(fecha) {
-        viewModel.setFecha(fecha)
-    }
+    val formularioCompleto = listOf(
+        nombres, apellidos, matricula, cedula, telefono, correoElectronico, direccion
+    ).all { it.isNotBlank() }
 
     Column(
         modifier = Modifier
@@ -67,7 +59,7 @@ fun RegistrosReservaRestauranteScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Registro de restaurante",
+                text = "Registro de reserva",
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White
             )
@@ -82,18 +74,17 @@ fun RegistrosReservaRestauranteScreen(
                 .padding(16.dp)
         ) {
             Text(
-                text = "COMPLETAR DATOS DEL RESTAURANTE",
+                text = "COMPLETAR REGISTRO DE RESERVA",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
                 color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = uiState.correo,
-                onValueChange = { viewModel.setCorreo(it) },
+                value = correoElectronico,
+                onValueChange = { correoElectronico = it },
                 label = { Text("Correo electrónico *") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -101,8 +92,8 @@ fun RegistrosReservaRestauranteScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = uiState.nombres,
-                onValueChange = { viewModel.setNombres(it) },
+                value = nombres,
+                onValueChange = { nombres = it },
                 label = { Text("Nombres *") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -110,8 +101,8 @@ fun RegistrosReservaRestauranteScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = uiState.apellidos,
-                onValueChange = { viewModel.setApellidos(it) },
+                value = apellidos,
+                onValueChange = { apellidos = it },
                 label = { Text("Apellidos *") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -119,8 +110,8 @@ fun RegistrosReservaRestauranteScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = uiState.telefono,
-                onValueChange = { viewModel.setTelefono(it) },
+                value = telefono,
+                onValueChange = { telefono = it },
                 label = { Text("Teléfono *") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
@@ -130,11 +121,11 @@ fun RegistrosReservaRestauranteScreen(
 
             OutlinedTextField(
                 value = buildString {
-                    append(uiState.matricula.take(8)) // Tomar máximo 8 dígitos
+                    append(matricula.take(8))
                     if (length > 4) insert(4, "-")
                 },
                 onValueChange = { newValue ->
-                    viewModel.setMatricula(newValue.filter { it.isDigit() }.take(8))
+                    matricula = newValue.filter { it.isDigit() }.take(8)
                 },
                 label = { Text("Matrícula *") },
                 modifier = Modifier.fillMaxWidth(),
@@ -143,8 +134,7 @@ fun RegistrosReservaRestauranteScreen(
             )
 
             OutlinedTextField(
-                value = uiState.cedula.run {
-                    // Formatear automáticamente mientras se escribe
+                value = cedula.run {
                     when {
                         length <= 3 -> this
                         length <= 10 -> "${substring(0, 3)}-${substring(3)}"
@@ -152,10 +142,8 @@ fun RegistrosReservaRestauranteScreen(
                     }
                 },
                 onValueChange = { newValue ->
-                    // Eliminar guiones existentes para el procesamiento
-                    val cleanValue = newValue.filter { it.isDigit() }
-                    // Limitar a 11 dígitos (3 + 7 + 1)
-                    viewModel.setCedula(cleanValue.take(11))
+                    val cleanValue = newValue.filter { it.isDigit() }.take(11)
+                    cedula = cleanValue
                 },
                 label = { Text("Cédula *") },
                 modifier = Modifier.fillMaxWidth(),
@@ -166,11 +154,10 @@ fun RegistrosReservaRestauranteScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = uiState.direccion,
-                onValueChange = { viewModel.setDireccion(it) },
+                value = direccion,
+                onValueChange = { direccion = it },
                 label = { Text("Dirección *") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -180,51 +167,51 @@ fun RegistrosReservaRestauranteScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = onCancelarClick,
+                    onClick = {
+                        // Limpiar campos
+                        nombres = ""
+                        apellidos = ""
+                        cedula = ""
+                        matricula = ""
+                        telefono = ""
+                        correoElectronico = ""
+                        direccion = ""
+                        navController.popBackStack()
+                    },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0077B6))
                 ) {
                     Text("CANCELAR")
                 }
+
                 Spacer(modifier = Modifier.width(16.dp))
+
                 Button(
                     onClick = {
-                        onConfirmarClick(
+                        // Limpiar lista previa para evitar duplicados
+                        DatosPersonalesRestauranteStore.lista.clear()
+
+                        // Agregar nuevo registro
+                        DatosPersonalesRestauranteStore.lista.add(
                             DatosPersonalesRestaurante(
-                                restauranteId = uiState.restauranteId,
-                                nombres = uiState.nombres,
-                                apellidos = uiState.apellidos,
-                                cedula = uiState.cedula,
-                                matricula = uiState.matricula,
-                                telefono = uiState.telefono,
-                                correoElectronico = uiState.correo,
-                                direccion = uiState.direccion,
-                                fecha = uiState.fecha
+                                nombres = nombres,
+                                apellidos = apellidos,
+                                cedula = cedula,
+                                matricula = matricula,
+                                telefono = telefono,
+                                correoElectronico = correoElectronico,
+                                direccion = direccion,
+                                fecha = fecha
                             )
                         )
+
+                        // Navegar a pantalla de pago
+                        navController.navigate("PagoRestaurante?fecha=${Uri.encode(fecha)}")
                     },
-                    enabled = listOf(
-                        uiState.nombres,
-                        uiState.apellidos,
-                        uiState.cedula,
-                        uiState.matricula,
-                        uiState.telefono,
-                        uiState.correo,
-                        uiState.direccion
-                    ).all { it.isNotBlank() },
+                    enabled = formularioCompleto,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (
-                            listOf(
-                                uiState.nombres,
-                                uiState.apellidos,
-                                uiState.cedula,
-                                uiState.matricula,
-                                uiState.telefono,
-                                uiState.correo,
-                                uiState.direccion
-                            ).all { it.isNotBlank() }
-                        ) Color(0xFF388E3C) else Color.Gray
+                        containerColor = if (formularioCompleto) Color(0xFF388E3C) else Color.Gray
                     )
                 ) {
                     Text("CONFIRMAR", color = Color.White)
@@ -237,7 +224,11 @@ fun RegistrosReservaRestauranteScreen(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewRegistroReservaRestauranteScreen() {
+    val NavController = rememberNavController()
     MaterialTheme {
-        RegistrosReservaRestauranteScreen()
+        RegistroReservaRestauranteScreen(
+            fecha = "2023-11-25",
+            navController = NavController
+        )
     }
 }
