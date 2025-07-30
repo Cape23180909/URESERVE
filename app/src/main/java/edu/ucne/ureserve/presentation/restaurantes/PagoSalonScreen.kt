@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.salones
 
+import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -20,6 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
 import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesSalaVipStore
@@ -28,6 +33,7 @@ import kotlinx.coroutines.flow.update
 import java.time.*
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PagoSalonScreen(
@@ -35,10 +41,26 @@ fun PagoSalonScreen(
     navController: NavController,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     val uiState by viewModel.uiState.collectAsState()
     var metodoPagoSeleccionado by remember { mutableStateOf(DatosPersonalesSalonStore.metodoPagoSeleccionado) }
     val scrollState = rememberScrollState()
-    val context = LocalContext.current
     val datosPersonales = DatosPersonalesSalonStore.lista
     val codigoReserva = remember { (100000..999999).random() }
     val botonHabilitado by remember {
@@ -96,18 +118,33 @@ fun PagoSalonScreen(
                         MetodoPagoSalonItem("Efectivo", R.drawable.dinero) {
                             metodoPagoSeleccionado = "Efectivo"
                             DatosPersonalesSalonStore.metodoPagoSeleccionado = "Efectivo"
+                            notificationHandler.showNotification(
+                                title = "Método de Pago",
+                                message = "Seleccionaste pago en efectivo."
+                            )
                             navController.navigate("RegistroReservaSalon?fecha=$fecha")
                         }
+
                         MetodoPagoSalonItem("Tarjeta de crédito", R.drawable.credito) {
                             metodoPagoSeleccionado = "Tarjeta de crédito"
                             DatosPersonalesSalonStore.metodoPagoSeleccionado = "Tarjeta de crédito"
+                            notificationHandler.showNotification(
+                                title = "Método de Pago",
+                                message = "Seleccionaste tarjeta de crédito."
+                            )
                             navController.navigate("TarjetaCreditoSalon?fecha=$fecha")
                         }
+
                         MetodoPagoSalonItem("Transferencia bancaria", R.drawable.trasnferencia) {
                             metodoPagoSeleccionado = "Transferencia bancaria"
                             DatosPersonalesSalonStore.metodoPagoSeleccionado = "Transferencia bancaria"
+                            notificationHandler.showNotification(
+                                title = "Método de Pago",
+                                message = "Seleccionaste transferencia bancaria."
+                            )
                             navController.navigate("SalonTransferencia?fecha=$fecha")
                         }
+
                     }
                 }
 
@@ -154,7 +191,7 @@ fun PagoSalonScreen(
                                 Text("Correo: ${persona.correoElectronico}", fontWeight = FontWeight.Bold, color = Color.Black)
                                 Text("Nombre: ${persona.nombres} ${persona.apellidos}", fontWeight = FontWeight.Bold, color = Color.Black)
                                 Text("Teléfono: ${persona.telefono}", fontWeight = FontWeight.Bold, color = Color.Black)
-                                // ✅ Mostramos con formato xxxx-xxxx
+                                //  Mostramos con formato xxxx-xxxx
                                 Text("Matrícula: ${formatearMatricula(persona.matricula)}", fontWeight = FontWeight.Bold, color = Color.Black)
                                 Text("Cédula: ${persona.cedula}", fontWeight = FontWeight.Bold, color = Color.Black)
                                 Text("Dirección: ${persona.direccion}", fontWeight = FontWeight.Bold, color = Color.Black)
@@ -179,7 +216,11 @@ fun PagoSalonScreen(
                                         return@Button
                                     }
 
-                                // ✅ Aplicamos formato y limpieza
+                                notificationHandler.showNotification(
+                                    title = "Reserva Confirmada",
+                                    message = "Tu reserva en el salón se está procesando."
+                                )
+                                //  Aplicamos formato y limpieza
                                 val matriculaFormateada = formatearMatricula(matriculaSinFormato)
                                 val matriculaParaApi = matriculaFormateada // ✅ Usa el formato xxxx-xxxx si tu backend lo acepta
 
