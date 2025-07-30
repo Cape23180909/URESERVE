@@ -250,6 +250,13 @@ fun ReservaProyectorScreen(
                                     onClick = {
                                         horaInicio = timeAmPm
                                         expandedInicio = false
+
+                                        //  Notificación al seleccionar la hora de inicio
+                                        notificationHandler.showNotification(
+                                            title = "Hora seleccionada",
+                                            message = "Seleccionaste la hora de inicio: $horaInicio"
+                                        )
+
                                         // Asegurar que horaFin sea posterior a horaInicio
                                         if (horas.indexOf(horaFin) <= index) {
                                             horaFin = horas.getOrElse(index + 1) { horas.last() }
