@@ -109,7 +109,7 @@ fun ReservaSalonScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Registro de reserva",
+                text = "Registro de reserva Salon",
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White
             )
