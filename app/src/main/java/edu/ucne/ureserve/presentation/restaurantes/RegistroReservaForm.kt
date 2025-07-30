@@ -3,6 +3,7 @@ package edu.ucne.ureserve.presentation.restaurantes
 import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,14 +37,10 @@ fun RegistroReservaScreen(
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
         } else null
-
     val notificationHandler = remember { NotificationHandler(context) }
 
     LaunchedEffect(true) {
@@ -50,79 +48,99 @@ fun RegistroReservaScreen(
             postNotificationPermission.launchPermissionRequest()
         }
     }
-    Column(
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(Color(0xFF023E8A))
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo_reserve),
-                contentDescription = "Logo",
-                modifier = Modifier.size(40.dp)
-            )
-            Text(
-                text = "Registro Sala VIP",
-                color = Color(0xFF023E8A),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Image(
-                painter = painterResource(id = R.drawable.sala),
-                contentDescription = "Sala VIP",
-                modifier = Modifier.size(40.dp)
-            )
-        }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo_reserve),
+                            contentDescription = "Logo",
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Registro de reserva",
+                            color = Color(0xFF023E8A),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
 
-        Text(
-            text = "Formulario para $fecha",
-            style = MaterialTheme.typography.headlineSmall,
-            color = Color(0xFF023E8A),
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        RegistroSalaVipForm(
-            fecha = fecha,
-
-            onCancelarClick = {
-                notificationHandler.showNotification(
-                    title = "Reserva cancelada",
-                    message = "Has cancelado el formulario."
-                )
-                onCancelarClick()
-            },
-            onConfirmarClick = { correoElectronico, nombres, apellidos, telefono, matricula, cedula, direccion ->
-                DatosPersonalesSalaVipStore.lista.add(
-                    DatosPersonalesSalaVip(
-                        correoElectronico = correoElectronico,
-                        nombre = nombres,
-                        apellidos = apellidos,
-                        telefono = telefono,
-                        matricula = matricula,
-                        cedula = cedula,
-                        direccion = direccion
+                    Text(
+                        text = "COMPLETAR REGISTRO DE RESERVA",
+                        color = Color(0xFF023E8A),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
-                )
 
-                viewModel.setNombres(nombres)
-                viewModel.setDireccion(direccion)
-                viewModel.setTelefono(telefono)
-                viewModel.setCorreo(correoElectronico)
-                viewModel.setFecha(fecha)
-
-                notificationHandler.showNotification(
-                    title = "Formulario Enviado",
-                    message = "La reserva fue guardada correctamente."
-                )
-                onConfirmarClick()
+                    RegistroSalaVipForm(
+                        fecha = fecha,
+                        onCancelarClick = {
+                            notificationHandler.showNotification(
+                                title = "Reserva cancelada",
+                                message = "Has cancelado el formulario."
+                            )
+                            onCancelarClick()
+                        },
+                        onConfirmarClick = { correoElectronico, nombres, apellidos, telefono, matricula, cedula, direccion ->
+                            DatosPersonalesSalaVipStore.lista.add(
+                                DatosPersonalesSalaVip(
+                                    correoElectronico = correoElectronico,
+                                    nombre = nombres,
+                                    apellidos = apellidos,
+                                    telefono = telefono,
+                                    matricula = matricula,
+                                    cedula = cedula,
+                                    direccion = direccion
+                                )
+                            )
+                            viewModel.setNombres(nombres)
+                            viewModel.setDireccion(direccion)
+                            viewModel.setTelefono(telefono)
+                            viewModel.setCorreo(correoElectronico)
+                            viewModel.setFecha(fecha)
+                            notificationHandler.showNotification(
+                                title = "Formulario Enviado",
+                                message = "La reserva fue guardada correctamente."
+                            )
+                            onConfirmarClick()
+                        }
+                    )
+                }
             }
-        )
+        }
     }
 }
 
@@ -157,100 +175,84 @@ fun RegistroSalaVipForm(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "Datos de la Sala VIP",
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            color = Color(0xFF023E8A)
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
         OutlinedTextField(
             value = correoElectronico,
             onValueChange = { correoElectronico = it },
-            label = { Text("Correo Electronico *") },
+            label = { Text("Correo electrónico *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = nombres,
             onValueChange = { nombres = it },
-            label = { Text("Nombres *") },
+            label = { Text("Nombres *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = apellidos,
-            onValueChange = { apellidos = it},
-            label = { Text("apellidos *") },
+            onValueChange = { apellidos = it },
+            label = { Text("Apellidos *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = telefono,
             onValueChange = { telefono = it },
-            label = { Text("Teléfono *") },
+            label = { Text("Número de celular *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = matricula,
             onValueChange = {
-                // Filtra solo números y limita a 8 dígitos
                 val cleaned = it.filter { char -> char.isDigit() }.take(8)
-
                 matricula = when {
                     cleaned.length <= 4 -> cleaned
                     else -> "${cleaned.take(4)}-${cleaned.drop(4)}"
                 }
             },
-            label = { Text("Matrícula *") },
+            label = { Text("Matrícula *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = cedula,
             onValueChange = { input ->
-                // Filtra solo dígitos
                 val digits = input.filter { it.isDigit() }.take(11)
-
-                // Aplica formato: xxx-xxxxxxx-x
                 cedula = when {
                     digits.length <= 3 -> digits
                     digits.length <= 10 -> "${digits.take(3)}-${digits.drop(3).take(7)}"
                     else -> "${digits.take(3)}-${digits.drop(3).take(7)}-${digits.drop(10)}"
                 }
             },
-            label = { Text("Cédula *") },
+            label = { Text("Cédula *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = direccion,
             onValueChange = { direccion = it },
-            label = { Text("Direccion *") },
+            label = { Text("Dirección *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(24.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            OutlinedButton(
+            Button(
                 onClick = {
-
                     correoElectronico = ""
                     nombres = ""
                     apellidos = ""
@@ -258,27 +260,21 @@ fun RegistroSalaVipForm(
                     matricula = ""
                     cedula = ""
                     direccion = ""
-
                     onCancelarClick()
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF023E8A))
             ) {
-                Text("CANCELAR")
+                Text("CANCELAR", color = Color.White)
             }
-
             Spacer(modifier = Modifier.width(16.dp))
-
             Button(
-
                 onClick = {
                     onConfirmarClick(correoElectronico, nombres, apellidos, telefono, matricula, cedula, direccion)
                 },
-
                 enabled = formularioCompleto,
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (formularioCompleto) Color(0xFF388E3C) else Color.Gray
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C))
             ) {
                 Text("CONFIRMAR", color = Color.White)
             }
