@@ -1,6 +1,8 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
+import android.Manifest
 import android.net.Uri
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -19,14 +22,35 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RegistroReservaRestauranteScreen(
     fecha: String,
     navController: NavController,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     var correoElectronico by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
@@ -176,6 +200,12 @@ fun RegistroReservaRestauranteScreen(
                         telefono = ""
                         correoElectronico = ""
                         direccion = ""
+                        // Notificación de cancelación
+                        notificationHandler.showNotification(
+                            title = "Formulario cancelado",
+                            message = "Has cancelado el registro de reserva."
+                        )
+
                         navController.popBackStack()
                     },
                     modifier = Modifier.weight(1f),
@@ -204,7 +234,11 @@ fun RegistroReservaRestauranteScreen(
                                 fecha = fecha
                             )
                         )
-
+                        // Notificación de confirmación
+                        notificationHandler.showNotification(
+                            title = "Reserva enviada",
+                            message = "Tu registro de reserva fue guardado exitosamente."
+                        )
                         // Navegar a pantalla de pago
                         navController.navigate("PagoRestaurante?fecha=${Uri.encode(fecha)}")
                     },
