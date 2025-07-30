@@ -1,5 +1,7 @@
 package edu.ucne.ureserve.presentation.salones
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -9,14 +11,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RegistroReservaSalonScreen(
     fecha: String,
@@ -24,6 +32,22 @@ fun RegistroReservaSalonScreen(
     onConfirmarClick: () -> Unit,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,7 +79,14 @@ fun RegistroReservaSalonScreen(
 
         RegistroReservaSalonForm(
             fecha = fecha,
-            onCancelarClick = onCancelarClick,
+            onCancelarClick = {
+                //  Notificación de cancelación
+                notificationHandler.showNotification(
+                    title = "Formulario Cancelado",
+                    message = "La reserva del salón no fue guardada."
+                )
+                onCancelarClick()
+            },
             onConfirmarClick = { nombres, apellidos, telefono, matricula, cedula, correoElectronico, direccion ->
                 DatosPersonalesSalonStore.lista.add(
                     DatosPersonalesSalon(
@@ -70,6 +101,10 @@ fun RegistroReservaSalonScreen(
                     )
                 )
                 viewModel.setFecha(fecha)
+                notificationHandler.showNotification(
+                    title = "Reserva Confirmada",
+                    message = "La reserva del salón a nombre de $nombres fue registrada correctamente."
+                )
                 onConfirmarClick()
             }
         )
