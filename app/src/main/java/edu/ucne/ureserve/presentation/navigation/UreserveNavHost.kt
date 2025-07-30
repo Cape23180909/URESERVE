@@ -50,7 +50,6 @@ import edu.ucne.ureserve.presentation.restaurantes.PagoRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaScreen
-import edu.ucne.ureserve.presentation.restaurantes.RegistrosReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaExitosaSalonScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteExitosaScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteScreen
@@ -58,6 +57,7 @@ import edu.ucne.ureserve.presentation.restaurantes.ReservaSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteReservationcalendarioScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteTransferenciaScreen
+import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 import edu.ucne.ureserve.presentation.restaurantes.SalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalaVipTransferenciaScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalonReunionesScreen
@@ -931,24 +931,12 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
 
         composable("RegistroReservaRestaurante?fecha={fecha}") { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val viewModel: RestaurantesViewModel = hiltViewModel()
 
-            RegistrosReservaRestauranteScreen(
-                onCancelarClick = { navController.popBackStack() },
-                onConfirmarClick = { datos ->
-                    DatosPersonalesRestauranteStore.lista.add(
-                        DatosPersonalesRestaurante(
-                            restauranteId = datos.restauranteId,
-                            nombres = datos.nombres,
-                            direccion = datos.direccion,
-                            capacidad = datos.capacidad,
-                            telefono = datos.telefono,
-                            correoElectronico = datos.correoElectronico,
-                            descripcion = datos.descripcion,
-                            fecha = fecha // Pasamos la fecha desde el parámetro de la ruta
-                        )
-                    )
-                    navController.navigate("PagoRestaurante?fecha=$fecha")
-                }
+            RegistroReservaRestauranteScreen(
+                fecha = fecha,
+                navController = navController,
+                viewModel = viewModel
             )
         }
 
@@ -1078,7 +1066,5 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 }
             )
         }
-
-
     }
 }
