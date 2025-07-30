@@ -37,12 +37,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.di.ApiModule
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
@@ -79,6 +81,9 @@ fun LoginScreen(
     onLoginSuccess: (UsuarioDTO) -> Unit,
     apiUrl: String = "https://ureserve-hghra5gdhzgzdghk.eastus2-01.azurewebsites.net/api/Usuarios"
 ) {
+    val context = LocalContext.current
+    val notificationHandler = remember { NotificationHandler(context) }
+
     val correo = remember { mutableStateOf("") }
     val clave = remember { mutableStateOf("") }
 
@@ -131,6 +136,11 @@ fun LoginScreen(
                     isLoading.value = false // Ocultar carga
                     if (usuarioValido != null) {
                         AuthManager.login(usuarioValido)
+                        // Mostrar notificación al iniciar sesión
+                        notificationHandler.showNotification(
+                            title = "Bienvenido",
+                            message = "Hola ${usuarioValido.nombres} 👋"
+                        )
                         onLoginSuccess(usuarioValido)
                     } else {
                         loginError.value = "Usuario o clave incorrectos"
