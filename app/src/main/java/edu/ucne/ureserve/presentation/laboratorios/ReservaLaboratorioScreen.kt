@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
@@ -39,6 +41,8 @@ fun ReservaLaboratorioScreen(
     horaFin: String,
     fecha: Long
 ) {
+    val context = LocalContext.current
+    val notificationHandler = remember { NotificationHandler(context) }
     val hours by viewModel.selectedHours.collectAsState()
     val allMembers by viewModel.members.collectAsState()
     val laboratorioNombre by viewModel.laboratorioNombre.collectAsState()
@@ -254,6 +258,10 @@ fun ReservaLaboratorioScreen(
                             fecha = fechaSeleccionada,
                             matricula = matricula,
                             onSuccess = { codigo ->
+                                notificationHandler.showNotification(
+                                    title = "Reserva Exitosa",
+                                    message = "¡Has reservado el laboratorio correctamente!"
+                                )
                                 navController.navigate("ReservaLaboratorioExitosa/$codigo") {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
