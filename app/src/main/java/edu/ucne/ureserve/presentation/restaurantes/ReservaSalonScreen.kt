@@ -1,6 +1,8 @@
 package edu.ucne.ureserve.presentation.salones
 
+import android.Manifest
 import android.net.Uri
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,15 +32,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ReservaSalonScreen(
     fecha: String,
@@ -46,6 +55,22 @@ fun ReservaSalonScreen(
     navController: NavController,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     var correoElectronico by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
@@ -197,6 +222,10 @@ fun ReservaSalonScreen(
             ) {
                 Button(
                     onClick = {
+                        notificationHandler.showNotification(
+                            title = "Reserva cancelada",
+                            message = "Has cancelado el registro de reserva del salón."
+                        )
                         nombres = ""
                         apellidos = ""
                         cedula = ""
@@ -229,6 +258,10 @@ fun ReservaSalonScreen(
                                 horaInicio = horaInicio,
                                 horaFin = horaFin
                             )
+                        )
+                        notificationHandler.showNotification(
+                            title = "Reserva confirmada",
+                            message = "Tu reserva del salón fue registrada para la fecha $fecha."
                         )
                         navController.navigate("PagoSalon?fecha=${Uri.encode(fecha)}")
                     },
