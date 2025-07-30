@@ -75,6 +75,7 @@ import edu.ucne.ureserve.presentation.salones.RegistroReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
 import edu.ucne.ureserve.presentation.welcome.WelcomeScreen
+import edu.ucne.ureserve.presentation.youtube.CanalYoutubeScreen
 import java.util.Calendar
 
 @SuppressLint("UnrememberedGetBackStackEntry")
@@ -115,6 +116,11 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 }
             )
         }
+        composable("CanalYoutube") {
+            CanalYoutubeScreen()
+        }
+
+
 
         composable("Dashboard") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
@@ -144,9 +150,10 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     when(destination) {
                         "Perfil" -> navController.navigate("Profile")
                         "Inicio" -> {} // Ya estás en Dashboard
-                        "Tutorial" -> {} // Agrega si tienes esa pantalla
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
-                },
+                }
+                ,
                 onProfileIconClick = {
                     navController.navigate("Profile") // Navegación al hacer clic en el icono
                 },
@@ -451,10 +458,10 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     when(destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {}
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
-                navController = navController // ✅ Esto es lo que faltaba
+                navController = navController //  Esto es lo que faltaba
             )
         }
 
@@ -482,7 +489,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     when(destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> { /* ... */ }
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 }
             )
@@ -511,7 +518,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {}
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
                 onExclamacionClick = {
@@ -542,7 +549,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {} // Agrega aquí si tienes esa pantalla
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
                 onExclamacionClick = {
@@ -572,7 +579,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {}
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 } ,
                 onExclamacionClick = {
@@ -587,7 +594,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     when(destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {}
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
                 navController = navController
@@ -692,7 +699,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     when (destination) {
                         "Inicio"  -> navController.navigate("Dashboard")
                         "Perfil"  -> navController.navigate("Profile")
-                        // …
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
                 navController = navController
