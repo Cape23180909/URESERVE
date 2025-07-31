@@ -5,35 +5,18 @@ import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -57,8 +40,6 @@ fun ReservaSalonScreen(
 ) {
     val context = LocalContext.current
 
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -71,6 +52,7 @@ fun ReservaSalonScreen(
             postNotificationPermission.launchPermissionRequest()
         }
     }
+
     var correoElectronico by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
@@ -78,16 +60,14 @@ fun ReservaSalonScreen(
     var cedula by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
-    var horaInicio by remember { mutableStateOf("") } // ✅ Agregado
+    var horaInicio by remember { mutableStateOf("") }
     var horaFin by remember { mutableStateOf("") }
 
     val formularioCompleto = listOf(
         nombres, apellidos, matricula, cedula, telefono, correoElectronico, direccion
     ).all { it.isNotBlank() }
 
-    var mostrarError by remember { mutableStateOf(false) }
-    var mensajeError by remember { mutableStateOf("") }
-    val datosGuardados = rememberSaveable { mutableStateOf(false) }
+    val textFieldStyle = TextStyle(color = Color.Black)
 
     Column(
         modifier = Modifier
@@ -109,7 +89,7 @@ fun ReservaSalonScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Registro de reserva Salon",
+                text = "Registro de reserva Salón",
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White
             )
@@ -135,7 +115,8 @@ fun ReservaSalonScreen(
             OutlinedTextField(
                 value = correoElectronico,
                 onValueChange = { correoElectronico = it },
-                label = { Text("Correo electrónico *") },
+                label = { Text("Correo electrónico *", fontWeight = FontWeight.Bold, color = Color.Black) },
+                textStyle = textFieldStyle,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -144,7 +125,8 @@ fun ReservaSalonScreen(
             OutlinedTextField(
                 value = nombres,
                 onValueChange = { nombres = it },
-                label = { Text("Nombres *") },
+                label = { Text("Nombres *", fontWeight = FontWeight.Bold, color = Color.Black) },
+                textStyle = textFieldStyle,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -153,7 +135,8 @@ fun ReservaSalonScreen(
             OutlinedTextField(
                 value = apellidos,
                 onValueChange = { apellidos = it },
-                label = { Text("Apellidos *") },
+                label = { Text("Apellidos *", fontWeight = FontWeight.Bold, color = Color.Black) },
+                textStyle = textFieldStyle,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -162,7 +145,8 @@ fun ReservaSalonScreen(
             OutlinedTextField(
                 value = telefono,
                 onValueChange = { telefono = it },
-                label = { Text("Teléfono *") },
+                label = { Text("Teléfono *", fontWeight = FontWeight.Bold, color = Color.Black) },
+                textStyle = textFieldStyle,
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
             )
@@ -171,21 +155,23 @@ fun ReservaSalonScreen(
 
             OutlinedTextField(
                 value = buildString {
-                    append(matricula.take(8)) // Tomar máximo 8 dígitos
+                    append(matricula.take(8))
                     if (length > 4) insert(4, "-")
                 },
                 onValueChange = { newValue ->
                     matricula = newValue.filter { it.isDigit() }.take(8)
                 },
-                label = { Text("Matrícula *") },
+                label = { Text("Matrícula *", fontWeight = FontWeight.Bold, color = Color.Black) },
+                textStyle = textFieldStyle,
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                placeholder = { Text("XXXX-XXXX") }
+                placeholder = { Text("XXXX-XXXX", color = Color.Gray) }
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = cedula.run {
-                    // Formatear automáticamente mientras se escribe
                     when {
                         length <= 3 -> this
                         length <= 10 -> "${substring(0, 3)}-${substring(3)}"
@@ -193,15 +179,13 @@ fun ReservaSalonScreen(
                     }
                 },
                 onValueChange = { newValue ->
-                    // Eliminar guiones existentes para el procesamiento
-                    val cleanValue = newValue.filter { it.isDigit() }
-                    // Limitar a 11 dígitos (3 + 7 + 1)
-                    cedula = cleanValue.take(11)
+                    cedula = newValue.filter { it.isDigit() }.take(11)
                 },
-                label = { Text("Cédula *") },
+                label = { Text("Cédula *", fontWeight = FontWeight.Bold, color = Color.Black) },
+                textStyle = textFieldStyle,
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                placeholder = { Text("XXX-XXXXXXX-X") }
+                placeholder = { Text("XXX-XXXXXXX-X", color = Color.Gray) }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -209,9 +193,10 @@ fun ReservaSalonScreen(
             OutlinedTextField(
                 value = direccion,
                 onValueChange = { direccion = it },
-                label = { Text("Dirección *") },
+                label = { Text("Dirección *", fontWeight = FontWeight.Bold, color = Color.Black) },
+                textStyle = textFieldStyle,
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                keyboardOptions = KeyboardOptions.Default
             )
 
             Spacer(modifier = Modifier.height(24.dp))
