@@ -58,7 +58,6 @@ fun PrevisualizacionProyectorScreen(
 
     val context = LocalContext.current
 
-
     // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -137,7 +136,6 @@ fun PrevisualizacionProyectorScreen(
         Pair(null, null)
     }
 
-    // Generar código de reserva
     val codigoReserva = remember { (100000..999999).random() }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
@@ -193,29 +191,6 @@ fun PrevisualizacionProyectorScreen(
                             modifier = Modifier.padding(bottom = 16.dp))
 
                         // Detalles del proyector
-                        proyectorFinal?.let { proyector ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.icon_proyector),
-                                    contentDescription = "Proyector",
-                                    modifier = Modifier.size(30.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(
-                                        text = "Proyector: ${proyector.nombre}",
-                                        color = Color.Black,
-                                        fontSize = 16.sp)
-                                    Text(
-                                        text = "Conectividad: ${proyector.conectividad}",
-                                        color = Color.Gray,
-                                        fontSize = 14.sp)
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
 
                         // Fecha
                         Row(
@@ -235,29 +210,13 @@ fun PrevisualizacionProyectorScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Horario
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.icon_clock),
-                                contentDescription = "Horario",
-                                modifier = Modifier.size(30.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Horario: $horaInicio - $horaFin",
-                                color = Color.Black,
-                                fontSize = 16.sp)
-                        }
-
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Estado
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFFBDECB6))
+                                .background(Color(0xA4FDD835))
                                 .padding(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -265,26 +224,15 @@ fun PrevisualizacionProyectorScreen(
                                 modifier = Modifier
                                     .size(16.dp)
                                     .clip(RoundedCornerShape(4.dp))
-                                    .background(Color.Green))
+                                    .background(Color.Yellow))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Pendiente de confirmación",
+                                text = "Pendiente de confirmar",
                                 color = Color.Black,
                                 fontSize = 16.sp)
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
-
-                        Text(
-                            text = "Código de reserva:",
-                            color = Color.Gray,
-                            fontSize = 14.sp)
-                        Text(
-                            text = codigoReserva.toString(),
-                            color = Color.Black,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 4.dp))
                     }
 
                     // Lista horarios seleccionados
@@ -389,11 +337,9 @@ fun PrevisualizacionProyectorScreen(
                                                 matricula = matricula
                                             )
 
-                                            // Esperar y verificar estado
                                             delay(1000)
 
                                             if (viewModel.state.value.reservaConfirmada) {
-                                                // Mostrar la notificación aquí
                                                 notificationHandler.showNotification(
                                                     title = "Reserva Confirmada",
                                                     message = "Tu reserva del proyector ha sido registrada."
@@ -414,9 +360,21 @@ fun PrevisualizacionProyectorScreen(
                                         snackbarHostState.showSnackbar("Error: ${e.message ?: "Ocurrió un error inesperado"}")
                                     }
                                 }
-                            }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF6895D2),
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text(text = "CONFIRMAR")
+                            Text(
+                                text = "FINALIZAR",
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(8.dp)
+                            )
                         }
                     }
                 }
