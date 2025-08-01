@@ -1,6 +1,7 @@
 package edu.ucne.ureserve.presentation.navigation
 
 import AgregarEstudianteScreen
+import ProyectorSwitchScreen
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
@@ -12,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -26,6 +28,8 @@ import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
+import edu.ucne.ureserve.presentation.empleados.DashboardEmpleadoScreen
+import edu.ucne.ureserve.presentation.empleados.EmpleadoproyectoScreen
 import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLaboratorio
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
 import edu.ucne.ureserve.presentation.laboratorios.ExistosaLaboratorioScreen
@@ -96,17 +100,20 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
-        composable("Login") {
-            LoginScreen(
-                onLoginSuccess = { usuario ->
-                    AuthManager.login(usuario)
-                    navController.navigate("Welcome") {
-                        popUpTo("Login") { inclusive = true }
+        composable("login") {
+            LoginScreen(onLoginSuccess = { usuario ->
+                if (usuario.correoInstitucional == "jacksonperez@gmail.com") {
+                    navController.navigate("dashboard_empleado") {
+                        popUpTo("login") { inclusive = true }
                     }
-                },
-                apiUrl = ""
-            )
+                } else {
+                    navController.navigate("welcome") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            })
         }
+
         composable("Welcome") {
             WelcomeScreen(
                 onContinue = {
@@ -1071,6 +1078,35 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 onConfirmarClick = { fechaConfirmada ->
                     navController.navigate("RegistroReservaRestaurante?fecha=$fechaConfirmada")
                 }
+            )
+        }
+
+        //Empleado Proyector
+
+        composable("dashboard_empleado") {
+            DashboardEmpleadoScreen(
+                onLogout = {
+                    AuthManager.logout()
+                    navController.navigate("LoadStart") {
+                        popUpTo("Profile") { inclusive = true }
+                    }
+                },
+                onOpcionesEmpleadoProyector = {
+                    navController.navigate("empleadoproyecto")
+                },
+                navController = navController
+            )
+        }
+
+        composable("empleadoproyecto") {
+            EmpleadoproyectoScreen(
+                navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
+        composable("proyector_switch") {
+            ProyectorSwitchScreen(
+                navController = navController
             )
         }
     }
