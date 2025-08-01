@@ -1,5 +1,7 @@
 package edu.ucne.ureserve.presentation.proyectores
 
+import android.Manifest
+import android.content.Context
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -7,45 +9,17 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,24 +29,44 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
-import kotlinx.coroutines.launch
-import java.time.format.DateTimeFormatter
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import edu.ucne.ureserve.presentation.proyectores.DateTimeUtils.parseHora
 import edu.ucne.ureserve.presentation.proyectores.DateTimeUtils.formatHora
 import edu.ucne.ureserve.presentation.proyectores.DateTimeUtils.parseFecha
-
+import edu.ucne.ureserve.presentation.proyectores.DateTimeUtils.parseHora
+import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ReservaProyectorScreen(
     viewModel: ReservaProyectorViewModel = hiltViewModel(),
     navController: NavController,
     onBottomNavClick: (String) -> Unit = {}
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
+
     val fechaActual by remember { mutableStateOf(viewModel.obtenerFechaActual()) }
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -82,7 +76,6 @@ fun ReservaProyectorScreen(
     var expandedInicio by remember { mutableStateOf(false) }
     var expandedFin by remember { mutableStateOf(false) }
 
-    // Horario disponible
     val horas = listOf(
         "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
         "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
@@ -257,6 +250,13 @@ fun ReservaProyectorScreen(
                                     onClick = {
                                         horaInicio = timeAmPm
                                         expandedInicio = false
+
+                                        //  Notificación al seleccionar la hora de inicio
+                                        notificationHandler.showNotification(
+                                            title = "Hora seleccionada",
+                                            message = "Seleccionaste la hora de inicio: $horaInicio"
+                                        )
+
                                         // Asegurar que horaFin sea posterior a horaInicio
                                         if (horas.indexOf(horaFin) <= index) {
                                             horaFin = horas.getOrElse(index + 1) { horas.last() }
@@ -384,46 +384,32 @@ fun ReservaProyectorScreen(
                         if (state.proyectores.isNotEmpty()) {
                             coroutineScope.launch {
                                 try {
-                                    // Validar hora de inicio
-                                    val horaInicioParsed = try {
-                                        parseHora(horaInicio)
-                                    } catch (e: Exception) {
-                                        snackbarHostState.showSnackbar("Hora inicio inválida: ${e.message}")
-                                        return@launch
-                                    }
-
-                                    // Validar hora de fin
-                                    val horaFinParsed = try {
-                                        parseHora(horaFin)
-                                    } catch (e: Exception) {
-                                        snackbarHostState.showSnackbar("Hora fin inválida: ${e.message}")
-                                        return@launch
-                                    }
-
-                                    // Validar orden de horas
+                                    val horaInicioParsed = parseHora(horaInicio)
+                                    val horaFinParsed = parseHora(horaFin)
                                     if (horaInicioParsed.isAfter(horaFinParsed)) {
                                         snackbarHostState.showSnackbar("La hora final debe ser después de la inicial")
                                         return@launch
                                     }
-
-                                    // Seleccionar proyector
                                     val proyectorSeleccionado = state.proyectores.first()
                                     viewModel.seleccionarProyector(proyectorSeleccionado)
 
-                                    // Verificar que se haya seleccionado correctamente
                                     if (viewModel.proyectorSeleccionado.value == null) {
                                         snackbarHostState.showSnackbar("Error al seleccionar el proyector")
                                         return@launch
                                     }
 
-                                    // Formatear fecha
                                     val fechaParseada = parseFecha(fechaActual)
                                     val fechaStrFormatted = fechaParseada.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
-
-                                    // Codificar proyector como JSON
                                     val proyectorJson = Uri.encode(Json.encodeToString(proyectorSeleccionado))
 
-                                    // Navegar a previsualización con parámetros
+                                    notificationHandler.showNotification(
+                                        title = "Reserva Confirmada",
+                                        message = "Tu reserva del proyector ha sido registrada."
+                                    )
+
+
+
+                                    // Navegar
                                     navController.navigate(
                                         "previsualizacion/${fechaStrFormatted}/" +
                                                 "${formatHora(horaInicioParsed)}/${formatHora(horaFinParsed)}/$proyectorJson"
@@ -456,6 +442,39 @@ fun ReservaProyectorScreen(
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun MainScreen(context: Context) {
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            null
+        }
+
+    val notificationHandler = NotificationHandler(context)
+
+    LaunchedEffect(key1 = true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+            Button(onClick = {
+                notificationHandler.showNotification(
+                    title = "Reserva Confirmada",
+                    message = "Tu reserva del proyector ha sido registrada."
+                )
+            }) {
+                Text(text = "Mostrar Notificación")
+            }
+    }
+}
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable

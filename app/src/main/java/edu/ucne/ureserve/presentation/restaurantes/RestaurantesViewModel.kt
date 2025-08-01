@@ -12,8 +12,10 @@ import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaRestaurantesDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.RestaurantesDto
+import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
 import edu.ucne.ureserve.data.repository.ReservacionRepository
 import edu.ucne.ureserve.data.repository.RestauranteRepository
+import edu.ucne.ureserve.presentation.salones.DatosPersonalesSalon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -21,8 +23,9 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import javax.inject.Inject
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
+
 
 @HiltViewModel
 class RestaurantesViewModel @Inject constructor(
@@ -114,6 +117,30 @@ class RestaurantesViewModel @Inject constructor(
         }
     }
 
+//    fun getReservas() {
+//        viewModelScope.launch {
+//            reservacionRepository.getReservas().collect { result ->
+//                when (result) {
+//                    is Resource.Success -> {
+//                        val reservas = result.data ?: emptyList()
+//                        Log.d("Reservas", "Reservas obtenidas: $reservas")
+//                        _uiState.update { it.copy(reservas = reservas) }
+//                    }
+//                    is Resource.Error -> {
+//                        Log.e("Reservas", "Error al obtener reservas: ${result.message}")
+//                        _uiState.update {
+//                            it.copy(errorMessage = result.message ?: "Error al obtener las reservas")
+//                        }
+//                    }
+//                    is Resource.Loading -> {
+//                        _uiState.update { it.copy(isLoading = true) }
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+
     fun crearReservacionDesdeRestaurante(
         fecha: String,
         matricula: String,
@@ -146,18 +173,23 @@ class RestaurantesViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun confirmarReservacionRestaurante(
+    fun confirmarReservacionSalaVIP(
+        getLista: () -> List<*>,
+        getMetodoPagoSeleccionado: () -> String?,
+        getTarjetaCredito: () -> TarjetaCreditoDto?,
+        getDatosPersonales: () -> Any,
         restauranteId: Int,
         horaInicio: String,
         horaFin: String,
         fecha: String,
         matricula: String,
         cantidadHoras: Int,
+        tipoReserva: Int,
         miembros: List<String>
     ) {
         viewModelScope.launch {
             try {
-                if (DatosPersonalesSalaVipStore.lista.isEmpty()) {
+                if (getLista().isEmpty()) {
                     _uiState.update { it.copy(errorMessage = "No hay datos personales registrados.") }
                     return@launch
                 }
@@ -172,16 +204,17 @@ class RestaurantesViewModel @Inject constructor(
                 } else {
                     val parsedDate = LocalDate.parse(
                         fecha,
-                        DateTimeFormatter.ofPattern("d/M/yyyy") // formato de entrada
+                        DateTimeFormatter.ofPattern("d/M/yyyy")
                     )
                     parsedDate.atStartOfDay(ZoneId.systemDefault())
                         .format(DateTimeFormatter.ISO_INSTANT)
                 }
 
+                // RESERVACIÓN BASE
                 val reservacionDto = ReservacionesDto(
                     reservacionId = 0,
                     codigoReserva = codigoReserva,
-                    tipoReserva = 4,
+                    tipoReserva = tipoReserva,
                     cantidadEstudiantes = miembros.size,
                     fecha = fechaSeleccionada,
                     horaInicio = horaInicio,
@@ -190,28 +223,358 @@ class RestaurantesViewModel @Inject constructor(
                     matricula = matricula
                 )
 
-                val detalleDto = DetalleReservaRestaurantesDto(
-                    nombre = DatosPersonalesSalaVipStore.lista.first().nombre,
-                    apellidos = DatosPersonalesSalaVipStore.lista.first().apellidos,
-                    cedula = DatosPersonalesSalaVipStore.lista.first().cedula,
-                    telefono = DatosPersonalesSalaVipStore.lista.first().telefono,
-                    direccion = DatosPersonalesSalaVipStore.lista.first().direccion,
-                    correoElectronico = DatosPersonalesSalaVipStore.lista.first().correoElectronico
+                val datosPersonales = getDatosPersonales()
+                val detalleDto = when (datosPersonales) {
+                    is DatosPersonalesSalaVip -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombre,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    is DatosPersonalesSalon -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombres,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    is DatosPersonalesRestaurante -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombres,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    else -> throw IllegalArgumentException("Tipo de dato no soportado: ${datosPersonales::class.java.simpleName}")
+                }
+
+                // GUARDAR RESERVA
+                val resultadoReserva = try {
+                    reservacionRepository.guardarReserva(reservacionDto).collect { resource ->
+                        when (resource) {
+                            is Resource.Success -> Log.d("Reserva", "Reserva guardada: ${resource.data}")
+                            is Resource.Error -> Log.e("Reserva", "Error: ${resource.message}")
+                            is Resource.Loading -> {}
+                        }
+                    }
+                    true
+                } catch (e: Exception) {
+                    Log.e("Reserva", "Error al guardar reserva: ${e.message}")
+                    false
+                }
+
+                // GUARDAR DETALLE
+                val resultadoDetalle = try {
+                    reservacionRepository.guardarDetalleRestaurante(detalleDto)
+                    true
+                } catch (e: Exception) {
+                    Log.e("Reserva", "Error al guardar detalle: ${e.message}")
+                    false
+                }
+
+                // GUARDAR TARJETA (SI APLICA)
+                if (getMetodoPagoSeleccionado() == "Tarjeta de crédito") {
+                    val tarjeta = getTarjetaCredito()
+                    if (tarjeta != null) {
+                        try {
+                            reservacionRepository.guardarTarjeta(tarjeta)
+                            Log.d("Reserva", "Tarjeta guardada")
+                        } catch (e: Exception) {
+                            Log.e("Reserva", "Error al guardar tarjeta: ${e.message}")
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = "Error al procesar tarjeta: ${e.localizedMessage}"
+                                )
+                            }
+                            return@launch
+                        }
+                    }
+                }
+
+                // ACTUALIZAR UI STATE FINAL
+                _uiState.update {
+                    when {
+                        !resultadoReserva -> it.copy(
+                            isLoading = false,
+                            errorMessage = "Error al guardar la reserva."
+                        )
+                        !resultadoDetalle -> it.copy(
+                            isLoading = false,
+                            errorMessage = "Error al guardar detalles."
+                        )
+                        else -> {
+                            it.copy(
+                                isLoading = false,
+                                reservaConfirmada = true,
+                                mensaje = "Reserva #$codigoReserva creada exitosamente"
+                            )
+                        }
+                    }
+                }
+
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error inesperado: ${e.localizedMessage}"
+                    )
+                }
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun confirmarReservacionSalonReuniones(
+        getLista: () -> List<*>,
+        getMetodoPagoSeleccionado: () -> String?,
+        getTarjetaCredito: () -> TarjetaCreditoDto?,
+        getDatosPersonales: () -> Any,
+        restauranteId: Int,
+        horaInicio: String,
+        horaFin: String,
+        fecha: String,
+        matricula: String,
+        cantidadHoras: Int,
+        miembros: List<String>,
+        tipoReserva: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                if (getLista().isEmpty()) {
+                    _uiState.update { it.copy(errorMessage = "No hay datos personales registrados.") }
+                    return@launch
+                }
+
+                _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+                val codigoReserva = (100000..999999).random()
+
+                val fechaSeleccionada = if (fecha.isBlank()) {
+                    ZonedDateTime.now(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_INSTANT)
+                } else {
+                    val parsedDate = LocalDate.parse(
+                        fecha,
+                        DateTimeFormatter.ofPattern("d/M/yyyy")
+                    )
+                    parsedDate.atStartOfDay(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_INSTANT)
+                }
+
+                // ✅ APLICAMOS EL FORMATO A LA MATRÍCULA ANTES DE CREAR EL DTO
+                val matriculaFormateada = formatearMatricula(matricula)
+
+                // RESERVACIÓN BASE
+                val reservacionDto = ReservacionesDto(
+                    reservacionId = 0,
+                    codigoReserva = codigoReserva,
+                    tipoReserva = 5,
+                    cantidadEstudiantes = miembros.size,
+                    fecha = fechaSeleccionada,
+                    horaInicio = horaInicio,
+                    horaFin = horaFin,
+                    estado = 1,
+                    matricula = matriculaFormateada // ✅ Ahora con formato xxxx-xxxx
                 )
+
+                val datosPersonales = getDatosPersonales()
+                val detalleDto = when (datosPersonales) {
+                    is DatosPersonalesSalaVip -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombre,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    is DatosPersonalesSalon -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombres,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    is DatosPersonalesRestaurante -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombres,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    else -> throw IllegalArgumentException("Tipo de dato no soportado: ${datosPersonales::class.java.simpleName}")
+                }
+
+                // GUARDAR RESERVA
+                val resultadoReserva = try {
+                    reservacionRepository.guardarReserva(reservacionDto).collect { resource ->
+                        when (resource) {
+                            is Resource.Success -> Log.d("Reserva", "Reserva guardada: ${resource.data}")
+                            is Resource.Error -> Log.e("Reserva", "Error: ${resource.message}")
+                            is Resource.Loading -> {}
+                        }
+                    }
+                    true
+                } catch (e: Exception) {
+                    Log.e("Reserva", "Error al guardar reserva: ${e.message}")
+                    false
+                }
+
+                // GUARDAR DETALLE
+                val resultadoDetalle = try {
+                    reservacionRepository.guardarDetalleRestaurante(detalleDto)
+                    true
+                } catch (e: Exception) {
+                    Log.e("Reserva", "Error al guardar detalle: ${e.message}")
+                    false
+                }
+
+                // GUARDAR TARJETA (SI APLICA)
+                if (getMetodoPagoSeleccionado() == "Tarjeta de crédito") {
+                    val tarjeta = getTarjetaCredito()
+                    if (tarjeta != null) {
+                        try {
+                            reservacionRepository.guardarTarjeta(tarjeta)
+                            Log.d("Reserva", "Tarjeta guardada")
+                        } catch (e: Exception) {
+                            Log.e("Reserva", "Error al guardar tarjeta: ${e.message}")
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = "Error al procesar tarjeta: ${e.localizedMessage}"
+                                )
+                            }
+                            return@launch
+                        }
+                    }
+                }
+
+                // ACTUALIZAR UI STATE FINAL
+                _uiState.update {
+                    when {
+                        !resultadoReserva -> it.copy(
+                            isLoading = false,
+                            errorMessage = "Error al guardar la reserva."
+                        )
+                        !resultadoDetalle -> it.copy(
+                            isLoading = false,
+                            errorMessage = "Error al guardar detalles."
+                        )
+                        else -> {
+                            it.copy(
+                                isLoading = false,
+                                reservaConfirmada = true,
+                                mensaje = "Reserva #$codigoReserva creada exitosamente"
+                            )
+                        }
+                    }
+                }
+
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error inesperado: ${e.localizedMessage}"
+                    )
+                }
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun confirmarReservacionRestaurante(
+        getLista: () -> List<*>,
+        getMetodoPagoSeleccionado: () -> String?,
+        getTarjetaCredito: () -> TarjetaCreditoDto?,
+        getDatosPersonales: () -> Any,
+        restauranteId: Int,
+        horaInicio: String,
+        horaFin: String,
+        fecha: String,
+        matricula: String,
+        cantidadHoras: Int,
+        miembros: List<String>,
+        tipoReserva: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                if (getLista().isEmpty()) {
+                    _uiState.update { it.copy(errorMessage = "No hay datos personales registrados.") }
+                    return@launch
+                }
+
+                _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+                val codigoReserva = (100000..999999).random()
+
+                val fechaSeleccionada = if (fecha.isBlank()) {
+                    ZonedDateTime.now(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_INSTANT)
+                } else {
+                    val parsedDate = LocalDate.parse(
+                        fecha,
+                        DateTimeFormatter.ofPattern("d/M/yyyy")
+                    )
+                    parsedDate.atStartOfDay(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_INSTANT)
+                }
+
+                val matriculaFormateada = formatearMatricula(matricula)
+
+                // RESERVACIÓN BASE
+                val reservacionDto = ReservacionesDto(
+                    reservacionId = 0,
+                    codigoReserva = codigoReserva,
+                    tipoReserva = 6,
+                    cantidadEstudiantes = miembros.size,
+                    fecha = fechaSeleccionada,
+                    horaInicio = horaInicio,
+                    horaFin = horaFin,
+                    estado = 1,
+                    matricula = matriculaFormateada
+                )
+
+                val datosPersonales = getDatosPersonales()
+                val detalleDto = when (datosPersonales) {
+                    is DatosPersonalesSalaVip -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombre,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    is DatosPersonalesSalon -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombres,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    is DatosPersonalesRestaurante -> DetalleReservaRestaurantesDto(
+                        nombre = datosPersonales.nombres,
+                        apellidos = datosPersonales.apellidos,
+                        cedula = datosPersonales.cedula,
+                        telefono = datosPersonales.telefono,
+                        direccion = datosPersonales.direccion,
+                        correoElectronico = datosPersonales.correoElectronico
+                    )
+                    else -> throw IllegalArgumentException("Tipo de dato no soportado: ${datosPersonales::class.java.simpleName}")
+                }
 
                 val resultadoReserva = try {
                     reservacionRepository.guardarReserva(reservacionDto).collect { resource ->
                         when (resource) {
-                            is Resource.Success -> {
-                                // Reserva guardada con éxito
-                                Log.d("Reserva", "Reserva guardada: ${resource.data}")
-                            }
-                            is Resource.Error -> {
-                                Log.e("Reserva", "Error al guardar: ${resource.message}")
-                            }
-                            is Resource.Loading -> {
-                                // Opcional: mostrar loading
-                            }
+                            is Resource.Success -> Log.d("Reserva", "Reserva guardada: ${resource.data}")
+                            is Resource.Error -> Log.e("Reserva", "Error: ${resource.message}")
+                            is Resource.Loading -> {}
                         }
                     }
                     true
@@ -228,23 +591,40 @@ class RestaurantesViewModel @Inject constructor(
                     false
                 }
 
+                if (getMetodoPagoSeleccionado() == "Tarjeta de crédito") {
+                    val tarjeta = getTarjetaCredito()
+                    if (tarjeta != null) {
+                        try {
+                            reservacionRepository.guardarTarjeta(tarjeta)
+                            Log.d("Reserva", "Tarjeta guardada")
+                        } catch (e: Exception) {
+                            Log.e("Reserva", "Error al guardar tarjeta: ${e.message}")
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = "Error al procesar tarjeta: ${e.localizedMessage}"
+                                )
+                            }
+                            return@launch
+                        }
+                    }
+                }
+
                 _uiState.update {
                     when {
                         !resultadoReserva -> it.copy(
                             isLoading = false,
-                            errorMessage = "Error al guardar la reserva principal. Intente nuevamente."
+                            errorMessage = "Error al guardar la reserva."
                         )
                         !resultadoDetalle -> it.copy(
                             isLoading = false,
-                            errorMessage = "Error al guardar los detalles. Contacte al soporte."
+                            errorMessage = "Error al guardar detalles."
                         )
                         else -> {
-                            limpiarDatosAlmacenados()
                             it.copy(
                                 isLoading = false,
                                 reservaConfirmada = true,
-                                mensaje = "Reserva #$codigoReserva creada exitosamente",
-                                errorMessage = null
+                                mensaje = "Reserva #$codigoReserva creada exitosamente"
                             )
                         }
                     }
@@ -254,12 +634,23 @@ class RestaurantesViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error inesperado: ${e.localizedMessage ?: "Por favor intente más tarde"}"
+                        errorMessage = "Error inesperado: ${e.localizedMessage}"
                     )
                 }
             }
         }
     }
+
+    fun formatearMatricula(matricula: String): String {
+        val limpia = matricula.replace("-", "").replace(" ", "")
+        return if (limpia.length == 8 && limpia.all { it.isDigit() }) {
+            "${limpia.substring(0, 4)}-${limpia.substring(4)}"
+        } else {
+            matricula
+        }
+    }
+
+
 
     // Función auxiliar para crear el DTO
     private fun crearReservacionDto(persona: DatosPersonalesSalaVip): ReservacionesDto {
@@ -337,5 +728,6 @@ data class RestaurantesUiState(
     val inputError: String? = null,
     val reservaConfirmada: Boolean = false,
     val mensaje: String? = null,
-    val restaurantes: List<RestaurantesDto> = emptyList()
+    val restaurantes: List<RestaurantesDto> = emptyList(),
+    val reservas: List<Map<String, Any?>> = emptyList()
 )

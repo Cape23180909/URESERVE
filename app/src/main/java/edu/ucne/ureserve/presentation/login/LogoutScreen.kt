@@ -10,16 +10,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
@@ -29,10 +32,14 @@ val Azul = Color(0xFF154AD5)
 
 @Composable
 fun ProfileScreen(
+
     usuario: UsuarioDTO,
     estudiante: EstudianteDto,
     onLogout: () -> Unit,
     onBottomNavClick: (String) -> Unit = {}) {
+    val context = LocalContext.current
+    val notificationHandler = remember { NotificationHandler(context) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Fondo superior amarillo
         Box(
@@ -94,9 +101,16 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(122.dp))
 
-                    // Botón cerrar sesión
+                    // Botón cerrar sesión con notificación
                     Button(
-                        onClick = onLogout,
+                        onClick = {
+                            // Mostrar notificación al cerrar sesión
+                            notificationHandler.showNotification(
+                                title = "Sesión Cerrada",
+                                message = "Has cerrado sesión correctamente."
+                            )
+                            onLogout()
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),

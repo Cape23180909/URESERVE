@@ -1,6 +1,8 @@
 package edu.ucne.ureserve.presentation.salones
 
+import android.Manifest
 import android.app.DatePickerDialog
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -17,19 +19,40 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import java.util.*
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun TarjetaCreditoSalonScreen(
     fecha: String,
     navController: NavController
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     var numeroTarjeta by remember { mutableStateOf("") }
     var nombreTitular by remember { mutableStateOf("") }
     var fechaVencimiento by remember { mutableStateOf("") }
     var codigoSeguridad by remember { mutableStateOf("") }
 
-    val context = LocalContext.current
+
     val calendar = Calendar.getInstance()
 
     val datePickerDialog = remember {
@@ -157,15 +180,27 @@ fun TarjetaCreditoSalonScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 OutlinedButton(
-                    onClick = { navController.popBackStack() },
+                    onClick = {
+                        notificationHandler.showNotification(
+                            title = "Operación cancelada",
+                            message = "Has cancelado el pago con tarjeta."
+                        )
+                        navController.popBackStack()
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("CANCELAR")
                 }
+
                 Spacer(modifier = Modifier.width(16.dp))
+
                 Button(
                     onClick = {
+                        notificationHandler.showNotification(
+                            title = "Pago confirmado",
+                            message = "El pago ha sido procesado correctamente."
+                        )
                         navController.navigate("ReservaSalon?fecha=$fecha")
                     },
                     enabled = isFormValid,
@@ -176,8 +211,8 @@ fun TarjetaCreditoSalonScreen(
                 ) {
                     Text("CONFIRMAR")
                 }
-
             }
+
         }
     }
 }

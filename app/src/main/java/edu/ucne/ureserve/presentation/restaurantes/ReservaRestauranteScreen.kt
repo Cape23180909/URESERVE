@@ -1,28 +1,53 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ReservaRestauranteScreen(
     onBottomNavClick: (String) -> Unit = {},
     onOptionClick: (String) -> Unit = {}
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -76,22 +101,39 @@ fun ReservaRestauranteScreen(
             RestauranteOptionButton(
                 title = "Sala VIP",
                 iconRes = R.drawable.sala,
-                onClick = { onOptionClick("Sala VIP") }
+                onClick = {
+                    notificationHandler.showNotification(
+                        title = "Sala VIP",
+                        message = "Has seleccionado la opción Sala VIP."
+                    )
+                    onOptionClick("Sala VIP")
+                }
             )
-            Spacer(modifier = Modifier.height(24.dp))
 
             RestauranteOptionButton(
                 title = "Salón de reuniones",
                 iconRes = R.drawable.salon,
-                onClick = { onOptionClick("Salón de reuniones") }
+                onClick = {
+                    notificationHandler.showNotification(
+                        title = "Salón de reuniones",
+                        message = "Has seleccionado el Salón de reuniones."
+                    )
+                    onOptionClick("Salón de reuniones")
+                }
             )
-            Spacer(modifier = Modifier.height(24.dp))
 
             RestauranteOptionButton(
                 title = "Restaurante",
                 iconRes = R.drawable.comer,
-                onClick = { onOptionClick("Restaurante") }
+                onClick = {
+                    notificationHandler.showNotification(
+                        title = "Restaurante",
+                        message = "Has seleccionado el servicio de Restaurante."
+                    )
+                    onOptionClick("Restaurante")
+                }
             )
+
         }
 
         Spacer(modifier = Modifier.weight(1f))

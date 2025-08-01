@@ -17,6 +17,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
@@ -49,7 +50,6 @@ import edu.ucne.ureserve.presentation.restaurantes.PagoRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaScreen
-import edu.ucne.ureserve.presentation.restaurantes.RegistrosReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaExitosaSalonScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteExitosaScreen
 import edu.ucne.ureserve.presentation.restaurantes.ReservaRestauranteScreen
@@ -57,6 +57,7 @@ import edu.ucne.ureserve.presentation.restaurantes.ReservaSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteReservationcalendarioScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.RestauranteTransferenciaScreen
+import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 import edu.ucne.ureserve.presentation.restaurantes.SalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalaVipTransferenciaScreen
 import edu.ucne.ureserve.presentation.restaurantes.SalonReunionesScreen
@@ -73,12 +74,14 @@ import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
 import edu.ucne.ureserve.presentation.salones.RegistroReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.TarjetaCreditoSalonScreen
+import edu.ucne.ureserve.presentation.welcome.WelcomeScreen
+import edu.ucne.ureserve.presentation.youtube.CanalYoutubeScreen
 import java.util.Calendar
 
 @SuppressLint("UnrememberedGetBackStackEntry")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UreserveNavHost(navController: NavHostController) {
+fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
     NavHost(
         navController = navController,
         startDestination = "LoadStart"
@@ -97,13 +100,27 @@ fun UreserveNavHost(navController: NavHostController) {
             LoginScreen(
                 onLoginSuccess = { usuario ->
                     AuthManager.login(usuario)
-                    navController.navigate("Dashboard") {
+                    navController.navigate("Welcome") {
                         popUpTo("Login") { inclusive = true }
                     }
                 },
                 apiUrl = ""
             )
         }
+        composable("Welcome") {
+            WelcomeScreen(
+                onContinue = {
+                    navController.navigate("Dashboard") {
+                        popUpTo("Welcome") { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable("CanalYoutube") {
+            CanalYoutubeScreen()
+        }
+
+
 
         composable("Dashboard") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
@@ -133,9 +150,10 @@ fun UreserveNavHost(navController: NavHostController) {
                     when(destination) {
                         "Perfil" -> navController.navigate("Profile")
                         "Inicio" -> {} // Ya estás en Dashboard
-                        "Tutorial" -> {} // Agrega si tienes esa pantalla
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
-                },
+                }
+                ,
                 onProfileIconClick = {
                     navController.navigate("Profile") // Navegación al hacer clic en el icono
                 },
@@ -440,10 +458,10 @@ fun UreserveNavHost(navController: NavHostController) {
                     when(destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {}
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
-                navController = navController // ✅ Esto es lo que faltaba
+                navController = navController //  Esto es lo que faltaba
             )
         }
 
@@ -471,7 +489,7 @@ fun UreserveNavHost(navController: NavHostController) {
                     when(destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> { /* ... */ }
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 }
             )
@@ -500,7 +518,7 @@ fun UreserveNavHost(navController: NavHostController) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {}
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
                 onExclamacionClick = {
@@ -531,7 +549,7 @@ fun UreserveNavHost(navController: NavHostController) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {} // Agrega aquí si tienes esa pantalla
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
                 onExclamacionClick = {
@@ -561,7 +579,7 @@ fun UreserveNavHost(navController: NavHostController) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {}
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 } ,
                 onExclamacionClick = {
@@ -576,7 +594,7 @@ fun UreserveNavHost(navController: NavHostController) {
                     when(destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                         "Perfil" -> navController.navigate("Profile")
-                        "Tutorial" -> {}
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
                 navController = navController
@@ -681,7 +699,7 @@ fun UreserveNavHost(navController: NavHostController) {
                     when (destination) {
                         "Inicio"  -> navController.navigate("Dashboard")
                         "Perfil"  -> navController.navigate("Profile")
-                        // …
+                        "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
                 navController = navController
@@ -870,23 +888,23 @@ fun UreserveNavHost(navController: NavHostController) {
         }
 
         composable(
-            route = "ReservaSalon?fecha={fecha}",
+            route = "RegistroReservaSalon?fecha={fecha}",
             arguments = listOf(
-                navArgument("fecha") {
-                    type = NavType.StringType
-                    defaultValue = ""
-                    nullable = false
-                }
+                navArgument("fecha") { defaultValue = "" }
             )
         ) { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
-            ReservaSalonScreen(fecha = fecha,
-                onCancelarClick = { navController.popBackStack() },
+            RegistroReservaSalonScreen(
+                fecha = fecha,
+                onCancelarClick = {
+                    navController.popBackStack()
+                },
                 onConfirmarClick = {
-                    navController.navigate("ReservaSalon?fecha=$fecha")
+                    navController.navigate("pagoSalon?fecha=$fecha")
                 }
             )
         }
+
 
         composable(
             route = "ReservaSalaVipExitosa/{numeroReserva}",
@@ -920,25 +938,25 @@ fun UreserveNavHost(navController: NavHostController) {
 
         composable("RegistroReservaRestaurante?fecha={fecha}") { backStackEntry ->
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val viewModel: RestaurantesViewModel = hiltViewModel()
 
-            RegistrosReservaRestauranteScreen(
-                onCancelarClick = { navController.popBackStack() },
-                onConfirmarClick = { datos ->
-                    DatosPersonalesRestauranteStore.lista.add(
-                        DatosPersonalesRestaurante(
-                            restauranteId = datos.restauranteId,
-                            nombres = datos.nombres,
-                            ubicacion = datos.ubicacion,
-                            capacidad = datos.capacidad,
-                            telefono = datos.telefono,
-                            correo = datos.correo,
-                            descripcion = datos.descripcion,
-                            fecha = fecha // Pasamos la fecha desde el parámetro de la ruta
-                        )
-                    )
-                    navController.navigate("PagoRestaurante?fecha=$fecha")
-                }
+            RegistroReservaRestauranteScreen(
+                fecha = fecha,
+                navController = navController,
+                viewModel = viewModel
             )
+        }
+
+        composable(
+            route = "ReservaSalon?fecha={fecha}",
+            arguments = listOf(navArgument("fecha") {
+                type = NavType.StringType
+                defaultValue = ""
+                nullable = true
+            })
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            ReservaSalonScreen(fecha = fecha, navController = navController)
         }
 
         composable(
@@ -970,7 +988,6 @@ fun UreserveNavHost(navController: NavHostController) {
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
             TarjetaCreditoRestauranteScreen(fecha = fecha, navController = navController)
         }
-
 
         composable(
             route = "TarjetaCreditoSalon?fecha={fecha}",

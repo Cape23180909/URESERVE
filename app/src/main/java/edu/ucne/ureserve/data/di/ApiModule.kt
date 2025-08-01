@@ -160,6 +160,13 @@ object ApiModule {
         return retrofit.create(DetalleReservaRestaurantesApi::class.java)
     }
 
+    // TarjetaCredito
+    @Provides
+    @Singleton
+    fun provideTarjetaCreditoApi(retrofit: Retrofit): TarjetaCreditoApi {
+        return retrofit.create(TarjetaCreditoApi::class.java)
+    }
+
     // Firebase
     @Provides
     @Singleton
