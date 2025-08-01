@@ -50,8 +50,11 @@ class EmpleadoViewModel @Inject constructor(
                 val proyector = _proyectores.value.find { it.proyectorId == id }
                     ?: throw IllegalArgumentException("Proyector con id $id no encontrado")
 
-                // Llamar al API
-                api.update(
+                // Mostrar estado de carga
+                _isLoading.value = true
+
+                // Llamar al API (usa tu endpoint actual que retorna ProyectoresDto directamente)
+                val updatedProyector = api.update(
                     id = id,
                     proyector = ProyectoresDto(
                         proyectorId = id,
@@ -62,12 +65,17 @@ class EmpleadoViewModel @Inject constructor(
                     )
                 )
 
-                // Actualizar localmente
+                // Actualizar localmente (la API respondió exitosamente)
                 _proyectores.value = _proyectores.value.map { item ->
                     if (item.proyectorId == id) item.copy(disponible = disponible) else item
                 }
+
             } catch (e: Exception) {
-                _error.value = "No se pudo actualizar: ${e.message}"
+                _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
+                // Refrescar datos desde el servidor
+                cargarProyectores() // Asegúrate que este método exista en tu ViewModel
+            } finally {
+                _isLoading.value = false
             }
         }
     }
