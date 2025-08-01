@@ -105,7 +105,9 @@ fun EmpleadoproyectoScreen(
                     Spacer(modifier = Modifier.height(26.dp))
 
                     Button(
-                        onClick = { /* Acción para reservas en curso */ },
+                        onClick = {
+                            navController.navigate("empleadoproyector_En_Curso") // ← Navega a la pantalla de proyectores
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(80.dp)
