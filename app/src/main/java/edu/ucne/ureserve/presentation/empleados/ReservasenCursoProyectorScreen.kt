@@ -3,7 +3,9 @@ package edu.ucne.ureserve.presentation.empleados
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -66,11 +68,12 @@ fun ReservasenCursoProyectorScreen(navController: NavController) {
                     .padding(16.dp)
             )
 
-            // Contenido principal
+            // Contenido principal con scroll
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -98,13 +101,12 @@ fun ReservasenCursoProyectorScreen(navController: NavController) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(35.dp))
+                Spacer(modifier = Modifier.height(15.dp))
 
                 Button(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .width(50.dp)
+                        .width(150.dp)
                         .height(50.dp)
                         .clip(RoundedCornerShape(25.dp)),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
