@@ -1,6 +1,7 @@
 package edu.ucne.ureserve.data.remote
 
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
+import retrofit2.Response
 import retrofit2.http.*
 
 interface ProyectoresApi {
