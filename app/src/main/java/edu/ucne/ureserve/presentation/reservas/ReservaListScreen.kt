@@ -209,70 +209,7 @@ fun ReservaCard(reserva: ReservacionesDto, onClick: () -> Unit) {
     }
 }
 
-//@Composable
-//fun ReservaCard(reserva: ReservacionesDto, onClick: () -> Unit) {
-//    val (nombreTipo, iconoTipo) = getIconForTipo(reserva.tipoReserva)
-//    Card(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(vertical = 4.dp)
-//            .clickable { onClick() },
-//        colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
-//    ) {
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp),
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Image(
-//                painter = painterResource(id = getIconForTipo(reserva.tipoReserva)),
-//                contentDescription = "Icono",
-//                modifier = Modifier.size(40.dp)
-//            )
-//            Spacer(modifier = Modifier.width(12.dp))
-//
-//            Column(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalAlignment = Alignment.Start
-//            ) {
-//                Text(
-//                    text = "Reservación",
-//                    color = Color.Black,
-//                    fontSize = 18.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    modifier = Modifier.padding(bottom = 4.dp)
-//                )
-//                Text(
-//                    text = reserva.fechaFormateada,
-//                    color = Color.Black,
-//                    fontSize = 16.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    modifier = Modifier.padding(bottom = 2.dp)
-//                )
-//                Text(
-//                    text = "${reserva.horaInicio} A ${reserva.horaFin}",
-//                    color = Color.Black,
-//                    fontSize = 16.sp,
-//                    fontWeight = FontWeight.Bold
-//                )
-//            }
-//        }
-//    }
-//}
 
-//fun getIconForTipo(tipo: Int): Int {
-//    return when (tipo) {
-//        1 -> R.drawable.icon_proyector
-//        2 -> R.drawable.icon_cubiculo
-//        3 -> R.drawable.icon_laboratorio
-//        4 -> R.drawable.sala
-//        5 -> R.drawable.salon
-//        6 -> R.drawable.icon_restaurante
-//        else -> R.drawable.icon_reserva
-//    }
-//}
-// Esta función ahora devuelve un Pair con el nombre y el icono
 fun getIconForTipo(tipo: Int): Pair<String, Int> {
     return when (tipo) {
         1 -> Pair("PROYECTOR", R.drawable.icon_proyector)
