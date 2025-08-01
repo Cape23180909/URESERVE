@@ -6,8 +6,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,6 +46,8 @@ fun DetallesReservacionScreen(
 
     val qrData = "Fecha:$fecha\nHora:$horaInicio a $horaFin\nMatricula:$matricula"
     val qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=$qrData"
+
+    val showDialog = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -131,6 +136,38 @@ fun DetallesReservacionScreen(
                         .size(150.dp)
                         .background(Color.White, shape = RoundedCornerShape(8.dp))
                 )
+
+                IconButton(onClick = { showDialog.value = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Ver QR grande",
+                        tint = Color.White
+                    )
+                }
+            }
+
+            if (showDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showDialog.value = false },
+                    confirmButton = {
+                        TextButton(onClick = { showDialog.value = false }) {
+                            Text("CERRAR")
+                        }
+                    },
+                    title = { Text("Código QR", color = Color.Black) },
+                    text = {
+                        AsyncImage(
+                            model = qrUrl,
+                            contentDescription = "Código QR Ampliado",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp)
+                                .background(Color.White, shape = RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Fit
+                        )
+                    },
+                    containerColor = Color.White
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -165,7 +202,6 @@ fun DetallesReservacionScreen(
                 ) {
                     Text("CANCELAR", color = Color.White)
                 }
-
             }
 
             Row(
@@ -185,7 +221,6 @@ fun DetallesReservacionScreen(
                 ) {
                     Text("REGRESAR", color = Color.White)
                 }
-
 
                 Button(
                     onClick = {
