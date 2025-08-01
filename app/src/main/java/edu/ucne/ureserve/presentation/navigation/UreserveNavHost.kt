@@ -7,11 +7,16 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -24,6 +29,7 @@ import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
+import edu.ucne.ureserve.presentation.cubiculos.ModificarReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
@@ -34,6 +40,7 @@ import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLabora
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
 import edu.ucne.ureserve.presentation.laboratorios.ExistosaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
+import edu.ucne.ureserve.presentation.laboratorios.ModificarReservaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.PlanificadorLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioViewModel
@@ -49,6 +56,7 @@ import edu.ucne.ureserve.presentation.reservas.DetallesReservacionScreen
 import edu.ucne.ureserve.presentation.reservas.ModificarReservaProyectorScreen
 import edu.ucne.ureserve.presentation.reservas.ReservaListScreen
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
+import edu.ucne.ureserve.presentation.restaurantes.ModificarReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaRestauranteScreen
@@ -73,6 +81,8 @@ import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaVipScreen
 import edu.ucne.ureserve.presentation.salareuniones.SalonReunionesReservationScreen
 import edu.ucne.ureserve.presentation.salavip.ReservaSalaVipExitosaScreen
 import edu.ucne.ureserve.presentation.salavip.SalaVipReservationScreen
+import edu.ucne.ureserve.presentation.salones.ModificarReservaSalaVipScreen
+import edu.ucne.ureserve.presentation.salones.ModificarReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
 import edu.ucne.ureserve.presentation.salones.RegistroReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
@@ -130,6 +140,25 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             ModificarReservaProyectorScreen(navController)
         }
 
+        composable("modificar_cubiculo") {
+            ModificarReservaCubiculoScreen(navController = navController)
+        }
+        composable("modificar_laboratorio") {
+            ModificarReservaLaboratorioScreen(navController = navController)
+        }
+
+        composable("modificar_restaurante") {
+            ModificarReservaRestauranteScreen(navController = navController)
+        }
+        composable("modificar_salon") {
+            ModificarReservaSalonScreen(navController = navController)
+        }
+        composable("modificar_sala_vip") {
+            ModificarReservaSalaVipScreen(navController = navController)
+        }
+
+
+
 
         composable("Dashboard") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
@@ -171,43 +200,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
-//        composable("ReservaList") {
-//            // 1. Verificar que el usuario esté autenticado
-//            val usuario = AuthManager.currentUser
-//            if (usuario == null) {
-//                navController.navigate("Login") {
-//                    popUpTo(0) { inclusive = true }
-//                }
-//                return@composable
-//            }
-//
-//            // 2. Extraer la matrícula del estudiante
-//            val matricula = usuario.estudiante?.matricula
-//            if (matricula.isNullOrBlank()) {
-//                // Opcional: redirigir o mostrar error
-//                return@composable
-//            }
-//
-//            // 3. Inyectar el ViewModel
-//            val viewModel: ReservaViewModel = hiltViewModel()
-//
-//            // 4. Recargar reservas cuando la pantalla aparezca
-//            LaunchedEffect(Unit) {
-//                viewModel.loadReservas()
-//            }
-//
-//            // 5. Mostrar la pantalla
-//            ReservaListScreen(
-//                onBottomNavClick = { destination ->
-//                    when (destination) {
-//                        "Inicio" -> navController.navigate("Dashboard") {
-//                            popUpTo("Dashboard") { inclusive = false }
-//                        }
-//                    }
-//                },
-//                viewModel = viewModel
-//            )
-//        }
+
         composable("ReservaList") {
             // Verificación de autenticación y obtención de matrícula
             val usuario = AuthManager.currentUser
