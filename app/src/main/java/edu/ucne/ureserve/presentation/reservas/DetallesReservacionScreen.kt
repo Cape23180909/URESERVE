@@ -222,9 +222,18 @@ fun DetallesReservacionScreen(
                     Text("REGRESAR", color = Color.White)
                 }
 
+
+
                 Button(
                     onClick = {
-                        navController?.navigate("modificar_proyector")
+                        when (tipoReserva.uppercase()) {
+                            "CUBÍCULO" -> navController?.navigate("modificar_cubiculo")
+                            "PROYECTOR" -> navController?.navigate("modificar_proyector")
+                            "LABORATORIO" -> navController?.navigate("modificar_laboratorio")
+                            "RESTAURANTE" -> navController?.navigate("modificar_restaurante")
+                            "SALÓN" -> navController?.navigate("modificar_salon")
+                            "SALA" -> navController?.navigate("modificar_sala_vip") // Aquí navega a la pantalla que quieres
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF48CAE4)),
                     modifier = Modifier
@@ -235,6 +244,8 @@ fun DetallesReservacionScreen(
                 ) {
                     Text("MODIFICAR", color = Color.Black)
                 }
+
+
             }
         }
     }
