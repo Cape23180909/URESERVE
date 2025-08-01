@@ -1,21 +1,26 @@
 package edu.ucne.ureserve.data.repository
 
 import android.util.Log
+import edu.ucne.ureserve.data.remote.DetalleReservaRestaurantesApi
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.Resource
+import edu.ucne.ureserve.data.remote.TarjetaCreditoApi
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaRestaurantesDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
+import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
+import edu.ucne.ureserve.presentation.login.AuthManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
 import javax.inject.Inject
-import retrofit2.Response
 
 
 class ReservacionRepository @Inject constructor(
     private val remoteDataSource: RemoteDataSource,
-    private val api: ReservacionesApi
+    private val api: ReservacionesApi,
+    private val apiTarjeta: TarjetaCreditoApi,
+    private val detalleReservaRestaurantesApi: DetalleReservaRestaurantesApi
 ) {
     fun getReservaciones(): Flow<Resource<List<ReservacionesDto>>> = flow {
         try {
@@ -31,8 +36,25 @@ class ReservacionRepository @Inject constructor(
         }
     }
 
-    suspend fun getReservasByMatricula(matricula: String): List<ReservacionesDto> =
-        remoteDataSource.getReservasByMatricula(matricula)
+    suspend fun getDetalleReserva(reservacionId: Int): DetalleReservaRestaurantesDto? {
+        return try {
+            detalleReservaRestaurantesApi.getById(reservacionId)
+        } catch (e: Exception) {
+            Log.e("Repository", "Error al obtener detalle de la reserva", e)
+            null
+        }
+    }
+
+
+    suspend fun guardarTarjeta(tarjeta: TarjetaCreditoDto) {
+        apiTarjeta.insert(tarjeta)
+    }
+
+    suspend fun getReservasByMatricula(matricula: String): List<ReservacionesDto> {
+        val reservas = remoteDataSource.getReservasByMatricula(matricula)
+        Log.d("RESERVAS_DEBUG", "Reservas obtenidas: ${reservas.map { it.tipoReserva }}")
+        return reservas
+    }
 
     suspend fun guardarReserva(
         reservacionDto: ReservacionesDto
@@ -51,6 +73,22 @@ class ReservacionRepository @Inject constructor(
             emit(Resource.Error("Error inesperado: ${e.message}"))
         }
     }
+
+    //metodo Exclusivo para ver todas las reservas de los usuarios o estudiantes
+    fun getReservas(): Flow<Resource<List<ReservacionesDto>>> = flow {
+        try {
+            emit(Resource.Loading())
+            val reservaciones = remoteDataSource.getReservaciones()
+            emit(Resource.Success(reservaciones))
+        } catch (e: HttpException) {
+            Log.e("Retrofit Error", "Error de conexión ${e.message}", e)
+            emit(Resource.Error("Error de internet: ${e.message}"))
+        } catch (e: Exception) {
+            Log.e("Error", "Error desconocido: ${e.message}", e)
+            emit(Resource.Error("Error desconocido: ${e.message}"))
+        }
+    }
+
 
 
     suspend fun guardarDetalleRestaurante(detalleDto: DetalleReservaRestaurantesDto): Boolean {

@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.LaboratoriosDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
@@ -50,6 +52,9 @@ fun DashboardLaboratorioListScreen(
     onBackClick: () -> Unit,
     navController: NavController
 ) {
+    val context = LocalContext.current
+    val notificationHandler = remember { NotificationHandler(context) }
+
     // Laboratorio Seleccionado
     var laboratorioSeleccionado by remember { mutableStateOf<LaboratoriosDto?>(null) }
 
@@ -110,6 +115,11 @@ fun DashboardLaboratorioListScreen(
                         isSelected = laboratorio == laboratorioSeleccionado,
                         onClick = {
                             laboratorioSeleccionado = laboratorio
+                            // Notificación al seleccionar laboratorio
+                            notificationHandler.showNotification(
+                                title = "Laboratorio seleccionado",
+                                message = "Has seleccionado: ${laboratorio.nombre}"
+                            )
                             val fechaMillis = selectedDate.timeInMillis
                             navController.navigate("planificador_laboratorio/${laboratorio.laboratorioId}/${laboratorio.nombre}/$fechaMillis")
                         }
@@ -159,6 +169,7 @@ fun LaboratorioCard(
     isSelected: Boolean,
 )
 {
+
     Card(
         modifier = Modifier
             .fillMaxWidth()

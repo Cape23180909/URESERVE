@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import java.util.Calendar
 
@@ -31,6 +33,9 @@ fun PlanificadorLaboratorioScreen(
     laboratorioNombre: String,
     fechaSeleccionada: Calendar
 ) {
+    val context = LocalContext.current
+    val notificationHandler = remember { NotificationHandler(context) }
+
     val horariosDisponibles = listOf(
         "7:00AM", "7:30AM", "8:00AM", "8:30AM",
         "9:00AM", "9:30AM", "10:00AM", "10:30AM",
@@ -187,6 +192,12 @@ fun PlanificadorLaboratorioScreen(
                                 if (indexFin <= indexInicio) {
                                     horaFinSeleccionada = horariosDisponibles.getOrElse(indexInicio + 1) { horariosDisponibles.last() }
                                 }
+
+                                // Notificación
+                                notificationHandler.showNotification(
+                                    title = "Hora seleccionada",
+                                    message = "Hora de inicio seleccionada: $hora"
+                                )
                             }
                             .padding(8.dp),
                         color = Color.Black
@@ -248,6 +259,10 @@ fun PlanificadorLaboratorioScreen(
             Button(
                 onClick = {
                     val fechaMillis = fechaSeleccionada.timeInMillis
+                    notificationHandler.showNotification(
+                        title = "Confirmación",
+                        message = "Horario confirmado: $horaInicioSeleccionada - $horaFinSeleccionada"
+                    )
                     val route = "reservaLaboratorio/${laboratorioId}/${horaInicioSeleccionada}/${horaFinSeleccionada}/${fechaMillis}"
                     navController.navigate(route)
                 },

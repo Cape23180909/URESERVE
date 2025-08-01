@@ -193,8 +193,9 @@ fun DashboardScreen(
             BottomNavItem(
                 iconRes = R.drawable.icon_tutorial,
                 label = "Tutorial",
-                onClick = { onBottomNavClick("Tutorial") }
+                onClick = { onBottomNavClick("Tutorial") } // Esto lo conecta
             )
+
             BottomNavItem(
                 iconRes = R.drawable.icon_inicio,
                 label = "Inicio",

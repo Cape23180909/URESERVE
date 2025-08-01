@@ -1,5 +1,7 @@
 package edu.ucne.ureserve.presentation.proyectores
 
+import android.Manifest
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -14,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,6 +25,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import edu.ucne.ureserve.presentation.login.AuthManager
@@ -36,7 +43,7 @@ import java.time.format.DateTimeParseException
 import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun PrevisualizacionProyectorScreen(
     viewModel: ReservaProyectorViewModel = hiltViewModel(),
@@ -48,6 +55,23 @@ fun PrevisualizacionProyectorScreen(
     onBack: () -> Unit = {},
     onFinish: () -> Unit = {}
 ) {
+
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     // Procesar el proyector desde el JSON
     val proyectorSeleccionadoFromJson = remember(proyectorJson) {
         try {
@@ -369,10 +393,17 @@ fun PrevisualizacionProyectorScreen(
                                             delay(1000)
 
                                             if (viewModel.state.value.reservaConfirmada) {
+                                                // Mostrar la notificación aquí
+                                                notificationHandler.showNotification(
+                                                    title = "Reserva Confirmada",
+                                                    message = "Tu reserva del proyector ha sido registrada."
+                                                )
+
                                                 navController.navigate("ReservaExitosa/${viewModel.state.value.codigoReserva}") {
                                                     popUpTo("PrevisualizacionProyectorScreen") { inclusive = true }
                                                 }
-                                            } else {
+                                            }
+                                            else {
                                                 snackbarHostState.showSnackbar(viewModel.state.value.error ?: "Error desconocido")
                                             }
                                         } catch (e: Exception) {
@@ -406,6 +437,40 @@ fun isWithinReservation(horario: String, horaInicio: String, horaFin: String, ho
     }
 }
 
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun Pevisualizacioncreen(context: Context) {
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            null
+        }
+
+    val notificationHandler = NotificationHandler(context)
+
+    LaunchedEffect(key1 = true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(onClick = {
+            notificationHandler.showNotification(
+                title = "Reserva Confirmada",
+                message = "Tu reserva del proyector ha sido registrada."
+            )
+        }) {
+            Text(text = "Mostrar Notificación")
+        }
+    }
+}
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable

@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
+import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -17,19 +18,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
 import kotlinx.coroutines.flow.update
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PagoSalaVipScreen(
@@ -37,10 +42,25 @@ fun PagoSalaVipScreen(
     navController: NavController,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     val uiState by viewModel.uiState.collectAsState()
     var metodoPagoSeleccionado by remember { mutableStateOf(DatosPersonalesSalaVipStore.metodoPagoSeleccionado) }
     val scrollState = rememberScrollState()
-    val context = LocalContext.current
 
     val datosPersonales = DatosPersonalesSalaVipStore.lista
     val codigoReserva = remember { (100000..999999).random() }
@@ -136,18 +156,33 @@ fun PagoSalaVipScreen(
                         MetodoPagoSalaVipItem("Efectivo", R.drawable.dinero, metodoPagoSeleccionado == "Efectivo") {
                             metodoPagoSeleccionado = "Efectivo"
                             DatosPersonalesSalaVipStore.metodoPagoSeleccionado = "Efectivo"
+                            notificationHandler.showNotification(
+                                title = "Método de Pago",
+                                message = "Seleccionaste pago en efectivo."
+                            )
                             navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
                         }
 
                         MetodoPagoSalaVipItem("Tarjeta de crédito", R.drawable.credito, metodoPagoSeleccionado == "Tarjeta de crédito") {
                             metodoPagoSeleccionado = "Tarjeta de crédito"
+                            DatosPersonalesSalaVipStore.metodoPagoSeleccionado = "Tarjeta de crédito"
+                            notificationHandler.showNotification(
+                                title = "Método de Pago",
+                                message = "Seleccionaste tarjeta de crédito."
+                            )
                             navController.navigate("TarjetaCreditoSalaVip?fecha=$fecha")
                         }
 
                         MetodoPagoSalaVipItem("Transferencia bancaria", R.drawable.trasnferencia, metodoPagoSeleccionado == "Transferencia bancaria") {
                             metodoPagoSeleccionado = "Transferencia bancaria"
+                            DatosPersonalesSalaVipStore.metodoPagoSeleccionado = "Transferencia bancaria"
+                            notificationHandler.showNotification(
+                                title = "Método de Pago",
+                                message = "Seleccionaste transferencia bancaria."
+                            )
                             navController.navigate("SalaVipTransferencia?fecha=$fecha")
                         }
+
                     }
                 }
 
@@ -212,7 +247,7 @@ fun PagoSalaVipScreen(
                     onClick = {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             try {
-                                // Obtener matrícula del primer miembro (o de donde corresponda)
+                                val datosPersonales = DatosPersonalesSalaVipStore.lista
                                 val matricula = datosPersonales.firstOrNull()?.matricula ?: run {
                                     viewModel._uiState.update {
                                         it.copy(errorMessage = "No se encontró matrícula en los datos personales")
@@ -220,12 +255,23 @@ fun PagoSalaVipScreen(
                                     return@Button
                                 }
 
-                                // Configuración automática de horarios
-                                val (horaInicio, horaFin, cantidadHoras) = if (viewModel.uiState.value.horaInicio.isBlank() ||
-                                    viewModel.uiState.value.horaFin.isBlank()) {
+                                val fechaFormateada = try {
+                                    val fechaRaw = viewModel.uiState.value.fecha.ifEmpty {
+                                        LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"))
+                                    }
+                                    // Validar que la fecha esté en formato correcto
+                                    LocalDate.parse(fechaRaw, DateTimeFormatter.ofPattern("d/M/yyyy"))
+                                    fechaRaw
+                                } catch (e: Exception) {
+                                    LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"))
+                                }
+
+                                val (horaInicio, horaFin, cantidadHoras) = if (
+                                    viewModel.uiState.value.horaInicio.isBlank() || viewModel.uiState.value.horaFin.isBlank()
+                                ) {
                                     val horaActual = LocalTime.now()
                                     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-                                    val horasReserva = 2 // Duración por defecto para restaurante
+                                    val horasReserva = 2
 
                                     Triple(
                                         horaActual.format(formatter),
@@ -239,17 +285,24 @@ fun PagoSalaVipScreen(
                                         calcularHoras(viewModel.uiState.value.horaInicio, viewModel.uiState.value.horaFin)
                                     )
                                 }
+                                notificationHandler.showNotification(
+                                    title = "Reserva Confirmada",
+                                    message = "Tu reserva en el restaurante se está procesando."
+                                )
 
-                                viewModel.confirmarReservacionRestaurante(
+                                viewModel.confirmarReservacionSalaVIP(
+                                    getLista = { DatosPersonalesSalaVipStore.lista },
+                                    getMetodoPagoSeleccionado = { DatosPersonalesSalaVipStore.metodoPagoSeleccionado },
+                                    getTarjetaCredito = { DatosPersonalesSalaVipStore.tarjetaCredito },
+                                    getDatosPersonales = { DatosPersonalesSalaVipStore.lista.first() },
                                     restauranteId = viewModel.uiState.value.restauranteId ?: 0,
                                     horaInicio = horaInicio,
                                     horaFin = horaFin,
-                                    fecha = viewModel.uiState.value.fecha.ifEmpty {
-                                        LocalDate.now().toString()
-                                    },
-                                    matricula = matricula, // Usamos la matrícula obtenida
+                                    fecha = fechaFormateada,
+                                    matricula = matricula,
                                     cantidadHoras = cantidadHoras,
-                                    miembros = datosPersonales.map { it.matricula }
+                                    miembros = datosPersonales.map { it.matricula },
+                                    tipoReserva = 4
                                 )
 
                             } catch (e: Exception) {
@@ -323,7 +376,7 @@ fun MetodoPagoSalaVipItem(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun calcularHoras(horaInicio: String, horaFin: String): Int {
+fun calcularHoras(horaInicio: String, horaFin: String): Int {
     return try {
         val formato = DateTimeFormatter.ofPattern("HH:mm")
         val inicio = LocalTime.parse(horaInicio, formato)
@@ -363,4 +416,5 @@ data class DatosPersonalesSalaVip(
 object DatosPersonalesSalaVipStore {
     val lista = mutableStateListOf<DatosPersonalesSalaVip>()
     var metodoPagoSeleccionado: String? by mutableStateOf(null)
+    var tarjetaCredito: TarjetaCreditoDto? by mutableStateOf(null)
 }

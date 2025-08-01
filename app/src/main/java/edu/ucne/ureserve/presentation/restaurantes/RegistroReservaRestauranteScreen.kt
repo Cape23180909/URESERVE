@@ -1,5 +1,7 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,14 +11,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RegistroReservaRestauranteScreen(
     fecha: String,
@@ -24,6 +32,22 @@ fun RegistroReservaRestauranteScreen(
     onConfirmarClick: () -> Unit,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -63,7 +87,14 @@ fun RegistroReservaRestauranteScreen(
 
         RegistroReservaRestauranteForm(
             fecha = fecha,
-            onCancelarClick = onCancelarClick,
+            onCancelarClick = {
+                //  Notificación al cancelar
+                notificationHandler.showNotification(
+                    title = "Reserva Cancelada",
+                    message = "No se ha guardado la reserva del restaurante."
+                )
+                onCancelarClick()
+            },
             onConfirmarClick = { nombre, direccion, capacidad, telefono, correo, descripcion ->
                 DatosPersonalesSalaVipStore.lista.add(
                     DatosPersonalesSalaVip(
@@ -78,6 +109,10 @@ fun RegistroReservaRestauranteScreen(
 
                 viewModel.setFecha(fecha)
 
+                notificationHandler.showNotification(
+                    title = "Reserva Confirmada",
+                    message = "Tu reserva en $nombre ha sido registrada exitosamente."
+                )
                 onConfirmarClick()
             }
         )

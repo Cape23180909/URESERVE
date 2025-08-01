@@ -39,25 +39,19 @@ fun ReservaCubiculoScreen(
     usuarioDTO: UsuarioDTO,
     estudiante: EstudianteDto
 ) {
+    val cubiculos = viewModel.cubiculos.collectAsState().value
     val hours by viewModel.selectedHours.collectAsState()
     val allMembers by viewModel.members.collectAsState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var validarCantidaHoras by remember { mutableStateOf(false) }
 
-    LaunchedEffect(allMembers) {
-        Log.d("ReservaCubiculoScreen", "Miembros actualizados: ${allMembers.size}")
-        allMembers.forEach { member ->
-            Log.d("ReservaCubiculoScreen", "Miembro: ${member.nombres}")
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        Log.d("ReservaScreen", "Usuario recibido - Nombre: ${usuarioDTO.nombres}, Matrícula: ${usuarioDTO.estudiante?.matricula ?: "N/A"}")
-    }
-
     LaunchedEffect(usuarioDTO) {
         viewModel.initializeWithUser(usuarioDTO)
+    }
+
+    LaunchedEffect(cubiculoId) {
+        viewModel.loadCubiculos()
     }
 
     Column(
@@ -111,7 +105,7 @@ fun ReservaCubiculoScreen(
                 onValueChange = {
                     if (it.isEmpty() || it.all(Char::isDigit)) {
                         viewModel.setSelectedHours(it)
-                        validarCantidaHoras = false // Limpiamos el error al ingresar
+                        validarCantidaHoras = false
                     }
                 },
                 modifier = Modifier
@@ -152,9 +146,9 @@ fun ReservaCubiculoScreen(
                 IconButton(
                     onClick = {
                         if (hours.isBlank()) {
-                            validarCantidaHoras  = true
+                            validarCantidaHoras = true
                         } else {
-                            validarCantidaHoras  = false
+                            validarCantidaHoras = false
                             navController.navigate("AgregarEstudiante") {
                                 launchSingleTop = true
                                 popUpTo(navController.graph.findStartDestination().id) {

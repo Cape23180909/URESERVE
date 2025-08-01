@@ -1,41 +1,93 @@
 package edu.ucne.ureserve.presentation.salones
 
+import android.Manifest
+import android.net.Uri
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ReservaSalonScreen(
     fecha: String,
     onCancelarClick: () -> Unit = {},
     onConfirmarClick: () -> Unit = {},
+    navController: NavController,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
+    var correoElectronico by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
     var matricula by remember { mutableStateOf("") }
     var cedula by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var ubicacion by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
+    var horaInicio by remember { mutableStateOf("") } // ✅ Agregado
+    var horaFin by remember { mutableStateOf("") }
 
     val formularioCompleto = listOf(
-        nombres, apellidos, matricula, cedula, telefono, correo, ubicacion
+        nombres, apellidos, matricula, cedula, telefono, correoElectronico, direccion
     ).all { it.isNotBlank() }
+
+    var mostrarError by remember { mutableStateOf(false) }
+    var mensajeError by remember { mutableStateOf("") }
+    val datosGuardados = rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -57,7 +109,7 @@ fun ReservaSalonScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Registro de reserva",
+                text = "Registro de reserva Salon",
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White
             )
@@ -81,6 +133,15 @@ fun ReservaSalonScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
+                value = correoElectronico,
+                onValueChange = { correoElectronico = it },
+                label = { Text("Correo electrónico *") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
                 value = nombres,
                 onValueChange = { nombres = it },
                 label = { Text("Nombres *") },
@@ -99,25 +160,6 @@ fun ReservaSalonScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = cedula,
-                onValueChange = { cedula = it.filter { char -> char.isDigit() } },
-                label = { Text("Cédula *") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = matricula,
-                onValueChange = { matricula = it },
-                label = { Text("Matrícula *") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
                 value = telefono,
                 onValueChange = { telefono = it },
                 label = { Text("Teléfono *") },
@@ -128,20 +170,48 @@ fun ReservaSalonScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = correo,
-                onValueChange = { correo = it },
-                label = { Text("Correo electrónico *") },
+                value = buildString {
+                    append(matricula.take(8)) // Tomar máximo 8 dígitos
+                    if (length > 4) insert(4, "-")
+                },
+                onValueChange = { newValue ->
+                    matricula = newValue.filter { it.isDigit() }.take(8)
+                },
+                label = { Text("Matrícula *") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                placeholder = { Text("XXXX-XXXX") }
+            )
+
+            OutlinedTextField(
+                value = cedula.run {
+                    // Formatear automáticamente mientras se escribe
+                    when {
+                        length <= 3 -> this
+                        length <= 10 -> "${substring(0, 3)}-${substring(3)}"
+                        else -> "${substring(0, 3)}-${substring(3, 10)}-${substring(10)}"
+                    }
+                },
+                onValueChange = { newValue ->
+                    // Eliminar guiones existentes para el procesamiento
+                    val cleanValue = newValue.filter { it.isDigit() }
+                    // Limitar a 11 dígitos (3 + 7 + 1)
+                    cedula = cleanValue.take(11)
+                },
+                label = { Text("Cédula *") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                placeholder = { Text("XXX-XXXXXXX-X") }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = ubicacion,
-                onValueChange = { ubicacion = it },
-                label = { Text("Ubicación *") },
-                modifier = Modifier.fillMaxWidth()
+                value = direccion,
+                onValueChange = { direccion = it },
+                label = { Text("Dirección *") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -152,14 +222,17 @@ fun ReservaSalonScreen(
             ) {
                 Button(
                     onClick = {
-                        // Limpia campos y ejecuta acción cancelar
+                        notificationHandler.showNotification(
+                            title = "Reserva cancelada",
+                            message = "Has cancelado el registro de reserva del salón."
+                        )
                         nombres = ""
                         apellidos = ""
                         cedula = ""
                         matricula = ""
                         telefono = ""
-                        correo = ""
-                        ubicacion = ""
+                        correoElectronico = ""
+                        direccion = ""
                         onCancelarClick()
                     },
                     modifier = Modifier.weight(1f),
@@ -172,7 +245,6 @@ fun ReservaSalonScreen(
 
                 Button(
                     onClick = {
-                        // Guardar reserva
                         DatosPersonalesSalonStore.lista.add(
                             DatosPersonalesSalon(
                                 nombres = nombres,
@@ -180,22 +252,18 @@ fun ReservaSalonScreen(
                                 cedula = cedula,
                                 matricula = matricula,
                                 telefono = telefono,
-                                correo = correo,
-                                ubicacion = ubicacion,
-                                fecha = fecha
+                                correoElectronico = correoElectronico,
+                                direccion = direccion,
+                                fecha = fecha,
+                                horaInicio = horaInicio,
+                                horaFin = horaFin
                             )
                         )
-
-                        viewModel.setNombres(nombres)
-                        viewModel.setApellidos(apellidos)
-                        viewModel.setCedula(cedula)
-                        viewModel.setMatricula(matricula)
-                        viewModel.setTelefono(telefono)
-                        viewModel.setCorreo(correo)
-                        viewModel.setDireccion(ubicacion)
-                        viewModel.setFecha(fecha)
-
-                        onConfirmarClick()
+                        notificationHandler.showNotification(
+                            title = "Reserva confirmada",
+                            message = "Tu reserva del salón fue registrada para la fecha $fecha."
+                        )
+                        navController.navigate("PagoSalon?fecha=${Uri.encode(fecha)}")
                     },
                     enabled = formularioCompleto,
                     modifier = Modifier.weight(1f),

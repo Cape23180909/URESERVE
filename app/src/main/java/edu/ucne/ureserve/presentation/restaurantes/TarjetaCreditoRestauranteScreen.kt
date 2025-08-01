@@ -1,6 +1,8 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
+import android.Manifest
 import android.app.DatePickerDialog
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,19 +21,39 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import java.util.*
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun TarjetaCreditoRestauranteScreen(
     fecha: String,
     navController: NavController
 ) {
+    val context = LocalContext.current
+
+
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     var numeroTarjeta by remember { mutableStateOf("") }
     var nombreTitular by remember { mutableStateOf("") }
     var fechaVencimiento by remember { mutableStateOf("") }
     var codigoSeguridad by remember { mutableStateOf("") }
 
-    val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
     val datePickerDialog = remember {
@@ -160,17 +182,27 @@ fun TarjetaCreditoRestauranteScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 OutlinedButton(
-                    onClick = { navController.popBackStack() },
+                    onClick = {
+                        navController.popBackStack()
+                        notificationHandler.showNotification(
+                            title = "Pago cancelado",
+                            message = "Has cancelado el pago con tarjeta de crédito."
+                        )
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("CANCELAR")
                 }
+
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(
                     onClick = {
-                        // Navegar a Registro de Reserva
                         navController.navigate("RegistroReservaRestaurante")
+                        notificationHandler.showNotification(
+                            title = "Pago confirmado",
+                            message = "Pago confirmado para la fecha $fecha"
+                        )
                     },
                     enabled = isFormValid,
                     colors = ButtonDefaults.buttonColors(

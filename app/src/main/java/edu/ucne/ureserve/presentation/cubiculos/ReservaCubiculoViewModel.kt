@@ -6,9 +6,11 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import edu.ucne.ureserve.data.local.entity.toDto
 import edu.ucne.ureserve.data.remote.CubiculosApi
 import edu.ucne.ureserve.data.remote.DetalleReservaCubiculosApi
 import edu.ucne.ureserve.data.remote.ReservacionesApi
+import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
@@ -16,6 +18,7 @@ import edu.ucne.ureserve.data.repository.CubiculoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -24,6 +27,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
+import edu.ucne.ureserve.data.local.entity.toDto
 
 @HiltViewModel
 class ReservaCubiculoViewModel @Inject constructor(
@@ -48,6 +52,19 @@ class ReservaCubiculoViewModel @Inject constructor(
     private val _usuario = MutableStateFlow<UsuarioDTO?>(null)
     val usuario: StateFlow<UsuarioDTO?> = _usuario.asStateFlow()
 
+    private val _cubiculos = MutableStateFlow<List<CubiculosDto>>(emptyList())
+    val cubiculos: StateFlow<List<CubiculosDto>> = _cubiculos.asStateFlow()
+
+    private val _state = MutableStateFlow(ReservaCubiculoState())
+    val state: StateFlow<ReservaCubiculoState> = _state.asStateFlow()
+
+    private val _cubiculoSeleccionado = MutableStateFlow<CubiculosDto?>(null)
+    val cubiculoSeleccionado: StateFlow<CubiculosDto?> = _cubiculoSeleccionado.asStateFlow()
+
+    init {
+        loadCubiculos()
+    }
+
     fun setSelectedHours(hours: String) {
         _selectedHours.value = hours
     }
@@ -56,18 +73,14 @@ class ReservaCubiculoViewModel @Inject constructor(
         val currentMembers = _members.value.toMutableList()
         if (currentMembers.none { it.usuarioId == usuario.usuarioId }) {
             currentMembers.add(usuario)
-            _members.value = currentMembers // Reemplaza completamente la lista
+            _members.value = currentMembers
             Log.d("ViewModel", "Miembro agregado: ${usuario.nombres}. Total miembros: ${_members.value.size}")
         }
     }
 
     fun initializeWithUser(usuario: UsuarioDTO) {
         Log.d("ViewModel", "Inicializando con usuario: ${usuario.nombres}")
-        val currentMembers = _members.value.toMutableList()
-        if (currentMembers.none { it.usuarioId == usuario.usuarioId }) {
-            currentMembers.add(usuario)
-            _members.value = currentMembers
-        }
+        addMemberIfNotExists(usuario)
     }
 
     fun setError(message: String) {
@@ -79,14 +92,8 @@ class ReservaCubiculoViewModel @Inject constructor(
     }
 
     fun addMember(member: UsuarioDTO) {
-        val currentMembers = _members.value.toMutableList()
-        if (currentMembers.none { it.usuarioId == member.usuarioId }) {
-            currentMembers.add(member)
-            _members.value = currentMembers
-            Log.d("ViewModel", "Miembro agregado: ${member.nombres}. Total miembros: ${_members.value.size}")
-        }
+        addMemberIfNotExists(member)
     }
-
 
     fun buscarUsuarioPorMatricula(matricula: String, onResult: (UsuarioDTO?) -> Unit) {
         _isLoading.value = true
@@ -122,31 +129,46 @@ class ReservaCubiculoViewModel @Inject constructor(
         }
     }
 
-    private val _cubiculos = MutableStateFlow<List<CubiculosDto>>(emptyList())
-    val cubiculos: StateFlow<List<CubiculosDto>> = _cubiculos.asStateFlow()
-
-    private val _usuarios = MutableStateFlow<List<UsuarioDTO>>(emptyList())
-    val usuarios: StateFlow<List<UsuarioDTO>> = _usuarios.asStateFlow()
-
-    init {
-        loadCubiculos()
-    }
-
-    private fun loadCubiculos() {
+    internal fun loadCubiculos() {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null)
             try {
-                _cubiculos.value = cubiculoApi.getAll()
+                repository.getAll().collect { resource ->
+                    when (resource) {
+                        is Resource.Loading -> {
+                            _state.value = _state.value.copy(isLoading = true, error = null)
+                        }
+                        is Resource.Success -> {
+                            resource.data?.let { entities ->
+                                _cubiculos.value = entities.map { it.toDto() }
+                                _state.value = _state.value.copy(
+                                    isLoading = false,
+                                    error = null,
+                                    cubiculos = _cubiculos.value
+                                )
+                            }
+                        }
+                        is Resource.Error -> {
+                            _state.value = _state.value.copy(isLoading = false, error = resource.message)
+                            try {
+                                val apiCubiculos = cubiculoApi.getAll()
+                                _cubiculos.value = apiCubiculos
+                                _state.value = _state.value.copy(cubiculos = apiCubiculos)
+                            } catch (ex: Exception) {
+                                Log.e("ViewModel", "Error cargando cubículos desde API", ex)
+                                _cubiculos.value = emptyList()
+                            }
+                        }
+                    }
+                }
             } catch (e: Exception) {
+                Log.e("ViewModel", "Error cargando cubículos", e)
+                _state.value = _state.value.copy(isLoading = false, error = e.message)
                 _cubiculos.value = emptyList()
             }
         }
     }
 
-    private val _state = MutableStateFlow(ReservaCubiculoState())
-    val state: StateFlow<ReservaCubiculoState> = _state.asStateFlow()
-
-    private val _cubiculoSeleccionado = MutableStateFlow<CubiculosDto?>(null)
-    val cubiculoSeleccionado: StateFlow<CubiculosDto?> = _cubiculoSeleccionado.asStateFlow()
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerFechaActual(): String {
@@ -163,13 +185,14 @@ class ReservaCubiculoViewModel @Inject constructor(
                 val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
                 val horaInicioParsed = LocalTime.parse(horaInicio, timeFormatter)
                 val horaFinParsed = LocalTime.parse(horaFin, timeFormatter)
-                val cubiculos = repository.getCubiculosDisponibles(
+
+                val disponibles = repository.getCubiculosDisponibles(
                     fechaFormatted,
                     horaInicioParsed.format(DateTimeFormatter.ofPattern("HH:mm")),
                     horaFinParsed.format(DateTimeFormatter.ofPattern("HH:mm"))
                 )
                 _state.value = _state.value.copy(
-                    cubiculos = cubiculos,
+                    cubiculos = disponibles,
                     isLoading = false,
                     disponibilidadVerificada = true,
                     error = null
@@ -219,11 +242,14 @@ class ReservaCubiculoViewModel @Inject constructor(
 
                 if (response.isSuccessful) {
                     onSuccess(codigoReserva)
+                    _state.value = _state.value.copy(reservaConfirmada = true, codigoReserva = codigoReserva)
                 } else {
                     onError("Error ${response.code()} al registrar reserva")
+                    _state.value = _state.value.copy(error = "Error ${response.code()} al registrar reserva")
                 }
             } catch (e: Exception) {
                 onError("Error: ${e.message}")
+                _state.value = _state.value.copy(error = "Error: ${e.message}")
             }
         }
     }
