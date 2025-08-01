@@ -109,7 +109,7 @@ fun ReservaProyectorScreen(
 
     val (disponibilidadText, disponibilidadColor) = when {
         state.isLoading -> Pair("VERIFICANDO...", Color.Yellow)
-        state.disponibilidadVerificada && state.proyectores.isNotEmpty() -> Pair("DISPONIBLE", Color.Green)
+        state.proyectores.any { it.disponible } -> Pair("DISPONIBLE", Color.Green)
         else -> Pair("NO DISPONIBLE", Color.Red)
     }
 
@@ -381,7 +381,7 @@ fun ReservaProyectorScreen(
 
                 Button(
                     onClick = {
-                        if (state.proyectores.isNotEmpty()) {
+                        if (state.proyectores.any { it.disponible }) {
                             coroutineScope.launch {
                                 try {
                                     val horaInicioParsed = parseHora(horaInicio)
@@ -390,7 +390,9 @@ fun ReservaProyectorScreen(
                                         snackbarHostState.showSnackbar("La hora final debe ser después de la inicial")
                                         return@launch
                                     }
-                                    val proyectorSeleccionado = state.proyectores.first()
+
+                                    // Seleccionar el primer proyector disponible
+                                    val proyectorSeleccionado = state.proyectores.first { it.disponible }
                                     viewModel.seleccionarProyector(proyectorSeleccionado)
 
                                     if (viewModel.proyectorSeleccionado.value == null) {
@@ -406,8 +408,6 @@ fun ReservaProyectorScreen(
                                         title = "Reserva Confirmada",
                                         message = "Tu reserva del proyector ha sido registrada."
                                     )
-
-
 
                                     // Navegar
                                     navController.navigate(
@@ -427,9 +427,9 @@ fun ReservaProyectorScreen(
                         }
                     },
                     modifier = Modifier.weight(1f),
-                    enabled = state.proyectores.isNotEmpty() && horas.indexOf(horaInicio) < horas.indexOf(horaFin),
+                    enabled = state.proyectores.any { it.disponible } && horas.indexOf(horaInicio) < horas.indexOf(horaFin),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.proyectores.isNotEmpty() && horas.indexOf(horaInicio) < horas.indexOf(horaFin))
+                        containerColor = if (state.proyectores.any { it.disponible } && horas.indexOf(horaInicio) < horas.indexOf(horaFin))
                             Color(0xFF6895D2) else Color.Gray,
                         contentColor = Color.White
                     ),
