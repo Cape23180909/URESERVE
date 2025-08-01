@@ -30,6 +30,7 @@ import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
 import edu.ucne.ureserve.presentation.empleados.DashboardEmpleadoScreen
 import edu.ucne.ureserve.presentation.empleados.EmpleadoproyectoScreen
+import edu.ucne.ureserve.presentation.empleados.ReservasenCursoProyectorScreen
 import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLaboratorio
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
 import edu.ucne.ureserve.presentation.laboratorios.ExistosaLaboratorioScreen
@@ -1100,6 +1101,12 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
 
         composable("empleadoproyecto") {
             EmpleadoproyectoScreen(
+                navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
+        composable("empleadoproyector_En_Curso") {
+            ReservasenCursoProyectorScreen(
                 navController = navController // Asegúrate de recibirlo en el composable
             )
         }
