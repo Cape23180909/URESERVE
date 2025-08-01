@@ -13,7 +13,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -39,7 +38,6 @@ import edu.ucne.ureserve.presentation.laboratorios.PlanificadorLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioViewModel
 import edu.ucne.ureserve.presentation.login.AuthManager
-import edu.ucne.ureserve.presentation.login.AuthViewModel
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
@@ -47,10 +45,10 @@ import edu.ucne.ureserve.presentation.proyectores.PrevisualizacionProyectorScree
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
+import edu.ucne.ureserve.presentation.reservas.DetallesReservacionScreen
+import edu.ucne.ureserve.presentation.reservas.ModificarReservaProyectorScreen
 import edu.ucne.ureserve.presentation.reservas.ReservaListScreen
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
-import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesRestaurante
-import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesRestauranteStore
 import edu.ucne.ureserve.presentation.restaurantes.PagoRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaRestauranteScreen
@@ -128,6 +126,9 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             CanalYoutubeScreen()
         }
 
+        composable("modificar_proyector") {
+            ModificarReservaProyectorScreen(navController)
+        }
 
 
         composable("Dashboard") {
@@ -170,8 +171,45 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
+//        composable("ReservaList") {
+//            // 1. Verificar que el usuario esté autenticado
+//            val usuario = AuthManager.currentUser
+//            if (usuario == null) {
+//                navController.navigate("Login") {
+//                    popUpTo(0) { inclusive = true }
+//                }
+//                return@composable
+//            }
+//
+//            // 2. Extraer la matrícula del estudiante
+//            val matricula = usuario.estudiante?.matricula
+//            if (matricula.isNullOrBlank()) {
+//                // Opcional: redirigir o mostrar error
+//                return@composable
+//            }
+//
+//            // 3. Inyectar el ViewModel
+//            val viewModel: ReservaViewModel = hiltViewModel()
+//
+//            // 4. Recargar reservas cuando la pantalla aparezca
+//            LaunchedEffect(Unit) {
+//                viewModel.loadReservas()
+//            }
+//
+//            // 5. Mostrar la pantalla
+//            ReservaListScreen(
+//                onBottomNavClick = { destination ->
+//                    when (destination) {
+//                        "Inicio" -> navController.navigate("Dashboard") {
+//                            popUpTo("Dashboard") { inclusive = false }
+//                        }
+//                    }
+//                },
+//                viewModel = viewModel
+//            )
+//        }
         composable("ReservaList") {
-            // 1. Verificar que el usuario esté autenticado
+            // Verificación de autenticación y obtención de matrícula
             val usuario = AuthManager.currentUser
             if (usuario == null) {
                 navController.navigate("Login") {
@@ -180,23 +218,20 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 return@composable
             }
 
-            // 2. Extraer la matrícula del estudiante
             val matricula = usuario.estudiante?.matricula
             if (matricula.isNullOrBlank()) {
-                // Opcional: redirigir o mostrar error
+                // Manejar caso de matrícula no disponible
                 return@composable
             }
 
-            // 3. Inyectar el ViewModel
             val viewModel: ReservaViewModel = hiltViewModel()
 
-            // 4. Recargar reservas cuando la pantalla aparezca
             LaunchedEffect(Unit) {
                 viewModel.loadReservas()
             }
 
-            // 5. Mostrar la pantalla
             ReservaListScreen(
+                navController = navController,
                 onBottomNavClick = { destination ->
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard") {
@@ -205,6 +240,27 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     }
                 },
                 viewModel = viewModel
+            )
+        }
+
+        // En tu NavHost
+        composable(
+            "detallesReserva/{fecha}/{horaInicio}/{horaFin}/{matricula}/{tipoReserva}",
+            arguments = listOf(
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType },
+                navArgument("tipoReserva") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            DetallesReservacionScreen(
+                fecha = backStackEntry.arguments?.getString("fecha") ?: "",
+                horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: "",
+                horaFin = backStackEntry.arguments?.getString("horaFin") ?: "",
+                matricula = backStackEntry.arguments?.getString("matricula") ?: "",
+                tipoReserva = backStackEntry.arguments?.getString("tipoReserva") ?: "",
+                navController = navController
             )
         }
 
