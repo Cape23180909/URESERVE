@@ -2,6 +2,7 @@ package edu.ucne.ureserve.presentation.reservas
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
@@ -24,6 +26,7 @@ import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservaListScreen(
+    navController: NavHostController? = null,
     onBottomNavClick: (String) -> Unit,
     viewModel: ReservaViewModel = hiltViewModel()
 ) {
@@ -110,7 +113,17 @@ fun ReservaListScreen(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
-                        ReservaList(reservas)
+                        ReservaList(
+                            reservas = reservas,
+                            onReservaClick = { reserva ->
+                                val (nombreTipo, _) = getIconForTipo(reserva.tipoReserva)
+                                navController?.navigate(
+                                    "detallesReserva/${reserva.fechaFormateada}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}/${nombreTipo}"
+                                )
+                            }
+                        )
+
+
                     } else {
                         Text(
                             text = "No tienes reservas activas",
@@ -132,24 +145,26 @@ fun ReservaListScreen(
 }
 
 @Composable
-fun ReservaList(reservas: List<ReservacionesDto>) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
+fun ReservaList(
+    reservas: List<ReservacionesDto>,
+    onReservaClick: (ReservacionesDto) -> Unit
+) {
+    LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(reservas) { reserva ->
-            ReservaCard(reserva = reserva)
+            ReservaCard(reserva = reserva, onClick = { onReservaClick(reserva) })
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
-
 @Composable
-fun ReservaCard(reserva: ReservacionesDto) {
+fun ReservaCard(reserva: ReservacionesDto, onClick: () -> Unit) {
+    val (nombreTipo, iconoTipo) = getIconForTipo(reserva.tipoReserva)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
     ) {
         Row(
@@ -159,8 +174,8 @@ fun ReservaCard(reserva: ReservacionesDto) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = getIconForTipo(reserva.tipoReserva)),
-                contentDescription = "Icono",
+                painter = painterResource(id = iconoTipo),
+                contentDescription = nombreTipo,
                 modifier = Modifier.size(40.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -170,7 +185,7 @@ fun ReservaCard(reserva: ReservacionesDto) {
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = "Reservación",
+                    text = nombreTipo, // Muestra el nombre del tipo de reserva
                     color = Color.Black,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -194,15 +209,79 @@ fun ReservaCard(reserva: ReservacionesDto) {
     }
 }
 
-fun getIconForTipo(tipo: Int): Int {
+//@Composable
+//fun ReservaCard(reserva: ReservacionesDto, onClick: () -> Unit) {
+//    val (nombreTipo, iconoTipo) = getIconForTipo(reserva.tipoReserva)
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(vertical = 4.dp)
+//            .clickable { onClick() },
+//        colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
+//    ) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp),
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Image(
+//                painter = painterResource(id = getIconForTipo(reserva.tipoReserva)),
+//                contentDescription = "Icono",
+//                modifier = Modifier.size(40.dp)
+//            )
+//            Spacer(modifier = Modifier.width(12.dp))
+//
+//            Column(
+//                modifier = Modifier.fillMaxWidth(),
+//                horizontalAlignment = Alignment.Start
+//            ) {
+//                Text(
+//                    text = "Reservación",
+//                    color = Color.Black,
+//                    fontSize = 18.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    modifier = Modifier.padding(bottom = 4.dp)
+//                )
+//                Text(
+//                    text = reserva.fechaFormateada,
+//                    color = Color.Black,
+//                    fontSize = 16.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    modifier = Modifier.padding(bottom = 2.dp)
+//                )
+//                Text(
+//                    text = "${reserva.horaInicio} A ${reserva.horaFin}",
+//                    color = Color.Black,
+//                    fontSize = 16.sp,
+//                    fontWeight = FontWeight.Bold
+//                )
+//            }
+//        }
+//    }
+//}
+
+//fun getIconForTipo(tipo: Int): Int {
+//    return when (tipo) {
+//        1 -> R.drawable.icon_proyector
+//        2 -> R.drawable.icon_cubiculo
+//        3 -> R.drawable.icon_laboratorio
+//        4 -> R.drawable.sala
+//        5 -> R.drawable.salon
+//        6 -> R.drawable.icon_restaurante
+//        else -> R.drawable.icon_reserva
+//    }
+//}
+// Esta función ahora devuelve un Pair con el nombre y el icono
+fun getIconForTipo(tipo: Int): Pair<String, Int> {
     return when (tipo) {
-        1 -> R.drawable.icon_proyector
-        2 -> R.drawable.icon_cubiculo
-        3 -> R.drawable.icon_laboratorio
-        4 -> R.drawable.sala
-        5 -> R.drawable.salon
-        6 -> R.drawable.icon_restaurante
-        else -> R.drawable.icon_reserva
+        1 -> Pair("PROYECTOR", R.drawable.icon_proyector)
+        2 -> Pair("CUBÍCULO", R.drawable.icon_cubiculo)
+        3 -> Pair("LABORATORIO", R.drawable.icon_laboratorio)
+        4 -> Pair("SALA", R.drawable.sala)
+        5 -> Pair("SALÓN", R.drawable.salon)
+        6 -> Pair("RESTAURANTE", R.drawable.icon_restaurante)
+        else -> Pair("RESERVA", R.drawable.icon_reserva)
     }
 }
 
