@@ -87,7 +87,10 @@ fun ModificarReservaCubiculoScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { /* Acción cambiar fecha y hora */ },
+                onClick = {
+                    navController?.navigate("CubiculoReservation")
+
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -112,7 +115,9 @@ fun ModificarReservaCubiculoScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { /* Acción cambiar horas */ },
+                onClick = {
+                    navController?.navigate("cambiar_horas_cubiculo/1") // pasa el cubiculoId real si lo tienes
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF48CAE4)),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -137,7 +142,10 @@ fun ModificarReservaCubiculoScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { /* Acción modificar integrantes */ },
+                onClick = {
+                    navController?.navigate("agregar_estudiante")
+                },
+
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFADE8F4)),
                 modifier = Modifier
                     .fillMaxWidth()
