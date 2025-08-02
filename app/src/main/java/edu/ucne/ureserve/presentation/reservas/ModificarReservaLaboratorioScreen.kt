@@ -88,7 +88,9 @@ fun ModificarReservaLaboratorioScreen(
 
 
             Button(
-                onClick = { /* Acción modificar integrantes */ },
+                onClick = {
+                    navController?.navigate("agregar_estudiante_laboratorio")
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFADE8F4)),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -109,6 +111,7 @@ fun ModificarReservaLaboratorioScreen(
                     color = Color.Black
                 )
             }
+
 
             Spacer(modifier = Modifier.weight(1f))
 
