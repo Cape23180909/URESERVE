@@ -87,7 +87,10 @@ fun ModificarReservaRestauranteScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { /* Acción cambiar fecha y hora */ },
+                onClick = {
+                    navController?.navigate("RestauranteReservation")
+
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
                 modifier = Modifier
                     .fillMaxWidth()
