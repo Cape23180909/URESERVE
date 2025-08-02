@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 
 @Composable
 fun DashboardEmpleadoScreen(
@@ -30,7 +31,8 @@ fun DashboardEmpleadoScreen(
     onReportes: () -> Unit = {},
     onBuscarReservas: () -> Unit = {},
     onLogout: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    usuario: UsuarioDTO
 ) {
 
     val context = LocalContext.current
@@ -69,7 +71,14 @@ fun DashboardEmpleadoScreen(
         MenuItem(
             iconRes = R.drawable.icon_adminsettings,
             text = "Opciones de\nEmpleado",
-            onClick = { navController.navigate("empleadoproyecto") },
+            onClick = {
+                when (usuario.correoInstitucional) {
+                    "jacksonperez@gmail.com" -> navController.navigate("empleadoproyecto") //empleado exclusivo para el area de proyectores
+                    "richardbautista@gmail.com" -> navController.navigate("empleadolaboratorio")   //empleado exclusivo para el area de Laboratorios
+                    "yandelwisin@gmail.com" -> navController.navigate("empleadoCubiculo")  //empleado exclusivo para el area de Cubiculos
+                    else -> {} // Puedes mostrar un mensaje de error o ignorar
+                }
+            },
             rowAlignment = Arrangement.Start,
             rowWidthFraction = 0.94f
         )
@@ -179,11 +188,11 @@ fun MenuItem(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun DashboardEmpleadoScreenPreview() {
-    DashboardEmpleadoScreen(
-        onLogout = {},
-        navController = NavController(LocalContext.current)
-    )
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun DashboardEmpleadoScreenPreview() {
+//    DashboardEmpleadoScreen(
+//        onLogout = {},
+//        navController = NavController(LocalContext.current),
+//    )
+//}
