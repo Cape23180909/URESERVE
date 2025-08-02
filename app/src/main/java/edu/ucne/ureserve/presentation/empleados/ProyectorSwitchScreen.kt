@@ -129,7 +129,7 @@ fun ProyectorSwitchScreen(
                                 proyectorId = proyector.proyectorId,
                             ) {
                                 // Cambio en el Switch
-                                viewModel.actualizarDisponibilidad(proyector.proyectorId, it)
+                                viewModel.actualizarDisponibilidadProyectores(proyector.proyectorId, it)
                             }
                         }
                     }
