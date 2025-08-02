@@ -145,6 +145,37 @@ class ReservaViewModel @Inject constructor(
         }
     }
 
+    fun getReservasRestaurante() {
+        viewModelScope.launch {
+            repository.getReservas().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val todasLasReservas = result.data ?: emptyList()
+
+                        val reservasFiltradas = todasLasReservas.filter {
+                            it.tipoReserva == 4 || // SalaVIP
+                                    it.tipoReserva == 5 || // SalaReuniones
+                                    it.tipoReserva == 6    // Restaurante
+                        }
+
+                        _state.update { ReservaListState.Success(reservasFiltradas) }
+                        _reservaciones.value = reservasFiltradas
+                    }
+
+                    is Resource.Error -> {
+                        _state.update {
+                            ReservaListState.Error(result.message ?: "Error al obtener las reservas")
+                        }
+                    }
+
+                    is Resource.Loading -> {
+                        _state.update { ReservaListState.Loading }
+                    }
+                }
+            }
+        }
+    }
+
     fun getReservasUsuario() {
         viewModelScope.launch {
             try {
