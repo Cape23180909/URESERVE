@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.ureserve.data.remote.DetalleReservaProyectorsApi
 import edu.ucne.ureserve.data.remote.ReservacionesApi
+import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.repository.ProyectorRepository
@@ -16,13 +17,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.Duration
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.*
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,6 +34,26 @@ class ReservaProyectorViewModel @Inject constructor(
 
     private val _proyectorSeleccionado = MutableStateFlow<ProyectoresDto?>(null)
     val proyectorSeleccionado: StateFlow<ProyectoresDto?> = _proyectorSeleccionado.asStateFlow()
+
+    // Función suspend que llama al API para actualizar reservación y devuelve el ReservacionesDto actualizado
+    suspend fun updateReservacion(id: Int, reservacion: ReservacionesDto): ReservacionesDto {
+        val response = reservaApi.update(id, reservacion)
+        if (response.isSuccessful) {
+            val body = response.body()
+            if (body != null) {
+                return body
+            } else {
+                throw Exception("Respuesta vacía del servidor")
+            }
+        } else {
+            val errorMsg = try {
+                response.errorBody()?.string() ?: "Error desconocido"
+            } catch (e: Exception) {
+                "Error leyendo cuerpo del error"
+            }
+            throw Exception("Error ${response.code()}: $errorMsg")
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerFechaActual(): String =
@@ -81,6 +98,62 @@ class ReservaProyectorViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
+    fun modificarReservaProyector(
+        reservaId: Int,
+        proyectorId: Int,
+        fechaLocal: LocalDate,
+        horaInicio: LocalTime,
+        horaFin: LocalTime,
+        matricula: String
+    ) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(resultado = Resource.Loading())
+            try {
+                if (horaFin.isBefore(horaInicio)) {
+                    _state.value = _state.value.copy(
+                        resultado = Resource.Error("La hora de fin no puede ser antes de la hora de inicio")
+                    )
+                    return@launch
+                }
+
+                val fechaZoned = ZonedDateTime.of(
+                    fechaLocal,
+                    horaInicio,
+                    ZoneId.systemDefault()
+                ).format(DateTimeFormatter.ISO_INSTANT)
+
+                val reservacionDto = ReservacionesDto(
+                    reservacionId = reservaId,
+                    codigoReserva = (100000..999999).random(),
+                    tipoReserva = 1,
+                    fecha = fechaZoned,
+                    horaInicio = horaInicio.toString(),
+                    horaFin = horaFin.toString(),
+                    estado = 1,
+                    matricula = matricula,
+                    cantidadEstudiantes = 0
+                )
+
+                // Aquí usa la función suspend updateReservacion para hacer la llamada
+                val reservacionActualizada = updateReservacion(reservaId, reservacionDto)
+
+                _state.value = _state.value.copy(
+                    resultado = Resource.Success(reservacionActualizada),
+                    reservaConfirmada = true,
+                    codigoReserva = reservacionActualizada.codigoReserva
+                )
+
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    resultado = Resource.Error("Error al modificar reserva: ${e.message ?: "Desconocido"}"),
+                    reservaConfirmada = false
+                )
+                Log.e("Reserva", "Error modificando reserva", e)
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     fun confirmarReservaProyector(
         proyectorId: Int,
         fechaLocal: LocalDate,
@@ -98,16 +171,7 @@ class ReservaProyectorViewModel @Inject constructor(
                     ZoneId.systemDefault()
                 ).format(DateTimeFormatter.ISO_INSTANT)
 
-                val duracion = Duration.between(horaInicio, horaFin)
-                val horarioFormateado = String.format(
-                    "%02d:%02d:%02d",
-                    duracion.toHours(),
-                    duracion.toMinutes() % 60,
-                    duracion.seconds % 60
-                )
-
-                // ✅ Usar la matrícula real del estudiante
-                val matricula = AuthManager.currentUser?.estudiante?.matricula
+                val matriculaFinal = AuthManager.currentUser?.estudiante?.matricula
                     ?: throw Exception("Usuario sin matrícula")
 
                 val reservacionDto = ReservacionesDto(
@@ -117,7 +181,7 @@ class ReservaProyectorViewModel @Inject constructor(
                     horaInicio = horaInicio.toString(),
                     horaFin = horaFin.toString(),
                     estado = 1,
-                    matricula = matricula,
+                    matricula = matriculaFinal,
                     cantidadEstudiantes = 0
                 )
 
@@ -147,7 +211,6 @@ class ReservaProyectorViewModel @Inject constructor(
     }
 }
 
-// Estado unificado
 data class ReservaProyectorState(
     val proyectores: List<ProyectoresDto> = emptyList(),
     val proyectorSeleccionado: ProyectoresDto? = null,
@@ -155,5 +218,6 @@ data class ReservaProyectorState(
     val error: String? = null,
     val disponibilidadVerificada: Boolean = false,
     val reservaConfirmada: Boolean = false,
-    val codigoReserva: Int? = null
+    val codigoReserva: Int? = null,
+    val resultado: Resource<ReservacionesDto>? = null
 )
