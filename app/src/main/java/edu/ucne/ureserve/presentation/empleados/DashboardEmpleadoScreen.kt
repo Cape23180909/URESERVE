@@ -76,6 +76,7 @@ fun DashboardEmpleadoScreen(
                     "jacksonperez@gmail.com" -> navController.navigate("empleadoproyecto") //empleado exclusivo para el area de proyectores
                     "richardbautista@gmail.com" -> navController.navigate("empleadolaboratorio")   //empleado exclusivo para el area de Laboratorios
                     "yandelwisin@gmail.com" -> navController.navigate("empleadoCubiculo")  //empleado exclusivo para el area de Cubiculos
+                    "restauranteencargado@gmail.com" -> navController.navigate("empleadoRestaurante")  //empleado exclusivo para el area de Restaurantes
                     else -> {} // Puedes mostrar un mensaje de error o ignorar
                 }
             },
