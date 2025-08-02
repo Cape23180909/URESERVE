@@ -76,7 +76,6 @@ fun ModificarReservaProyectorScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Título
             Text(
                 text = "PROYECTORES",
                 color = Color.White,
@@ -87,9 +86,11 @@ fun ModificarReservaProyectorScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botón Cambiar Fecha y Hora con ícono calendario
             Button(
-                onClick = { /* Acción */ },
+                onClick = {
+                    navController?.navigate("ProjectorReservation")
+
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -113,9 +114,8 @@ fun ModificarReservaProyectorScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botón Cambiar Hora con ícono reloj
             Button(
-                onClick = { /* Acción */ },
+                onClick = { /* Acción cambiar horas */ },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF48CAE4)),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -139,7 +139,6 @@ fun ModificarReservaProyectorScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Botón REGRESAR
             Button(
                 onClick = { navController?.popBackStack() },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94)),
