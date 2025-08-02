@@ -89,7 +89,8 @@ fun ModificarReservaSalaVipScreen(
 
             Button(
                 onClick = {
-                    // TODO: Aquí pon la lógica para cambiar fecha y hora
+                    navController?.navigate("SalaVipReservation")
+
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
                 modifier = Modifier
