@@ -33,8 +33,14 @@ import edu.ucne.ureserve.presentation.cubiculos.ModificarReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
+import edu.ucne.ureserve.presentation.empleados.CubiculoSwitchScreen
 import edu.ucne.ureserve.presentation.empleados.DashboardEmpleadoScreen
+import edu.ucne.ureserve.presentation.empleados.EmpleadoCubiculoScreen
+import edu.ucne.ureserve.presentation.empleados.EmpleadoLaboratorioScreen
 import edu.ucne.ureserve.presentation.empleados.EmpleadoproyectoScreen
+import edu.ucne.ureserve.presentation.empleados.LaboratorioSwitchScreen
+import edu.ucne.ureserve.presentation.empleados.ReservasenCursoCubiculoScreen
+import edu.ucne.ureserve.presentation.empleados.ReservasenCursoLaboratorioScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoProyectorScreen
 import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLaboratorio
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
@@ -111,7 +117,11 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
 
         composable("login") {
             LoginScreen(onLoginSuccess = { usuario ->
-                if (usuario.correoInstitucional == "jacksonperez@gmail.com") {
+                if (
+                    usuario.correoInstitucional == "jacksonperez@gmail.com" || //Empleado de proyectores
+                    usuario.correoInstitucional == "richardbautista@gmail.com" ||  //Empleadon de labotatorios
+                    usuario.correoInstitucional == "yandelwisin@gmail.com"  //Empleado de cubiculos
+                ) {
                     navController.navigate("dashboard_empleado") {
                         popUpTo("login") { inclusive = true }
                     }
@@ -1134,7 +1144,9 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         //Empleado Proyector
 
         composable("dashboard_empleado") {
+            val usuario = AuthManager.currentUser ?: UsuarioDTO()
             DashboardEmpleadoScreen(
+                usuario = usuario,
                 onLogout = {
                     AuthManager.logout()
                     navController.navigate("LoadStart") {
@@ -1154,14 +1166,46 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
+        composable("empleadolaboratorio") {
+            EmpleadoLaboratorioScreen(navController)
+        }
+
+        composable("empleadoCubiculo") {
+            EmpleadoCubiculoScreen(navController)
+        }
+
         composable("empleadoproyector_En_Curso") {
             ReservasenCursoProyectorScreen(
                 navController = navController // Asegúrate de recibirlo en el composable
             )
         }
 
+        composable("empleadolaboratorio_En_Curso") {
+            ReservasenCursoLaboratorioScreen(
+                navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
+        composable("empleadocubiculo_En_Curso") {
+            ReservasenCursoCubiculoScreen(
+                navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
         composable("proyector_switch") {
             ProyectorSwitchScreen(
+                navController = navController
+            )
+        }
+
+        composable("laboratorio_switch") {
+            LaboratorioSwitchScreen(
+                navController = navController
+            )
+        }
+
+        composable("cubiculo_switch") {
+            CubiculoSwitchScreen(
                 navController = navController
             )
         }
