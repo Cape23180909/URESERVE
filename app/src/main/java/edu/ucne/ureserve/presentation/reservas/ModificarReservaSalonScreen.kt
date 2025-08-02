@@ -87,7 +87,10 @@ fun ModificarReservaSalonScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { /* Cambiar Fecha y Hora */ },
+                onClick = {
+                    navController?.navigate("SalonReunionesReservation")
+
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
                 modifier = Modifier
                     .fillMaxWidth()
