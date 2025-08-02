@@ -99,7 +99,7 @@ class RemoteDataSource @Inject constructor(
     suspend fun getReservasByMatricula(matricula: String): List<ReservacionesDto> =
         apiReservaciones.getReservasByMatricula(matricula)
 
-    suspend fun updateReservacion(id: Int, reservacion: ReservacionesDto): ReservacionesDto =
+    suspend fun updateReservacion(id: Int, reservacion: ReservacionesDto): Response<ReservacionesDto> =
         apiReservaciones.update(id, reservacion)
 
     suspend fun deleteReservacion(id: Int) = apiReservaciones.delete(id)
