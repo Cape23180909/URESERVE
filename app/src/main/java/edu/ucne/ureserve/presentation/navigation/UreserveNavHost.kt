@@ -26,6 +26,7 @@ import androidx.navigation.navArgument
 import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
@@ -166,9 +167,6 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         composable("modificar_sala_vip") {
             ModificarReservaSalaVipScreen(navController = navController)
         }
-
-
-
 
         composable("Dashboard") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
@@ -664,6 +662,18 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                         "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
+                navController = navController
+            )
+        }
+        composable("agregar_estudiante") {
+            AgregarEstudianteScreen(
+                navController = navController
+            )
+        }
+
+
+        composable("agregar_estudiante_laboratorio") {
+            AgregarEstudianteScreenLaboratorio(
                 navController = navController
             )
         }
