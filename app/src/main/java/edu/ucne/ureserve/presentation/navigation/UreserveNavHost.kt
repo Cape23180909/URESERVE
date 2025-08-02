@@ -38,11 +38,14 @@ import edu.ucne.ureserve.presentation.empleados.CubiculoSwitchScreen
 import edu.ucne.ureserve.presentation.empleados.DashboardEmpleadoScreen
 import edu.ucne.ureserve.presentation.empleados.EmpleadoCubiculoScreen
 import edu.ucne.ureserve.presentation.empleados.EmpleadoLaboratorioScreen
+import edu.ucne.ureserve.presentation.empleados.EmpleadoRestauranteScreen
 import edu.ucne.ureserve.presentation.empleados.EmpleadoproyectoScreen
 import edu.ucne.ureserve.presentation.empleados.LaboratorioSwitchScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoCubiculoScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoLaboratorioScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoProyectorScreen
+import edu.ucne.ureserve.presentation.empleados.ReservasenCursoRestauranteScreen
+import edu.ucne.ureserve.presentation.empleados.RestauranteSwitchScreen
 import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLaboratorio
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
 import edu.ucne.ureserve.presentation.laboratorios.ExistosaLaboratorioScreen
@@ -121,7 +124,8 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 if (
                     usuario.correoInstitucional == "jacksonperez@gmail.com" || //Empleado de proyectores
                     usuario.correoInstitucional == "richardbautista@gmail.com" ||  //Empleadon de labotatorios
-                    usuario.correoInstitucional == "yandelwisin@gmail.com"  //Empleado de cubiculos
+                    usuario.correoInstitucional == "yandelwisin@gmail.com" ||  //Empleado de cubiculos
+                    usuario.correoInstitucional == "restauranteencargado@gmail.com" //Empleado de restaurantes
                 ) {
                     navController.navigate("dashboard_empleado") {
                         popUpTo("login") { inclusive = true }
@@ -1184,6 +1188,10 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             EmpleadoCubiculoScreen(navController)
         }
 
+        composable("empleadoRestaurante") {
+            EmpleadoRestauranteScreen(navController)
+        }
+
         composable("empleadoproyector_En_Curso") {
             ReservasenCursoProyectorScreen(
                 navController = navController // Asegúrate de recibirlo en el composable
@@ -1202,6 +1210,12 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
+        composable("empleadorestaurante_En_Curso") {
+            ReservasenCursoRestauranteScreen(
+                navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
         composable("proyector_switch") {
             ProyectorSwitchScreen(
                 navController = navController
@@ -1216,6 +1230,12 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
 
         composable("cubiculo_switch") {
             CubiculoSwitchScreen(
+                navController = navController
+            )
+        }
+
+        composable("restaurante_switch") {
+            RestauranteSwitchScreen(
                 navController = navController
             )
         }
