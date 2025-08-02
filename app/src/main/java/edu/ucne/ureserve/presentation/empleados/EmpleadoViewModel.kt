@@ -6,9 +6,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.ureserve.data.remote.CubiculosApi
 import edu.ucne.ureserve.data.remote.LaboratoriosApi
 import edu.ucne.ureserve.data.remote.ProyectoresApi
+import edu.ucne.ureserve.data.remote.RestaurantesApi
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
 import edu.ucne.ureserve.data.remote.dto.LaboratoriosDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
+import edu.ucne.ureserve.data.remote.dto.RestaurantesDto
+import edu.ucne.ureserve.data.repository.RestauranteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -18,7 +21,8 @@ import javax.inject.Inject
 class EmpleadoViewModel @Inject constructor(
     private val api: ProyectoresApi,
     private val apilaboratorios: LaboratoriosApi,
-    private val apicubiculos: CubiculosApi
+    private val apicubiculos: CubiculosApi,
+    private val apiRestaurantes: RestaurantesApi
 ) : ViewModel() {
 
     private val _proyectores = MutableStateFlow<List<ProyectoresDto>>(emptyList())
@@ -30,6 +34,9 @@ class EmpleadoViewModel @Inject constructor(
     private val _cubiculos = MutableStateFlow<List<CubiculosDto>>(emptyList())
     val cubiculos: StateFlow<List<CubiculosDto>> = _cubiculos
 
+    private val _restaurantes = MutableStateFlow<List<RestaurantesDto>>(emptyList())
+    val restaurantes: StateFlow<List<RestaurantesDto>> = _restaurantes
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -40,6 +47,7 @@ class EmpleadoViewModel @Inject constructor(
         cargarProyectores()
         cargarCubiculos()
         cargarLaboratorios()
+        cargarRestaurantes()
     }
 
     fun cargarProyectores() {
@@ -81,6 +89,21 @@ class EmpleadoViewModel @Inject constructor(
                 _laboratorios.value = lista
             } catch (e: Exception) {
                 _error.value = "Error al cargar laboratorios: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun cargarRestaurantes() {
+        viewModelScope.launch {
+            try {
+                _error.value = null
+                _isLoading.value = true
+                val lista = apiRestaurantes.getAll()
+                _restaurantes.value = lista
+            } catch (e: Exception) {
+                _error.value = "Error al cargar restaurantes: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
@@ -152,7 +175,7 @@ class EmpleadoViewModel @Inject constructor(
             } catch (e: Exception) {
                 _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
                 // Refrescar datos desde el servidor
-                cargarProyectores() // Asegúrate que este método exista en tu ViewModel
+                cargarCubiculos()
             } finally {
                 _isLoading.value = false
             }
@@ -188,6 +211,48 @@ class EmpleadoViewModel @Inject constructor(
                 _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
                 // Refrescar datos desde el servidor
                 cargarLaboratorios() // Asegúrate que este método exista en tu ViewModel
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun actualizarDisponibilidadRestaurantes(id: Int?, disponible: Boolean) {
+        viewModelScope.launch {
+            try {
+                val restauranteId = id ?: throw IllegalArgumentException("ID no puede ser nulo")
+
+                // Obtener los laboratirios actuales
+                val restaurante = _restaurantes.value.find { it.restauranteId == id }
+                    ?: throw IllegalArgumentException("Laboratorio con id $id no encontrado")
+
+                // Mostrar estado de carga
+                _isLoading.value = true
+
+                // Llamar al API (usa tu endpoint actual que retorna ProyectoresDto directamente)
+                val updatedRestaurante = apiRestaurantes.update(
+                    id = id,
+                    restaurante = RestaurantesDto(
+                        restauranteId = id,
+                        nombre = restaurante.nombre,
+                        ubicacion = restaurante.ubicacion,
+                        capacidad = restaurante.capacidad,
+                        telefono = restaurante.telefono,
+                        correo = restaurante.correo,
+                        descripcion = restaurante.descripcion,
+                        disponible = disponible
+                    )
+                )
+
+                // Actualizar localmente (la API respondió exitosamente)
+                _laboratorios.value = _laboratorios.value.map { item ->
+                    if (item.laboratorioId == id) item.copy(disponible = disponible) else item
+                }
+
+            } catch (e: Exception) {
+                _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
+                // Refrescar datos desde el servidor
+                cargarRestaurantes()
             } finally {
                 _isLoading.value = false
             }
