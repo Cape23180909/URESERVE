@@ -112,8 +112,9 @@ fun ReservasenCursoLaboratorioScreen(
                         }
 
                         items(reservaciones) { reserva ->
+                            val (tiempoStr, _) = calcularTiempoRestante(reserva.horaFin)
                             LaboratorioReservationItem(
-                                timeRemaining = calcularTiempoRestante(reserva.horaFin),
+                                timeRemaining = tiempoStr, // Usamos solo la parte String
                                 reservationTime = "${reserva.horaInicio} a ${reserva.horaFin}",
                                 color = Color(0xFF6EE610)
                             )
