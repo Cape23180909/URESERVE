@@ -237,7 +237,7 @@ fun PagoSalonScreen(
                                 val (horaInicio, horaFin, cantidadHoras) = if (uiState.horaInicio.isBlank() || uiState.horaFin.isBlank()) {
                                     val horaActual = LocalTime.now()
                                     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-                                    Triple(horaActual.format(formatter), horaActual.plusHours(2).format(formatter), 2)
+                                    Triple(horaActual.format(formatter), horaActual.plusHours(24).format(formatter), 24)
                                 } else {
                                     Triple(uiState.horaInicio, uiState.horaFin, calcularHoras(uiState.horaInicio, uiState.horaFin))
                                 }
