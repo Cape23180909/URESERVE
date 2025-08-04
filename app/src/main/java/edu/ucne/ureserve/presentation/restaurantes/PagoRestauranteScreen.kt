@@ -229,17 +229,30 @@ fun PagoRestauranteScreen(
                                     LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"))
                                 }
 
+                                // Lógica corregida para 24 horas
                                 val (horaInicio, horaFin, cantidadHoras) = if (uiState.horaInicio.isBlank() || uiState.horaFin.isBlank()) {
                                     val horaActual = LocalTime.now()
                                     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-                                    Triple(horaActual.format(formatter), horaActual.plusHours(2).format(formatter), 2)
+                                    Triple(
+                                        horaActual.format(formatter),
+                                        horaActual.plusHours(24).format(formatter),
+                                        24 // Cambiado a 24 horas
+                                    )
                                 } else {
-                                    Triple(uiState.horaInicio, uiState.horaFin, calcularHoras(uiState.horaInicio, uiState.horaFin))
+                                    // Si se especifican horas manualmente, calcular la diferencia
+                                    val horasCalculadas = calcularHoras(uiState.horaInicio, uiState.horaFin)
+                                    Triple(
+                                        uiState.horaInicio,
+                                        uiState.horaFin,
+                                        horasCalculadas
+                                    )
                                 }
+
                                 notificationHandler.showNotification(
                                     title = "Reserva Confirmada",
                                     message = "Tu reserva en el restaurante se está procesando."
                                 )
+
                                 viewModel.confirmarReservacionRestaurante(
                                     getLista = { DatosPersonalesRestauranteStore.lista },
                                     getMetodoPagoSeleccionado = { DatosPersonalesRestauranteStore.metodoPagoSeleccionado },
@@ -265,7 +278,9 @@ fun PagoRestauranteScreen(
                             }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
                     enabled = botonHabilitado && !uiState.isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (botonHabilitado && !uiState.isLoading) Color(0xFF0077B6) else Color.Gray,
@@ -273,9 +288,15 @@ fun PagoRestauranteScreen(
                     )
                 ) {
                     if (uiState.isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White
+                        )
                     } else {
-                        Text("CONFIRMAR RESERVA", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "CONFIRMAR RESERVA",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
