@@ -2,61 +2,36 @@ package edu.ucne.ureserve.presentation.laboratorios
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
-import java.util.Calendar
-import java.util.Locale
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LaboratorioReservationScreen(
     onBottomNavClick: (String) -> Unit = {},
-    onDateSelected: (Calendar) -> Unit = {},
     navController: NavController
 ) {
     val calendar = Calendar.getInstance()
     var selectedDate by remember { mutableStateOf<Calendar?>(null) }
-
     val isSunday = selectedDate?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
     val isDateValid = selectedDate != null && !isSunday
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // TopAppBar con borde inferior
         Column {
             TopAppBar(
                 title = {
@@ -72,26 +47,22 @@ fun LaboratorioReservationScreen(
                         )
                         Image(
                             painter = painterResource(id = R.drawable.icon_laboratorio),
-                            contentDescription = "Cubiculo",
+                            contentDescription = "Laboratorio",
                             modifier = Modifier.size(60.dp)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF6D87A4) // Color de fondo de la barra superior
+                    containerColor = Color(0xFF6D87A4)
                 )
             )
-
-            // Línea separadora (borde inferior)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
-                    .background(Color(0xFF023E8A)) // Color del borde
+                    .background(Color(0xFF023E8A))
             )
         }
-
-        // Contenido principal
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -125,11 +96,15 @@ fun LaboratorioReservationScreen(
                 ReservationButton(
                     isEnabled = isDateValid,
                     onClick = {
-                        if (selectedDate != null && !isSunday) {
-                            onDateSelected(selectedDate!!)
+                        selectedDate?.let { date ->
+                            val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                            val fechaFormateada = dateFormat.format(date.time)
+                            navController.navigate("LaboratorioList/${date.timeInMillis}")
                         }
                     },
-                    onBottomNavClick = onBottomNavClick
+                    onBottomNavClick = onBottomNavClick,
+                    navController = navController,
+                    selectedDate = selectedDate
                 )
             }
         }
@@ -176,16 +151,13 @@ private fun CalendarSection(
 ) {
     var currentMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
     var currentYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
-
     val tempCalendar = Calendar.getInstance().apply {
         set(Calendar.YEAR, currentYear)
         set(Calendar.MONTH, currentMonth)
         set(Calendar.DAY_OF_MONTH, 1)
     }
-
     val daysInMonth = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
     val firstDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK) - 1
-
     val monthName = tempCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
     val shortWeekdays = Array(7) { i ->
         tempCalendar.apply { set(Calendar.DAY_OF_WEEK, i + 1) }
@@ -209,7 +181,6 @@ private fun CalendarSection(
                 tint = Color.White
             )
         }
-
         Text(
             text = monthName?.uppercase() ?: "",
             style = MaterialTheme.typography.titleMedium.copy(
@@ -219,7 +190,6 @@ private fun CalendarSection(
             ),
             modifier = Modifier.weight(1f)
         )
-
         IconButton(onClick = {
             currentMonth++
             if (currentMonth > 11) {
@@ -234,7 +204,6 @@ private fun CalendarSection(
             )
         }
     }
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -248,13 +217,10 @@ private fun CalendarSection(
             )
         }
     }
-
     Spacer(modifier = Modifier.height(8.dp))
-
     Column {
         var dayCounter = 1 - firstDayOfWeek
-
-        repeat(6) { week ->
+        repeat(6) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -269,17 +235,14 @@ private fun CalendarSection(
                             set(Calendar.DAY_OF_MONTH, day)
                         }
                     } else null
-
                     val today = Calendar.getInstance()
                     val isToday = date?.let {
                         it.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                                 it.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
                                 it.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH)
                     } ?: false
-
                     val isPastDate = date?.let { it.before(today) && !isToday } ?: false
                     val isSunday = date?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
-
                     CalendarDay(
                         day = if (isCurrentMonth) day.toString() else "",
                         isSelected = selectedDate?.let {
@@ -292,7 +255,6 @@ private fun CalendarSection(
                     )
                 }
             }
-
             dayCounter += 7
             if (dayCounter > daysInMonth) return@Column
         }
@@ -316,7 +278,6 @@ private fun CalendarDay(
         !isAvailable -> Color.White
         else -> Color.White
     }
-
     Box(
         modifier = Modifier
             .size(40.dp)
@@ -358,22 +319,22 @@ private fun CalendarDay(
 private fun ReservationButton(
     isEnabled: Boolean,
     onClick: () -> Unit,
-    onBottomNavClick: (String) -> Unit
+    onBottomNavClick: (String) -> Unit,
+    navController: NavController,
+    selectedDate: Calendar?
 ) {
-    // Botón de reservar
     Button(
-        onClick = onClick,
+        onClick = {
+            selectedDate?.let { date ->
+                navController.navigate("LaboratorioList/${date.timeInMillis}")
+            }
+        },
         enabled = isEnabled,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         Text("Reservar", fontWeight = FontWeight.Bold)
     }
-
     Spacer(modifier = Modifier.height(32.dp))
-
-    // Barra inferior
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -389,11 +350,3 @@ private fun ReservationButton(
         )
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewLaboratorioReservationScreen() {
-//    MaterialTheme {
-//        LaboratorioReservationScreen(onBottomNavClick = {})
-//    }
-//}
