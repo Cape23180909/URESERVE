@@ -119,6 +119,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
+
         composable("login") {
             LoginScreen(onLoginSuccess = { usuario ->
                 if (
@@ -151,13 +152,59 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             CanalYoutubeScreen()
         }
 
-        composable("modificar_proyector") {
-            ModificarReservaProyectorScreen(navController)
+
+
+        composable("modificar_proyector/{reservaId}") { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getString("reservaId")?.toIntOrNull()
+            ModificarReservaProyectorScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
         }
 
-        composable("modificar_cubiculo") {
-            ModificarReservaCubiculoScreen(navController = navController)
+        // Dentro de tu NavHost composable
+        composable(
+            route = "modificar_cubiculo/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0
+            ModificarReservaCubiculoScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
         }
+
+//        composable("detalles_reserva/{reservaId}") { backStackEntry ->
+//            val reservaId = backStackEntry.arguments?.getString("reservaId")?.toIntOrNull()
+//            // Suponiendo que tienes una función para obtener los detalles de la reserva
+//            val reserva = viewModel.obtenerReservaPorId(reservaId ?: 0)
+//
+//            DetallesReservacionScreen(
+//                reservaId = reservaId ?: 0,
+//                fecha = reserva.fecha,
+//                horaInicio = reserva.horaInicio,
+//                horaFin = reserva.horaFin,
+//                matricula = reserva.matricula,
+//                tipoReserva = reserva.tipoReserva,
+//                navController = navController,
+//                onCancelarReserva = { viewModel.cancelarReserva(reservaId ?: 0) }
+//            )
+//        }
+
+
+
+
+        composable("reservaList") {
+            ReservaListScreen(
+                navController = navController,
+                onBottomNavClick = { route -> navController.navigate(route) }
+            )
+        }
+
+
+//        composable("modificar_cubiculo") {
+//            ModificarReservaCubiculoScreen(navController = navController)
+//        }
         composable("modificar_laboratorio") {
             ModificarReservaLaboratorioScreen(navController = navController)
         }
@@ -171,6 +218,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         composable("modificar_sala_vip") {
             ModificarReservaSalaVipScreen(navController = navController)
         }
+
 
         composable("Dashboard") {
             val usuario = AuthManager.currentUser ?: UsuarioDTO()
@@ -250,8 +298,9 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
 
         // En tu NavHost
         composable(
-            "detallesReserva/{fecha}/{horaInicio}/{horaFin}/{matricula}/{tipoReserva}",
+            "detallesReserva/{reservaId}/{fecha}/{horaInicio}/{horaFin}/{matricula}/{tipoReserva}",
             arguments = listOf(
+                navArgument("reservaId") { type = NavType.IntType },
                 navArgument("fecha") { type = NavType.StringType },
                 navArgument("horaInicio") { type = NavType.StringType },
                 navArgument("horaFin") { type = NavType.StringType },
@@ -260,6 +309,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         ) { backStackEntry ->
             DetallesReservacionScreen(
+                reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0,
                 fecha = backStackEntry.arguments?.getString("fecha") ?: "",
                 horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: "",
                 horaFin = backStackEntry.arguments?.getString("horaFin") ?: "",
@@ -268,6 +318,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 navController = navController
             )
         }
+
 
         composable("ProjectorReservation") {
             ProjectorReservationScreen(
