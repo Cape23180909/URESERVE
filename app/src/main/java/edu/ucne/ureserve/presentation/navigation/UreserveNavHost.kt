@@ -1,7 +1,9 @@
 package edu.ucne.ureserve.presentation.navigation
 
 import AgregarEstudianteScreen
+import PlanificadorLaboratorioScreen
 import ProyectorSwitchScreen
+import ReservaLaboratorioScreen
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
@@ -51,8 +53,7 @@ import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScree
 import edu.ucne.ureserve.presentation.laboratorios.ExistosaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
 import edu.ucne.ureserve.presentation.laboratorios.ModificarReservaLaboratorioScreen
-import edu.ucne.ureserve.presentation.laboratorios.PlanificadorLaboratorioScreen
-import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioScreen
+
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioViewModel
 import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
@@ -451,9 +452,6 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                     }
-                },
-                onDateSelected = { selectedDate ->
-                    navController.navigate("LaboratorioList/${selectedDate.timeInMillis}")
                 }
             )
         }
@@ -464,18 +462,18 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         ) { backStackEntry ->
             val fechaMillis = backStackEntry.arguments?.getLong("fechaMillis")
             val calendar = Calendar.getInstance().apply {
-                timeInMillis = fechaMillis ?: timeInMillis
+                timeInMillis = fechaMillis ?: Calendar.getInstance().timeInMillis
             }
-
             DashboardLaboratorioListScreen(
                 selectedDate = calendar,
                 onLaboratorioSelected = { laboratorioId, laboratorioNombre ->
-                    navController.navigate("planificador_laboratorio/${laboratorioId}/${laboratorioNombre}/${fechaMillis}")
+                    navController.navigate("planificador_laboratorio/$laboratorioId/$laboratorioNombre/$fechaMillis")
                 },
                 onBackClick = { navController.popBackStack() },
                 navController = navController
             )
         }
+
 
         composable(
             "planificador_laboratorio/{laboratorioId}/{laboratorioNombre}/{fechaMillis}",
@@ -564,12 +562,12 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         ) { backStackEntry ->
             val codigoReserva = backStackEntry.arguments?.getInt("codigo")
-
             ExistosaLaboratorioScreen(
                 navController = navController,
                 codigoReserva = codigoReserva
             )
         }
+
 
         composable("SalaVipReservation") {
             SalaVipReservationScreen(
