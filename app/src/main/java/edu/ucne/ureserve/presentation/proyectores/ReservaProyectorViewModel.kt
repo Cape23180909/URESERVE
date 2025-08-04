@@ -7,8 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.ureserve.data.remote.DetalleReservaProyectorsApi
+import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.Resource
+import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.repository.ProyectorRepository
@@ -24,9 +26,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReservaProyectorViewModel @Inject constructor(
-    private val repository: ProyectorRepository,
+    internal val repository: ProyectorRepository,
     private val detalleReservaApi: DetalleReservaProyectorsApi,
-    private val reservaApi: ReservacionesApi
+    internal val reservaApi: ReservacionesApi,
+    private val remoteDataSource: RemoteDataSource
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReservaProyectorState())
@@ -35,16 +38,76 @@ class ReservaProyectorViewModel @Inject constructor(
     private val _proyectorSeleccionado = MutableStateFlow<ProyectoresDto?>(null)
     val proyectorSeleccionado: StateFlow<ProyectoresDto?> = _proyectorSeleccionado.asStateFlow()
 
-    // Función suspend que llama al API para actualizar reservación y devuelve el ReservacionesDto actualizado
+    suspend fun getDetallesReservaProyector(reservaId: Int): List<DetalleReservaProyectorsDto> {
+        return remoteDataSource.getAllDetalleReservaProyector()
+            .filter { it.codigoReserva == reservaId }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun actualizarReservaProyector(
+        reservaId: Int,
+        proyectorId: Int,
+        fechaLocal: LocalDate,
+        horaInicio: LocalTime,
+        horaFin: LocalTime,
+        matricula: String
+    ) {
+        try {
+            if (horaFin.isBefore(horaInicio)) {
+                throw Exception("La hora de fin no puede ser antes de la hora de inicio")
+            }
+
+            val fechaZoned = ZonedDateTime.of(
+                fechaLocal,
+                horaInicio,
+                ZoneId.systemDefault()
+            ).format(DateTimeFormatter.ISO_INSTANT)
+
+            val reservacionDto = ReservacionesDto(
+                reservacionId = reservaId,
+                codigoReserva = (100000..999999).random(),
+                tipoReserva = 1,
+                fecha = fechaZoned,
+                horaInicio = horaInicio.toString(),
+                horaFin = horaFin.toString(),
+                estado = 1,
+                matricula = matricula,
+                cantidadEstudiantes = 0
+            )
+
+            val reservacionActualizada = updateReservacion(reservaId, reservacionDto)
+
+            val detalles = getDetallesReservaProyector(reservaId)
+            if (detalles.isNotEmpty()) {
+                val detalleActualizado = detalles.first().copy(
+                    idProyector = proyectorId,
+                    fecha = fechaLocal.toString(),
+                    horario = "$horaInicio - $horaFin"
+                )
+                remoteDataSource.updateDetalleReservaProyector(
+                    detalleActualizado.detalleReservaProyectorId,
+                    detalleActualizado
+                )
+            }
+
+            _state.value = _state.value.copy(
+                resultado = Resource.Success(reservacionActualizada),
+                reservaConfirmada = true,
+                codigoReserva = reservacionActualizada.codigoReserva
+            )
+        } catch (e: Exception) {
+            _state.value = _state.value.copy(
+                resultado = Resource.Error("Error al modificar reserva: ${e.message ?: "Desconocido"}"),
+                reservaConfirmada = false
+            )
+            throw e
+        }
+    }
+
     suspend fun updateReservacion(id: Int, reservacion: ReservacionesDto): ReservacionesDto {
         val response = reservaApi.update(id, reservacion)
         if (response.isSuccessful) {
-            val body = response.body()
-            if (body != null) {
-                return body
-            } else {
-                throw Exception("Respuesta vacía del servidor")
-            }
+            return response.body() ?: throw Exception("Respuesta vacía del servidor")
         } else {
             val errorMsg = try {
                 response.errorBody()?.string() ?: "Error desconocido"
@@ -134,8 +197,20 @@ class ReservaProyectorViewModel @Inject constructor(
                     cantidadEstudiantes = 0
                 )
 
-                // Aquí usa la función suspend updateReservacion para hacer la llamada
                 val reservacionActualizada = updateReservacion(reservaId, reservacionDto)
+
+                val detalles = getDetallesReservaProyector(reservaId)
+                if (detalles.isNotEmpty()) {
+                    val detalleActualizado = detalles.first().copy(
+                        idProyector = proyectorId,
+                        fecha = fechaLocal.toString(),
+                        horario = "$horaInicio - $horaFin"
+                    )
+                    remoteDataSource.updateDetalleReservaProyector(
+                        detalleActualizado.detalleReservaProyectorId,
+                        detalleActualizado
+                    )
+                }
 
                 _state.value = _state.value.copy(
                     resultado = Resource.Success(reservacionActualizada),
