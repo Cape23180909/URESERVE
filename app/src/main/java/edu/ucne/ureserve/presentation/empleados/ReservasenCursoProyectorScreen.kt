@@ -26,6 +26,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
+import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -36,7 +39,6 @@ fun ReservasenCursoProyectorScreen(
     val state by viewModel.state.collectAsState()
     val reservaciones by viewModel.reservaciones.collectAsState()
 
-    // ✅ Llamamos a getReservas() solo una vez al entrar
     LaunchedEffect(Unit) {
         viewModel.getReservas()
     }
@@ -49,7 +51,6 @@ fun ReservasenCursoProyectorScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Barra gris superior
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -70,8 +71,6 @@ fun ReservasenCursoProyectorScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
-
-            // Título
             Text(
                 text = "Reservas de proyectores en Curso",
                 fontSize = 23.sp,
@@ -82,8 +81,6 @@ fun ReservasenCursoProyectorScreen(
                     .wrapContentWidth(Alignment.CenterHorizontally)
                     .padding(16.dp)
             )
-
-            // Contenido principal
             when (state) {
                 is ReservaViewModel.ReservaListState.Loading -> {
                     Text(
@@ -96,7 +93,6 @@ fun ReservasenCursoProyectorScreen(
                             .padding(16.dp)
                     )
                 }
-
                 is ReservaViewModel.ReservaListState.Success -> {
                     LazyColumn(
                         modifier = Modifier
@@ -122,17 +118,16 @@ fun ReservasenCursoProyectorScreen(
                                 }
                             }
                         }
-
-                        items(reservaciones) { reserva ->
-                            ReservationItem(
-                                timeRemaining = calcularTiempoRestanteStr(reserva.horaFin),
-                                reservationTime = "${reserva.horaInicio} a ${reserva.horaFin}",
+                        items(reservaciones.filterNot { isReservaFinalizada(it.fecha, it.horaFin) }) { reserva ->
+                            ProyectorReservationItem(
+                                horaInicio = reserva.horaInicio,
+                                horaFin = reserva.horaFin,
+                                fecha = reserva.fecha,
                                 color = Color(0xFF6EE610)
                             )
                         }
                     }
                 }
-
                 is ReservaViewModel.ReservaListState.Error -> {
                     Text(
                         text = (state as ReservaViewModel.ReservaListState.Error).message,
@@ -145,9 +140,7 @@ fun ReservasenCursoProyectorScreen(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(15.dp))
-
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
@@ -167,64 +160,79 @@ fun ReservasenCursoProyectorScreen(
 }
 
 @Composable
-fun ReservationItem(timeRemaining: String, reservationTime: String, color: Color) {
+fun ProyectorReservationItem(
+    horaInicio: String,
+    horaFin: String,
+    fecha: String,
+    color: Color,
+    onTimerFinished: () -> Unit = {}
+) {
+    var tiempoRestante by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf(false) }
+
+    LaunchedEffect(fecha, horaFin) {
+        val fechaHoraFin = parsearFechaHoraSeguro(fecha, horaFin)
+        if (fechaHoraFin == null) {
+            error = true
+            return@LaunchedEffect
+        }
+        while (true) {
+            val ahora = System.currentTimeMillis()
+            val diff = fechaHoraFin.time - ahora
+            if (diff > 0) {
+                tiempoRestante = formatearTiempoRestante(diff)
+            } else {
+                tiempoRestante = "Finalizado"
+                onTimerFinished()
+                break
+            }
+            delay(1000L - (System.currentTimeMillis() % 1000))
+        }
+    }
+
+    val tiempoMostrado = tiempoRestante ?: if (error) "--:--" else "Cargando..."
+    val isActive = tiempoMostrado != "Finalizado" && !error
+    val colorFondo = if (isActive) color else Color.Gray
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(25.dp))
-                .background(Color.White)
-                .widthIn(min = 100.dp)
-                .padding(8.dp)
+                .background(if (isActive) Color.White else Color.LightGray)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text(
-                text = timeRemaining,
+                text = tiempoMostrado,
                 fontSize = 16.sp,
-                color = Color.Black,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                color = if (isActive) Color.Black else Color.Gray
             )
         }
-
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(25.dp))
-                .background(color)
-                .widthIn(min = 200.dp)
-                .padding(8.dp)
+                .background(colorFondo)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(8.dp)
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painter = painterResource(id = R.drawable.icon_proyector),
                     contentDescription = "Reserva",
                     modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.size(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Column {
+                    Text("Reservación", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Ahora", fontSize = 12.sp, color = Color.Black)
                     Text(
-                        text = "Reservación",
-                        fontSize = 14.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Ahora",
+                        text = "$horaInicio a $horaFin",
                         fontSize = 12.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = reservationTime,
-                        fontSize = 12.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
+                        color = Color.Black
                     )
                 }
             }
@@ -232,23 +240,31 @@ fun ReservationItem(timeRemaining: String, reservationTime: String, color: Color
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun calcularTiempoRestanteStr(horaFin: String): String {
+private fun parsearFechaHoraSeguro(fecha: String, hora: String): Date? {
     return try {
-        val formato = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
-        val horaFinal = java.time.LocalTime.parse(horaFin, formato)
-        val ahora = java.time.LocalTime.now()
-
-        if (ahora.isBefore(horaFinal)) {
-            val diferencia = java.time.Duration.between(ahora, horaFinal)
-            "${diferencia.toMinutes()} min"
-        } else {
-            "Finalizado"
-        }
+        val fechaLimpia = fecha.take(10) // Asegura formato yyyy-MM-dd
+        val horaLimpia = hora.take(5) // Asegura formato HH:mm
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        sdf.parse("$fechaLimpia $horaLimpia")
     } catch (e: Exception) {
-        "00:00 min"
+        e.printStackTrace()
+        null
     }
 }
+
+private fun formatearTiempoRestante(diferencia: Long): String {
+    val segundos = diferencia / 1000
+    val minutos = segundos / 60
+    val horas = minutos / 60
+    val minutosRestantes = minutos % 60
+    val segundosRestantes = segundos % 60
+    return String.format("%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
+}
+
+//fun isReservaFinalizada(fecha: String, horaFin: String): Boolean {
+//    val fechaHora = parsearFechaHoraSeguro(fecha, horaFin)
+//    return fechaHora?.time ?: 0 < System.currentTimeMillis()
+//}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
