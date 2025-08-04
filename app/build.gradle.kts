@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -85,6 +87,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
 
     implementation("io.coil-kt:coil-compose:2.4.0")
+
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.51")
