@@ -1,32 +1,15 @@
-package edu.ucne.ureserve.presentation.empleados
-
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,13 +25,16 @@ import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
+import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ReservasenCursoRestauranteScreen(
     navController: NavController,
     viewModel: ReservaViewModel = hiltViewModel()
-){
+) {
     val state by viewModel.state.collectAsState()
     val reservaciones by viewModel.reservaciones.collectAsState()
 
@@ -111,7 +97,6 @@ fun ReservasenCursoRestauranteScreen(
                             .padding(16.dp)
                     )
                 }
-
                 is ReservaViewModel.ReservaListState.Success -> {
                     LazyColumn(
                         modifier = Modifier
@@ -137,23 +122,19 @@ fun ReservasenCursoRestauranteScreen(
                                 }
                             }
                         }
-
                         items(reservaciones) { reserva ->
-                            ReservationRestauramteItem(
-                                reserva = reserva,  // Pasar el objeto reserva completo
-                                timeRemaining = calcularTiempoRestante(reserva.horaFin),
-                                reservationTime = "${reserva.horaInicio} a ${reserva.horaFin}",
+                            ReservationRestauranteItem(
+                                reserva = reserva,
                                 color = when (reserva.tipoReserva) {
-                                    4 -> Color(0xFFFFA500)  // Naranja para SalaVIP
-                                    5 -> Color(0xFFADD8E6)  // Azul claro para SalaReuniones
-                                    6 -> Color(0xFF6EE610)  // Verde para Restaurante
-                                    else -> Color(0xFF6EE610)  // Verde por defecto
+                                    4 -> Color(0xFFFFA500)  // Naranja SalaVIP
+                                    5 -> Color(0xFFADD8E6)  // Azul SalaReuniones
+                                    6 -> Color(0xFF6EE610)  // Verde Restaurante
+                                    else -> Color(0xFF6EE610)
                                 }
                             )
                         }
                     }
                 }
-
                 is ReservaViewModel.ReservaListState.Error -> {
                     Text(
                         text = (state as ReservaViewModel.ReservaListState.Error).message,
@@ -188,14 +169,64 @@ fun ReservasenCursoRestauranteScreen(
 }
 
 @Composable
-fun ReservationRestauramteItem(reserva: ReservacionesDto, timeRemaining: String, reservationTime: String, color: Color) {
-    val iconRes = when (reserva.tipoReserva) {
-        4 -> R.drawable.sala  // Icono para SalaVIP
-        5 -> R.drawable.salon  // Icono para SalaReuniones
-        6 -> R.drawable.comer  // Icono para Restaurante
-        else -> R.drawable.icon_restaurante  // Icono por defecto
+fun ReservationRestauranteItem(
+    reserva: ReservacionesDto,
+    color: Color,
+    onTimerFinished: () -> Unit = {}
+) {
+    var tiempoRestante by remember { mutableStateOf<String>("Cargando...") }
+    var error by remember { mutableStateOf(false) }
+
+    fun parsearFechaHoraSeguro(fecha: String, hora: String): Date? {
+        return try {
+            val fechaLimpia = fecha.take(10) // yyyy-MM-dd
+            val horaLimpia = hora.take(8) // HH:mm:ss
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            sdf.parse("$fechaLimpia $horaLimpia")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
+    fun formatearTiempoRestante(diferencia: Long): String {
+        val segundos = diferencia / 1000
+        val minutos = segundos / 60
+        val horas = minutos / 60
+        val minutosRestantes = minutos % 60
+        val segundosRestantes = segundos % 60
+        return String.format("%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
+    }
+
+    LaunchedEffect(reserva.fecha, reserva.horaFin) {
+        val fechaHoraFin = parsearFechaHoraSeguro(reserva.fecha, "23:59:59") // Fin del día
+        if (fechaHoraFin == null) {
+            error = true
+            tiempoRestante = "--:--"
+            return@LaunchedEffect
+        }
+
+        while (true) {
+            val ahora = System.currentTimeMillis()
+            val diff = fechaHoraFin.time - ahora
+            if (diff > 0) {
+                tiempoRestante = formatearTiempoRestante(diff)
+            } else {
+                tiempoRestante = "Finalizado"
+                onTimerFinished()
+                break
+            }
+            delay(1000L - (System.currentTimeMillis() % 1000))
+        }
+    }
+
+    val isActive = tiempoRestante != "Finalizado" && !error
+    val iconRes = when (reserva.tipoReserva) {
+        4 -> R.drawable.sala  // Sala VIP
+        5 -> R.drawable.salon // Salón de reuniones
+        6 -> R.drawable.comer // Restaurante
+        else -> R.drawable.icon_restaurante
+    }
     val tipoReservaText = when (reserva.tipoReserva) {
         4 -> "Sala VIP"
         5 -> "Salón de Reuniones"
@@ -213,22 +244,21 @@ fun ReservationRestauramteItem(reserva: ReservacionesDto, timeRemaining: String,
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(25.dp))
-                .background(Color.White)
+                .background(if (isActive) Color.White else Color.LightGray)
                 .widthIn(min = 100.dp)
                 .padding(8.dp)
         ) {
             Text(
-                text = timeRemaining,
+                text = tiempoRestante,
                 fontSize = 16.sp,
-                color = Color.Black,
+                color = if (isActive) Color.Black else Color.Gray,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
-
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(25.dp))
-                .background(color)
+                .background(if (isActive) color else Color.Gray)
                 .widthIn(min = 200.dp)
                 .padding(8.dp)
         ) {
@@ -246,19 +276,19 @@ fun ReservationRestauramteItem(reserva: ReservacionesDto, timeRemaining: String,
                     Text(
                         text = tipoReservaText,
                         fontSize = 14.sp,
-                        color = Color.Black,
+                        color = if (isActive) Color.Black else Color.Gray,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Ahora",
+                        text = if (isActive) "Ahora" else "Finalizado",
                         fontSize = 12.sp,
-                        color = Color.Black,
+                        color = if (isActive) Color.Black else Color.Gray,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = reservationTime,
+                        text = "00:00 a 23:59", // Hora de inicio y fin para un día completo
                         fontSize = 12.sp,
-                        color = Color.Black,
+                        color = if (isActive) Color.Black else Color.Gray,
                         fontWeight = FontWeight.Bold
                     )
                 }
