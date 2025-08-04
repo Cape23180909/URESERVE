@@ -1,5 +1,5 @@
-package edu.ucne.ureserve.presentation.laboratorios
-
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,15 +17,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
-import java.util.Calendar
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PlanificadorLaboratorioScreen(
     navController: NavController,
@@ -35,27 +38,35 @@ fun PlanificadorLaboratorioScreen(
 ) {
     val context = LocalContext.current
     val notificationHandler = remember { NotificationHandler(context) }
-
     val horariosDisponibles = listOf(
-        "7:00AM", "7:30AM", "8:00AM", "8:30AM",
-        "9:00AM", "9:30AM", "10:00AM", "10:30AM",
-        "11:00AM", "11:30AM", "12:00PM", "12:30PM",
-        "1:00PM", "2:00PM", "3:00PM",
-        "4:00PM", "4:30PM", "5:00PM", "5:30PM",
-        "6:00PM", "6:30PM", "7:00PM", "8:00PM", "8:30PM"
+        "07:00 AM", "07:30 AM", "08:00 AM", "08:30 AM",
+        "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM",
+        "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM",
+        "01:00 PM", "02:00 PM", "03:00 PM",
+        "04:00 PM", "04:30 PM", "05:00 PM", "05:30 PM",
+        "06:00 PM", "06:30 PM", "07:00 PM", "08:00 PM", "08:30 PM"
     )
 
-    var horaInicioSeleccionada by remember { mutableStateOf("12:00PM") }
-    var horaFinSeleccionada by remember { mutableStateOf("02:30PM") }
-
-    var horaInicio by remember { mutableStateOf("") }
-    var horaFin by remember { mutableStateOf("") }
-
-    var mostrarSeleccionInicio by remember { mutableStateOf(false) }
+    var horaInicioSeleccionada by remember { mutableStateOf("") }
+    var horaFinSeleccionada by remember { mutableStateOf("") }
     var mostrarSeleccionFin by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
-    val laboratorios = remember { getLaboratorios() }
-    val laboratorio = laboratorios.find { it.laboratorioId == laboratorioId }
+    // Obtener la hora actual y configurar la hora de inicio y fin
+    LaunchedEffect(Unit) {
+        val horaActual = LocalTime.now()
+        val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+        horaInicioSeleccionada = horaActual.format(formatter)
+
+        val horaActualIndex = horariosDisponibles.indexOfFirst {
+            LocalTime.parse(it, DateTimeFormatter.ofPattern("hh:mm a", Locale.US)) >= horaActual
+        }
+        horaFinSeleccionada = if (horaActualIndex != -1 && horaActualIndex < horariosDisponibles.lastIndex) {
+            horariosDisponibles[horaActualIndex + 1]
+        } else {
+            horariosDisponibles.last()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -81,12 +92,29 @@ fun PlanificadorLaboratorioScreen(
                     color = Color.White
                 )
                 Text(
-                    text = "$laboratorioNombre",
+                    text = laboratorioNombre,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
                 )
             }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.LightGray, RoundedCornerShape(8.dp))
+                .border(2.dp, Color.Green, RoundedCornerShape(8.dp))
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "DISPONIBLE",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            )
         }
 
         Text(
@@ -147,13 +175,11 @@ fun PlanificadorLaboratorioScreen(
                     modifier = Modifier
                         .background(Color.White, RoundedCornerShape(4.dp))
                         .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
-                        .clickable { mostrarSeleccionInicio = true }
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(text = horaInicioSeleccionada, fontSize = 14.sp, color = Color.Black)
                 }
             }
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "Hasta:", fontSize = 14.sp, color = Color.White)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -165,43 +191,6 @@ fun PlanificadorLaboratorioScreen(
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(text = horaFinSeleccionada, fontSize = 14.sp, color = Color.Black)
-                }
-            }
-        }
-
-        if (mostrarSeleccionInicio) {
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 200.dp)
-                    .background(Color.White, RoundedCornerShape(8.dp))
-                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-                    .padding(4.dp)
-            ) {
-                items(horariosDisponibles) { hora ->
-                    Text(
-                        text = hora,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                horaInicioSeleccionada = hora
-                                mostrarSeleccionInicio = false
-                                val indexInicio = horariosDisponibles.indexOf(hora)
-                                val indexFin = horariosDisponibles.indexOf(horaFinSeleccionada)
-                                if (indexFin <= indexInicio) {
-                                    horaFinSeleccionada = horariosDisponibles.getOrElse(indexInicio + 1) { horariosDisponibles.last() }
-                                }
-
-                                // Notificación
-                                notificationHandler.showNotification(
-                                    title = "Hora seleccionada",
-                                    message = "Hora de inicio seleccionada: $hora"
-                                )
-                            }
-                            .padding(8.dp),
-                        color = Color.Black
-                    )
                 }
             }
         }
@@ -218,7 +207,8 @@ fun PlanificadorLaboratorioScreen(
             ) {
                 items(
                     horariosDisponibles.filter {
-                        horariosDisponibles.indexOf(it) > horariosDisponibles.indexOf(horaInicioSeleccionada)
+                        LocalTime.parse(it, DateTimeFormatter.ofPattern("hh:mm a", Locale.US)) >
+                                LocalTime.parse(horaInicioSeleccionada, DateTimeFormatter.ofPattern("hh:mm a", Locale.US))
                     }
                 ) { hora ->
                     Text(
@@ -255,7 +245,6 @@ fun PlanificadorLaboratorioScreen(
             ) {
                 Text("CANCELAR", fontSize = 14.sp)
             }
-
             Button(
                 onClick = {
                     val fechaMillis = fechaSeleccionada.timeInMillis
@@ -263,7 +252,7 @@ fun PlanificadorLaboratorioScreen(
                         title = "Confirmación",
                         message = "Horario confirmado: $horaInicioSeleccionada - $horaFinSeleccionada"
                     )
-                    val route = "reservaLaboratorio/${laboratorioId}/${horaInicioSeleccionada}/${horaFinSeleccionada}/${fechaMillis}"
+                    val route = "reservaLaboratorio/$laboratorioId/$horaInicioSeleccionada/$horaFinSeleccionada/$fechaMillis"
                     navController.navigate(route)
                 },
                 modifier = Modifier
@@ -281,9 +270,7 @@ fun PlanificadorLaboratorioScreen(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewPlanificadorLaboratorioScreen() {
-//    val navController = rememberNavController()
-//    PlanificadorLaboratorioScreen(navController = navController, laboratorioId = 1, laboratorioNombre = "Laboratorio A")
-//}
+fun formatoFecha(calendar: Calendar): String {
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    return dateFormat.format(calendar.time)
+}
