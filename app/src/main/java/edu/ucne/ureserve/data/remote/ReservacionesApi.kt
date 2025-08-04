@@ -12,7 +12,7 @@ interface ReservacionesApi {
     suspend fun getReservasByMatricula(@Path("matricula") matricula: String): List<ReservacionesDto>
 
     @GET("api/Reservaciones/{id}")
-    suspend fun getById(@Path("id") id: Int): ReservacionesDto
+    suspend fun getById(@Path("id") id: Int?): ReservacionesDto
 
     @POST("api/Reservaciones")
     suspend fun insert(@Body reservacion: ReservacionesDto): Response<ReservacionesDto>
