@@ -116,7 +116,7 @@ fun PrevisualizacionProyectorScreen(
         "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
         "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
         "04:00 PM", "05:00 PM"
-    )
+    ).sortedBy { LocalTime.parse(it, DateTimeFormatter.ofPattern("hh:mm a", Locale.US)) }
 
     val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault())
     val fechaLocalDate = try {
@@ -248,7 +248,7 @@ fun PrevisualizacionProyectorScreen(
                             .padding(horizontal = 16.dp)
                     ) {
                         horariosDisponibles.forEach { horario ->
-                            val isReserved = isWithinReservation(horario, horaInicio, horaFin, horariosDisponibles)
+                            val isReserved = isWithinReservation(horario, horaInicio, horaFin)
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -369,13 +369,14 @@ fun PrevisualizacionProyectorScreen(
     }
 }
 
-fun isWithinReservation(horario: String, horaInicio: String, horaFin: String, horarios: List<String>): Boolean {
+fun isWithinReservation(horario: String, horaInicio: String, horaFin: String): Boolean {
     val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
     return try {
         val horarioTime = LocalTime.parse(horario, timeFormatter)
         val inicioTime = LocalTime.parse(horaInicio, timeFormatter)
         val finTime = LocalTime.parse(horaFin, timeFormatter)
-        horarioTime.isAfter(inicioTime) && horarioTime.isBefore(finTime)
+        // Incluir al horario de inicio y al horario de fin en la selección
+        horarioTime >= inicioTime && horarioTime <= finTime
     } catch (e: Exception) {
         false // En caso de error en el formato, devolvemos false
     }
