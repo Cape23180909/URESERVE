@@ -27,6 +27,7 @@ import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 @Composable
 fun ReservaListScreen(
     navController: NavHostController? = null,
+
     onBottomNavClick: (String) -> Unit,
     viewModel: ReservaViewModel = hiltViewModel()
 ) {
@@ -117,12 +118,12 @@ fun ReservaListScreen(
                             reservas = reservas,
                             onReservaClick = { reserva ->
                                 val (nombreTipo, _) = getIconForTipo(reserva.tipoReserva)
+
                                 navController?.navigate(
-                                    "detallesReserva/${reserva.fechaFormateada}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}/${nombreTipo}"
+                                    "detallesReserva/${reserva.reservacionId}/${reserva.fechaFormateada}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}/${nombreTipo}"
                                 )
                             }
                         )
-
 
                     } else {
                         Text(
