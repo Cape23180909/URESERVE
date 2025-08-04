@@ -18,7 +18,6 @@ import edu.ucne.ureserve.data.repository.CubiculoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -27,14 +26,16 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
-import edu.ucne.ureserve.data.local.entity.toDto
+import edu.ucne.ureserve.data.remote.RemoteDataSource
+import edu.ucne.ureserve.data.remote.dto.DetalleReservaCubiculosDto
 
 @HiltViewModel
 class ReservaCubiculoViewModel @Inject constructor(
     private val repository: CubiculoRepository,
-    private val detalleReservaApi: DetalleReservaCubiculosApi,
-    private val cubiculoApi: CubiculosApi,
-    private val reservaApi: ReservacionesApi
+    internal val detalleReservaApi: DetalleReservaCubiculosApi,
+    internal val cubiculoApi: CubiculosApi,
+    private val remoteDataSource: RemoteDataSource,
+    internal val reservaApi: ReservacionesApi
 ) : ViewModel() {
 
     private val _selectedHours = MutableStateFlow("")
@@ -91,6 +92,7 @@ class ReservaCubiculoViewModel @Inject constructor(
         _errorMessage.value = null
     }
 
+
     fun addMember(member: UsuarioDTO) {
         addMemberIfNotExists(member)
     }
@@ -112,6 +114,176 @@ class ReservaCubiculoViewModel @Inject constructor(
                 onResult(null)
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+    fun seleccionarCubiculo(cubiculo: CubiculosDto) {
+        _cubiculoSeleccionado.value = cubiculo
+        _state.value = _state.value.copy(cubiculoSeleccionado = cubiculo)
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun cargarReserva(reservaId: Int?) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null)
+            try {
+                reservaId?.let { id ->
+                    // 1. Validar que el ID no sea cero o negativo
+                    if (id <= 0) {
+                        throw IllegalArgumentException("ID de reserva inválido")
+                    }
+
+                    // 2. Obtener reserva con manejo de errores
+                    val reserva = try {
+                        reservaApi.getById(id).also {
+                            if (it.reservacionId == null) {
+                                throw IllegalStateException("Reserva no encontrada")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        throw Exception("Error al obtener reserva: ${e.message}")
+                    }
+
+                    // 3. Parsear fecha con validación
+                    val fechaParseada = try {
+                        LocalDate.parse(reserva.fecha.substring(0, 10))
+                    } catch (e: Exception) {
+                        throw Exception("Formato de fecha inválido: ${reserva.fecha}")
+                    }
+
+                    // 4. Obtener detalles de la reserva
+                    val detalles = try {
+                        detalleReservaApi.getAll().filter { it.codigoReserva == id }
+                    } catch (e: Exception) {
+                        emptyList() // Continuar aunque falle la carga de detalles
+                    }
+
+                    // 5. Cargar cubículo asociado si existe
+                    val cubiculo = detalles.firstOrNull()?.let { detalle ->
+                        try {
+                            cubiculoApi.getById(detalle.idCubiculo)
+                        } catch (e: Exception) {
+                            null // Continuar aunque falle la carga del cubículo
+                        }
+                    }
+
+                    // 6. Actualizar estado
+                    _state.value = _state.value.copy(
+                        cubiculoSeleccionado = cubiculo,
+                        isLoading = false,
+                        error = null
+                    )
+
+                    // 7. Verificar disponibilidad
+                    verificarDisponibilidad(
+                        fechaParseada.toString(),
+                        reserva.horaInicio,
+                        reserva.horaFin
+                    )
+                }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = "Error al cargar reserva: ${e.message}",
+                    isLoading = false
+                )
+                Log.e("ReservaViewModel", "Error cargando reserva", e)
+            }
+        }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun modificarReservaCubiculo(
+        reservaId: Int,
+        cubiculoId: Int,
+        fechaLocal: LocalDate,
+        horaInicio: LocalTime,
+        horaFin: LocalTime,
+        matricula: String
+    ) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null)
+            try {
+                if (horaFin.isBefore(horaInicio)) {
+                    _state.value = _state.value.copy(
+                        error = "La hora de fin no puede ser antes de la hora de inicio",
+                        isLoading = false
+                    )
+                    return@launch
+                }
+
+                // Formatear fecha y hora correctamente
+                val fechaZoned = ZonedDateTime.of(
+                    fechaLocal,
+                    horaInicio,
+                    ZoneId.systemDefault()
+                ).format(DateTimeFormatter.ISO_INSTANT)
+
+                // Obtener la reserva existente para preservar algunos valores
+                val reservaExistente = reservaApi.getById(reservaId)
+
+                val reservacionDto = ReservacionesDto(
+                    reservacionId = reservaId,
+                    codigoReserva = reservaExistente.codigoReserva, // Mantener el mismo código
+                    tipoReserva = reservaExistente.tipoReserva, // Mantener el mismo tipo
+                    fecha = fechaZoned,
+                    horaInicio = horaInicio.toString(),
+                    horaFin = horaFin.toString(),
+                    estado = reservaExistente.estado, // Mantener el mismo estado
+                    matricula = matricula,
+                    cantidadEstudiantes = members.value.size
+                )
+
+                // Actualizar la reservación
+                val response = remoteDataSource.updateReservacion(reservaId, reservacionDto)
+                if (!response.isSuccessful) {
+                    throw Exception("Error al actualizar reservación: ${response.code()}")
+                }
+
+                // Buscar y actualizar el detalle de reserva del cubículo
+                val detalles = detalleReservaApi.getAll().filter {
+                    it.codigoReserva == reservaId
+                }
+
+                if (detalles.isNotEmpty()) {
+                    val detalleActualizado = detalles.first().copy(
+                        idCubiculo = cubiculoId,
+                        fecha = fechaLocal.toString(),
+                        horario = "${horaInicio.format(DateTimeFormatter.ofPattern("HH:mm"))} - ${horaFin.format(DateTimeFormatter.ofPattern("HH:mm"))}",
+                        cantidadEstudiantes = members.value.size
+                    )
+
+                    // Actualizar el detalle
+                    detalleReservaApi.update(
+                        detalleActualizado.detalleReservaCubiculoId,
+                        detalleActualizado
+                    )
+                } else {
+                    // Crear nuevo detalle si no existe
+                    val nuevoDetalle = DetalleReservaCubiculosDto(
+                        codigoReserva = reservaId,
+                        idCubiculo = cubiculoId,
+                        matricula = matricula,
+                        fecha = fechaLocal.toString(),
+                        horario = "${horaInicio.format(DateTimeFormatter.ofPattern("HH:mm"))} - ${horaFin.format(DateTimeFormatter.ofPattern("HH:mm"))}",
+                        cantidadEstudiantes = members.value.size,
+                        estado = 1 // Estado activo
+                    )
+                    detalleReservaApi.insert(nuevoDetalle)
+                }
+
+                _state.value = _state.value.copy(
+                    reservaConfirmada = true,
+                    codigoReserva = reservacionDto.codigoReserva,
+                    isLoading = false,
+                    error = null
+                )
+
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = "Error al modificar reserva: ${e.message ?: "Desconocido"}",
+                    isLoading = false
+                )
+                Log.e("Reserva", "Error modificando reserva", e)
             }
         }
     }
