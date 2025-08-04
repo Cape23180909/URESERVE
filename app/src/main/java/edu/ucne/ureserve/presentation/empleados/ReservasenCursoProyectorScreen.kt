@@ -123,10 +123,9 @@ fun ReservasenCursoProyectorScreen(
                             }
                         }
 
-                        // ✅ Ya viene filtrado desde el ViewModel
                         items(reservaciones) { reserva ->
                             ReservationItem(
-                                timeRemaining = calcularTiempoRestante(reserva.horaFin),
+                                timeRemaining = calcularTiempoRestanteStr(reserva.horaFin),
                                 reservationTime = "${reserva.horaInicio} a ${reserva.horaFin}",
                                 color = Color(0xFF6EE610)
                             )
@@ -234,7 +233,7 @@ fun ReservationItem(timeRemaining: String, reservationTime: String, color: Color
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun calcularTiempoRestante(horaFin: String): String {
+fun calcularTiempoRestanteStr(horaFin: String): String {
     return try {
         val formato = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
         val horaFinal = java.time.LocalTime.parse(horaFin, formato)
