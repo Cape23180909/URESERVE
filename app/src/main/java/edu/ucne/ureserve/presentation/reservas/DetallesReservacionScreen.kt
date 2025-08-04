@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetallesReservacionScreen(
+    reservaId: Int,
     fecha: String,
     horaInicio: String,
     horaFin: String,
@@ -273,9 +274,9 @@ fun DetallesReservacionScreen(
                     Button(
                         onClick = {
                             when (tipoReserva.uppercase()) {
-                                "CUBÍCULO" -> navController?.navigate("modificar_cubiculo")
-                                "PROYECTOR" -> navController?.navigate("modificar_proyector")
-                                "LABORATORIO" -> navController?.navigate("modificar_laboratorio")
+                                "CUBÍCULO" -> navController?.navigate("modificar_cubiculo/$reservaId")
+                                "PROYECTOR" -> navController?.navigate("modificar_proyector/$reservaId")
+                                "LABORATORIO" -> navController?.navigate("modificar_laboratorio/$reservaId")
                                 "RESTAURANTE" -> navController?.navigate("modificar_restaurante")
                                 "SALÓN" -> navController?.navigate("modificar_salon")
                                 "SALA" -> navController?.navigate("modificar_sala_vip")
@@ -319,10 +320,11 @@ fun InfoRow(label: String, value: String) {
     }
 }
 
-@Composable
 @Preview(showBackground = true, showSystemUi = true)
+@Composable
 fun PreviewDetallesReservacionScreen() {
     DetallesReservacionScreen(
+        reservaId = 1, // ejemplo
         fecha = "2025-08-01",
         horaInicio = "10:00",
         horaFin = "12:00",
