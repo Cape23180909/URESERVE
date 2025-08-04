@@ -119,7 +119,6 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
-
         composable("login") {
             LoginScreen(onLoginSuccess = { usuario ->
                 if (
@@ -585,14 +584,14 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
-        composable("ReservaProyector") {
+        composable(
+            "ReservaProyector/{fecha}",
+            arguments = listOf(navArgument("fecha") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha")
             ReservaProyectorScreen(
-                onBottomNavClick = { destination ->
-                    when (destination) {
-                        "Inicio" -> navController.navigate("Dashboard")
-                    }
-                },
-                navController = navController
+                navController = navController,
+                fecha = fecha
             )
         }
 
