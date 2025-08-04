@@ -44,7 +44,7 @@ import edu.ucne.ureserve.presentation.empleados.LaboratorioSwitchScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoCubiculoScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoLaboratorioScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoProyectorScreen
-import edu.ucne.ureserve.presentation.empleados.ReservasenCursoRestauranteScreen
+import ReservasenCursoRestauranteScreen
 import edu.ucne.ureserve.presentation.empleados.RestauranteSwitchScreen
 import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLaboratorio
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
