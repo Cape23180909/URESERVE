@@ -1,5 +1,3 @@
-package edu.ucne.ureserve.presentation.laboratorios
-
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -25,8 +23,13 @@ import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioViewModel
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.time.Duration
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +52,6 @@ fun ReservaLaboratorioScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val fechaSeleccionada = Calendar.getInstance().apply { timeInMillis = fecha }
-
 
     LaunchedEffect(allMembers) {
         Log.d("ReservaLaboratorioScreen", "Miembros actualizados: ${allMembers.size}")
@@ -75,8 +77,16 @@ fun ReservaLaboratorioScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(painter = painterResource(id = R.drawable.logo_reserve), contentDescription = "Logo", modifier = Modifier.size(60.dp))
-                    Image(painter = painterResource(id = R.drawable.icon_laboratorio), contentDescription = "Icono", modifier = Modifier.size(60.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_reserve),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(60.dp)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.icon_laboratorio),
+                        contentDescription = "Icono",
+                        modifier = Modifier.size(60.dp)
+                    )
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6D87A4))
@@ -163,8 +173,19 @@ fun ReservaLaboratorioScreen(
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Nombre", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(start = 16.dp))
-                    Text("Matrícula", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(end = 16.dp), textAlign = TextAlign.End)
+                    Text(
+                        "Nombre",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Yellow,
+                        modifier = Modifier.weight(1f).padding(start = 16.dp)
+                    )
+                    Text(
+                        "Matrícula",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Yellow,
+                        modifier = Modifier.weight(1f).padding(end = 16.dp),
+                        textAlign = TextAlign.End
+                    )
                 }
                 Divider(color = Color.White, thickness = 1.dp)
                 allMembers.forEachIndexed { index, member ->
@@ -192,7 +213,6 @@ fun ReservaLaboratorioScreen(
                     }
                 }
             }
-
             val faltantes = (3 - allMembers.size).coerceAtLeast(0)
             Text(
                 text = if (faltantes > 0)
@@ -226,36 +246,28 @@ fun ReservaLaboratorioScreen(
                 Text("VOLVER", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
             }
 
-            @RequiresApi(Build.VERSION_CODES.O)
-            fun calcularHoras(inicio: String, fin: String): Int {
-                val formatter = java.time.format.DateTimeFormatter.ofPattern("h:mma", java.util.Locale.US)
-                val inicioTime = java.time.LocalTime.parse(inicio, formatter)
-                val finTime = java.time.LocalTime.parse(fin, formatter)
-                return java.time.Duration.between(inicioTime, finTime).toHours().toInt().coerceAtLeast(1)
-            }
-
-            @RequiresApi(Build.VERSION_CODES.O)
-            fun convertirA24Horas(hora12: String): String {
-                val formatter12 = java.time.format.DateTimeFormatter.ofPattern("h:mma", java.util.Locale.US)
-                val formatter24 = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
-                return java.time.LocalTime.parse(hora12, formatter12).format(formatter24)
-            }
-
             Button(
                 onClick = {
                     if (allMembers.size >= 3) {
                         val matricula = usuarioDTO.estudiante?.matricula ?: ""
-                        val cantidadHoras = calcularHoras(horaInicio, horaFin)
-                        val horaInicio24 = convertirA24Horas(horaInicio)
-                        val horaFin24 = convertirA24Horas(horaFin)
-                        val fechaSeleccionada = formatoFecha(fechaSeleccionada)
+                        val cantidadHoras = calcularHorasLaboratorio(horaInicio, horaFin)
+                        val horaInicio24 = convertirA24HorasLaboratorio(horaInicio)
+                        val horaFin24 = convertirA24HorasLaboratorio(horaFin)
+                        val fechaSeleccionadaStr = formatoFechaLaboratorio(fechaSeleccionada)
+
+                        if (fechaSeleccionadaStr.isNullOrEmpty() || horaInicio24.isNullOrEmpty() || horaFin24.isNullOrEmpty()) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Error: Datos de reserva inválidos")
+                            }
+                            return@Button
+                        }
 
                         viewModel.confirmarReservaLaboratorio(
                             laboratorioId = laboratorioId ?: 0,
                             cantidadHoras = cantidadHoras,
                             horaInicio = horaInicio24,
                             horaFin = horaFin24,
-                            fecha = fechaSeleccionada,
+                            fecha = fechaSeleccionadaStr,
                             matricula = matricula,
                             onSuccess = { codigo ->
                                 notificationHandler.showNotification(
@@ -267,6 +279,7 @@ fun ReservaLaboratorioScreen(
                                         saveState = true
                                     }
                                     launchSingleTop = true
+                                    restoreState = true
                                 }
                             },
                             onError = { mensaje ->
@@ -310,4 +323,24 @@ fun ReservaLaboratorioScreen(
             }
         }
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun calcularHorasLaboratorio(inicio: String, fin: String): Int {
+    val formatter = DateTimeFormatter.ofPattern("h:mma", Locale.US)
+    val inicioTime = LocalTime.parse(inicio, formatter)
+    val finTime = LocalTime.parse(fin, formatter)
+    return Duration.between(inicioTime, finTime).toHours().toInt().coerceAtLeast(1)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun convertirA24HorasLaboratorio(hora12: String): String {
+    val formatter12 = DateTimeFormatter.ofPattern("h:mma", Locale.US)
+    val formatter24 = DateTimeFormatter.ofPattern("HH:mm:ss")
+    return LocalTime.parse(hora12, formatter12).format(formatter24)
+}
+
+fun formatoFechaLaboratorio(calendar: Calendar): String {
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    return dateFormat.format(calendar.time)
 }
