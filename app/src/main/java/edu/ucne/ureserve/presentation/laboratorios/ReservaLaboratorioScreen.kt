@@ -110,20 +110,10 @@ fun ReservaLaboratorioScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            Text(
-                "Horas Seleccionadas:",
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Text("Horas Seleccionadas:", fontWeight = FontWeight.Bold, color = Color.White)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                "Desde: $horaInicio",
-                color = Color.White
-            )
-            Text(
-                "Hasta: $horaFin",
-                color = Color.White
-            )
+            Text("Desde: $horaInicio", color = Color.White)
+            Text("Hasta: $horaFin", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -138,22 +128,16 @@ fun ReservaLaboratorioScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    "Añade los integrantes de tu grupo",
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                IconButton(
-                    onClick = {
-                        navController.navigate("AgregarEstudianteLaboratorio") {
-                            launchSingleTop = true
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            restoreState = true
+                Text("Añade los integrantes de tu grupo", fontWeight = FontWeight.Bold, color = Color.White)
+                IconButton(onClick = {
+                    navController.navigate("AgregarEstudianteLaboratorio") {
+                        launchSingleTop = true
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
                         }
+                        restoreState = true
                     }
-                ) {
+                }) {
                     Image(
                         painter = painterResource(id = R.drawable.icon_agregarcubicul),
                         contentDescription = "Agregar",
@@ -213,6 +197,7 @@ fun ReservaLaboratorioScreen(
                     }
                 }
             }
+
             val faltantes = (3 - allMembers.size).coerceAtLeast(0)
             Text(
                 text = if (faltantes > 0)
@@ -255,7 +240,7 @@ fun ReservaLaboratorioScreen(
                         val horaFin24 = convertirA24HorasLaboratorio(horaFin)
                         val fechaSeleccionadaStr = formatoFechaLaboratorio(fechaSeleccionada)
 
-                        if (fechaSeleccionadaStr.isNullOrEmpty() || horaInicio24.isNullOrEmpty() || horaFin24.isNullOrEmpty()) {
+                        if (fechaSeleccionadaStr.isEmpty() || horaInicio24.isEmpty() || horaFin24.isEmpty()) {
                             scope.launch {
                                 snackbarHostState.showSnackbar("Error: Datos de reserva inválidos")
                             }
@@ -264,22 +249,36 @@ fun ReservaLaboratorioScreen(
 
                         viewModel.confirmarReservaLaboratorio(
                             laboratorioId = laboratorioId ?: 0,
-                            cantidadHoras = cantidadHoras,
+                            cantidadHoras = cantidadHoras!!,
                             horaInicio = horaInicio24,
                             horaFin = horaFin24,
                             fecha = fechaSeleccionadaStr,
                             matricula = matricula,
                             onSuccess = { codigo ->
-                                notificationHandler.showNotification(
-                                    title = "Reserva Exitosa",
-                                    message = "¡Has reservado el laboratorio correctamente!"
-                                )
-                                navController.navigate("ReservaLaboratorioExitosa/$codigo") {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                                Log.d("NAVIGATION", "Código recibido: $codigo")
+                                if (codigo > 0) {
+                                    try {
+                                        notificationHandler.showNotification(
+                                            title = "Reserva Exitosa",
+                                            message = "¡Has reservado el laboratorio correctamente!"
+                                        )
+                                        navController.navigate("ReservaLaboratorioExitosa/$codigo") {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e("NAVIGATION_ERROR", "Error al navegar: ${e.message}")
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("Error al navegar a la pantalla de éxito")
+                                        }
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                } else {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Error: Código de reserva inválido")
+                                    }
                                 }
                             },
                             onError = { mensaje ->
@@ -325,19 +324,33 @@ fun ReservaLaboratorioScreen(
     }
 }
 
+
 @RequiresApi(Build.VERSION_CODES.O)
-fun calcularHorasLaboratorio(inicio: String, fin: String): Int {
-    val formatter = DateTimeFormatter.ofPattern("h:mma", Locale.US)
-    val inicioTime = LocalTime.parse(inicio, formatter)
-    val finTime = LocalTime.parse(fin, formatter)
-    return Duration.between(inicioTime, finTime).toHours().toInt().coerceAtLeast(1)
+fun calcularHorasLaboratorio(horaInicioTexto: String, horaFinTexto: String): Int? {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+
+        val horaInicio = LocalTime.parse(horaInicioTexto.trim(), formatter)
+        val horaFin = LocalTime.parse(horaFinTexto.trim(), formatter)
+
+        val duracion = Duration.between(horaInicio, horaFin)
+        duracion.toMinutes().toInt()  // <-- ahora devuelve un Int
+    } catch (e: Exception) {
+        println("Error al calcular duración: ${e.message}")
+        null
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun convertirA24HorasLaboratorio(hora12: String): String {
-    val formatter12 = DateTimeFormatter.ofPattern("h:mma", Locale.US)
-    val formatter24 = DateTimeFormatter.ofPattern("HH:mm:ss")
-    return LocalTime.parse(hora12, formatter12).format(formatter24)
+    return try {
+        val formatter12 = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+        val formatter24 = DateTimeFormatter.ofPattern("HH:mm:ss")
+        val time = LocalTime.parse(hora12.trim(), formatter12)
+        time.format(formatter24)
+    } catch (e: Exception) {
+        ""
+    }
 }
 
 fun formatoFechaLaboratorio(calendar: Calendar): String {
