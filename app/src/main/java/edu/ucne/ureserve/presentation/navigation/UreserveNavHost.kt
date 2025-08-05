@@ -174,24 +174,42 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
-//        composable("detalles_reserva/{reservaId}") { backStackEntry ->
-//            val reservaId = backStackEntry.arguments?.getString("reservaId")?.toIntOrNull()
-//            // Suponiendo que tienes una función para obtener los detalles de la reserva
-//            val reserva = viewModel.obtenerReservaPorId(reservaId ?: 0)
-//
-//            DetallesReservacionScreen(
-//                reservaId = reservaId ?: 0,
-//                fecha = reserva.fecha,
-//                horaInicio = reserva.horaInicio,
-//                horaFin = reserva.horaFin,
-//                matricula = reserva.matricula,
-//                tipoReserva = reserva.tipoReserva,
-//                navController = navController,
-//                onCancelarReserva = { viewModel.cancelarReserva(reservaId ?: 0) }
-//            )
-//        }
+
+        // Ruta para modificar restaurante
+        composable(
+            route = "modificar_restaurante/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0
+            ModificarReservaRestauranteScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
+        }
+// Ruta para modificar reserva en salón VIP
+        composable(
+            route = "modificar_sala_vip/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0
+            ModificarReservaSalaVipScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
+        }
 
 
+// En tu archivo de navegación
+        composable(
+            route = "modificar_salon/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0
+            ModificarReservaSalonScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
+        }
 
 
         composable("reservaList") {
@@ -201,22 +219,8 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
-
-//        composable("modificar_cubiculo") {
-//            ModificarReservaCubiculoScreen(navController = navController)
-//        }
         composable("modificar_laboratorio") {
             ModificarReservaLaboratorioScreen(navController = navController)
-        }
-
-        composable("modificar_restaurante") {
-            ModificarReservaRestauranteScreen(navController = navController)
-        }
-        composable("modificar_salon") {
-            ModificarReservaSalonScreen(navController = navController)
-        }
-        composable("modificar_sala_vip") {
-            ModificarReservaSalaVipScreen(navController = navController)
         }
 
 
@@ -259,7 +263,6 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 estudiante = estudiante,
             )
         }
-
 
         composable("ReservaList") {
             // Verificación de autenticación y obtención de matrícula
