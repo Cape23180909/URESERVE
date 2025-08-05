@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.reservas
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpException
@@ -116,27 +117,26 @@ class ReservaViewModel @Inject constructor(
         }
     }
 
-    fun getLagboratorioReservas() {
+    fun getLaboratorioReservas() {
         viewModelScope.launch {
             repository.getReservas().collect { result ->
                 when (result) {
                     is Resource.Success -> {
                         val todasLasReservas = result.data ?: emptyList()
-
+                        Log.d("ViewModel", "Total de reservas obtenidas: ${todasLasReservas.size}")
                         val reservasDeLaboratorio = todasLasReservas.filter {
                             it.tipoReserva == 3
                         }
-
-                        _state.update { ReservaListState.Success(reservasDeLaboratorio ) }
+                        Log.d("ViewModel", "Reservas de laboratorio filtradas: ${reservasDeLaboratorio.size}")
+                        _state.update { ReservaListState.Success(reservasDeLaboratorio) }
                         _reservaciones.value = reservasDeLaboratorio
                     }
-
                     is Resource.Error -> {
+                        Log.e("ViewModel", "Error al obtener las reservas: ${result.message}")
                         _state.update {
                             ReservaListState.Error(result.message ?: "Error al obtener las reservas")
                         }
                     }
-
                     is Resource.Loading -> {
                         _state.update { ReservaListState.Loading }
                     }
