@@ -178,10 +178,8 @@ fun ModificarReservaRestauranteScreen(
                 Text("Cambiar Fecha", color = Color.White, fontWeight = FontWeight.Bold)
             }
 
-
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Botón para guardar cambios
             Button(
                 onClick = {
                     reservaId?.let { id ->
@@ -191,11 +189,10 @@ fun ModificarReservaRestauranteScreen(
                             nuevaHoraInicio = startTime,
                             nuevaHoraFin = endTime,
                             onSuccess = {
-                                // Notificar refresco y regresar
-                                navController?.previousBackStackEntry
-                                    ?.savedStateHandle
-                                    ?.set("shouldRefresh", true)
-                                navController?.popBackStack()
+                                // Navegar a la pantalla de lista de reservas
+                                navController?.navigate("reservaList") {
+                                    popUpTo("modificar_restaurante/$id") { inclusive = true }
+                                }
                             },
                             onError = { error ->
                                 errorMessage = error
@@ -216,6 +213,7 @@ fun ModificarReservaRestauranteScreen(
                     Text("GUARDAR CAMBIOS", fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
+
 
             Spacer(modifier = Modifier.height(12.dp))
 
