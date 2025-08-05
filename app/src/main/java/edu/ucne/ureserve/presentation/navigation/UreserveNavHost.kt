@@ -175,7 +175,6 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         }
 
 
-        // Ruta para modificar restaurante
         composable(
             route = "modificar_restaurante/{reservaId}",
             arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
@@ -199,7 +198,6 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         }
 
 
-// En tu archivo de navegación
         composable(
             route = "modificar_salon/{reservaId}",
             arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
@@ -210,6 +208,8 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 navController = navController
             )
         }
+
+
 
 
         composable("reservaList") {
