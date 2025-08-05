@@ -34,12 +34,27 @@ fun ModificarReservaRestauranteScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-    var originalDate by remember { mutableStateOf<LocalDate?>(null) }
 
-    // Estado para controlar si hay cambios
-    val hasChanges = remember { derivedStateOf { selectedDate != originalDate } }
+    // Estados para fecha y hora
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var startTime by remember { mutableStateOf(LocalTime.NOON) }
+    var endTime by remember { mutableStateOf(LocalTime.NOON.plusHours(1)) }
+
+    // Estados originales para comparar cambios
+    var originalDate by remember { mutableStateOf<LocalDate?>(null) }
+    var originalStartTime by remember { mutableStateOf<LocalTime?>(null) }
+    var originalEndTime by remember { mutableStateOf<LocalTime?>(null) }
+
+    // Determinar si hay cambios
+    val hasChanges = remember {
+        derivedStateOf {
+            selectedDate != originalDate ||
+                    startTime != originalStartTime ||
+                    endTime != originalEndTime
+        }
+    }
 
     // Cargar datos de la reserva al iniciar
     LaunchedEffect(reservaId) {
@@ -48,15 +63,22 @@ fun ModificarReservaRestauranteScreen(
                 viewModel.cargarReservaParaModificar(id)
                 viewModel.reservaSeleccionada.value?.let { reserva ->
                     val fecha = LocalDate.parse(reserva.fecha.substring(0, 10))
+                    val horaInicio = LocalTime.parse(reserva.horaInicio)
+                    val horaFin = LocalTime.parse(reserva.horaFin)
+
                     selectedDate = fecha
+                    startTime = horaInicio
+                    endTime = horaFin
+
                     originalDate = fecha
+                    originalStartTime = horaInicio
+                    originalEndTime = horaFin
                 }
             } catch (e: Exception) {
                 errorMessage = "Error al cargar la reserva: ${e.message}"
             }
         }
     }
-
 
     Scaffold(
         topBar = {
@@ -84,7 +106,7 @@ fun ModificarReservaRestauranteScreen(
                         IconButton(onClick = { navController?.popBackStack() }) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "AtrÃ¡s",
+                                contentDescription = "Atrás",
                                 tint = Color.White
                             )
                         }
@@ -97,8 +119,7 @@ fun ModificarReservaRestauranteScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(4.dp)
-                        .background(Color(0xFF023E8A))
-                )
+                        .background(Color(0xFF023E8A)))
             }
         },
         containerColor = Color(0xFF023E8A)
@@ -122,7 +143,7 @@ fun ModificarReservaRestauranteScreen(
             }
 
             Text(
-                text = "MODIFICAR FECHA DE RESERVA",
+                text = "MODIFICAR RESERVA DE RESTAURANTE",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -130,7 +151,7 @@ fun ModificarReservaRestauranteScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Tarjeta con informaciÃ³n actual
+            // Tarjeta con información actual
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
@@ -138,33 +159,39 @@ fun ModificarReservaRestauranteScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Reserva actual:", color = Color.White, fontWeight = FontWeight.Bold)
                     Text(
-                        "Fecha actual: ${selectedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}",
+                        "Fecha: ${selectedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}",
                         color = Color.White
                     )
+
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // BotÃ³n para seleccionar nueva fecha
+            // Botón para cambiar fecha
             Button(
                 onClick = { showDatePicker = true },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Seleccionar Nueva Fecha", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Cambiar Fecha", color = Color.White, fontWeight = FontWeight.Bold)
             }
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // BotÃ³n para guardar cambios (solo habilitado si hay cambios)
+            // Botón para guardar cambios
             Button(
                 onClick = {
                     reservaId?.let { id ->
-                        viewModel.modificarReservaRestaurante(
+                        viewModel.modificarReservaRestauranteCompleta(
+                            reservaId = id,
+                            nuevaFecha = selectedDate,
+                            nuevaHoraInicio = startTime,
+                            nuevaHoraFin = endTime,
                             onSuccess = {
-                                // Notificar a la pantalla anterior que debe refrescar
+                                // Notificar refresco y regresar
                                 navController?.previousBackStackEntry
                                     ?.savedStateHandle
                                     ?.set("shouldRefresh", true)
@@ -181,7 +208,7 @@ fun ModificarReservaRestauranteScreen(
                     containerColor = if (hasChanges.value) Color(0xFF0077B6) else Color.Gray
                 ),
                 shape = RoundedCornerShape(12.dp),
-                enabled = hasChanges.value
+                enabled = hasChanges.value && !uiState.isLoading
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(color = Color.White)
@@ -192,7 +219,7 @@ fun ModificarReservaRestauranteScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // BotÃ³n para regresar
+            // Botón para regresar
             Button(
                 onClick = { navController?.popBackStack() },
                 modifier = Modifier.fillMaxWidth(),
@@ -203,7 +230,7 @@ fun ModificarReservaRestauranteScreen(
             }
         }
 
-
+        // Selector de fecha
         if (showDatePicker) {
             val datePickerState = rememberDatePickerState(
                 initialSelectedDateMillis = selectedDate
@@ -215,7 +242,6 @@ fun ModificarReservaRestauranteScreen(
                         val date = Instant.ofEpochMilli(utcTimeMillis)
                             .atZone(ZoneId.systemDefault())
                             .toLocalDate()
-                        // Solo permitir fechas futuras
                         return !date.isBefore(LocalDate.now())
                     }
                 }
@@ -241,17 +267,42 @@ fun ModificarReservaRestauranteScreen(
                     }
                 }
             ) {
-                DatePicker(
-                    state = datePickerState,
-                    title = {
-                        Text(
-                            "Seleccione nueva fecha",
-                            modifier = Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                )
+                DatePicker(state = datePickerState)
             }
+        }
+
+        // Selector de horario
+        if (showTimePicker) {
+            val startState = rememberTimePickerState(startTime.hour, startTime.minute)
+            val endState = rememberTimePickerState(endTime.hour, endTime.minute)
+
+            AlertDialog(
+                onDismissRequest = { showTimePicker = false },
+                title = { Text("Seleccionar Horario") },
+                text = {
+                    Column {
+                        Text("Hora de inicio:")
+                        TimePicker(state = startState)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Hora de fin:")
+                        TimePicker(state = endState)
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        startTime = LocalTime.of(startState.hour, startState.minute)
+                        endTime = LocalTime.of(endState.hour, endState.minute)
+                        showTimePicker = false
+                    }) {
+                        Text("CONFIRMAR")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showTimePicker = false }) {
+                        Text("CANCELAR")
+                    }
+                }
+            )
         }
     }
 }
@@ -262,4 +313,3 @@ fun ModificarReservaRestauranteScreen(
 fun PreviewModificarReservaRestauranteScreen() {
     ModificarReservaRestauranteScreen(navController = null)
 }
-
