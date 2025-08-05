@@ -1,3 +1,4 @@
+
 package edu.ucne.ureserve.presentation.laboratorios
 
 import androidx.compose.foundation.Image
