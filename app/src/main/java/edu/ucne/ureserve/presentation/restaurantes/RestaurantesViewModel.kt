@@ -199,19 +199,43 @@ class RestaurantesViewModel @Inject constructor(
         }
     }
 
+    // Agregar estas funciones al ViewModel
+
     @RequiresApi(Build.VERSION_CODES.O)
-    fun modificarReservaRestaurante(onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun modificarReservaRestauranteCompleta(
+        reservaId: Int,
+        nuevaFecha: LocalDate,
+        nuevaHoraInicio: LocalTime,
+        nuevaHoraFin: LocalTime,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
                 val reservaActual = _reservaSeleccionada.value ?: throw Exception("No hay reserva seleccionada")
 
-                // Usar la fecha seleccionada del estado
-                val fechaFormateada = _selectedDate.value.atStartOfDay(ZoneId.systemDefault())
-                    .format(DateTimeFormatter.ISO_INSTANT)
+                // Validar que la hora de fin sea después de la de inicio
+                if (nuevaHoraFin.isBefore(nuevaHoraInicio)) {
+                    throw Exception("La hora de fin no puede ser antes de la hora de inicio")
+                }
 
-                val reservaActualizada = reservaActual.copy(fecha = fechaFormateada)
+                // Formatear fecha con hora para el servidor
+                val fechaZoned = ZonedDateTime.of(
+                    nuevaFecha,
+                    nuevaHoraInicio,
+                    ZoneId.systemDefault()
+                ).format(DateTimeFormatter.ISO_INSTANT)
+
+                // Actualizar reserva
+                val reservaActualizada = reservaActual.copy(
+                    fecha = fechaZoned,
+                    horaInicio = nuevaHoraInicio.toString(),
+                    horaFin = nuevaHoraFin.toString()
+                )
+
+                // Actualizar en el repositorio
                 val response = reservacionRepository.updateReservacion(reservaActualizada)
 
                 if (response.isSuccessful) {
