@@ -219,8 +219,16 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
-        composable("modificar_laboratorio") {
-            ModificarReservaLaboratorioScreen(navController = navController)
+
+        composable(
+            route = "modificar_laboratorio/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0
+            ModificarReservaLaboratorioScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
         }
 
 
