@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,8 +34,26 @@ fun ReservaListScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
+    // Observar cambios para refrescar
+    val shouldRefresh by navController
+        ?.previousBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow<Boolean?>("shouldRefresh", null)
+        ?.collectAsState() ?: remember { mutableStateOf(null) }
+
     LaunchedEffect(Unit) {
         viewModel.getReservasUsuario()
+    }
+
+    // Refrescar cuando shouldRefresh cambie
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh == true) {
+            viewModel.getReservasUsuario()
+            // Limpiar el estado para futuras navegaciones
+            navController?.previousBackStackEntry
+                ?.savedStateHandle
+                ?.set("shouldRefresh", null)
+        }
     }
 
     Scaffold(
