@@ -181,6 +181,7 @@ fun ModificarReservaSalonScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Botón para guardar cambios
             Button(
                 onClick = {
                     reservaId?.let { id ->
@@ -190,6 +191,7 @@ fun ModificarReservaSalonScreen(
                             nuevaHoraInicio = startTime,
                             nuevaHoraFin = endTime,
                             onSuccess = {
+                                // Navegar a la lista de reservas y limpiar el backstack
                                 navController?.navigate("reservaList") {
                                     popUpTo("modificar_salon/$id") { inclusive = true }
                                 }
@@ -200,7 +202,9 @@ fun ModificarReservaSalonScreen(
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (hasChanges.value) Color(0xFF0077B6) else Color.Gray
                 ),
