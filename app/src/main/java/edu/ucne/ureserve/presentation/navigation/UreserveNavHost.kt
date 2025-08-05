@@ -227,14 +227,14 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 EstudianteDto(
                     estudianteId = 1,  // Esto debería venir de tu backend
                     matricula = "2022-0465",
-                    facultad = "Ingeniería",
+                   facultad = "Ingeniería",
                     carrera = "Ingeniería en Sistemas"
                 )
             }
             DashboardScreen(
                 onCategoryClick = { category ->
                     when (category) {
-                        "Proyectores" -> navController.navigate("ProjectorReservation")
+                         "Proyectores" -> navController.navigate("ProjectorReservation")
                         "Cubículos" -> navController.navigate("CubiculoReservation")
                         "Laboratorios" -> navController.navigate("LaboratorioReservation")
                         "Restaurante" -> navController.navigate("RestauranteReservation")
