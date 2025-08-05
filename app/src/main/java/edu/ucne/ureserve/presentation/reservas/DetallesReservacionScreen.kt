@@ -20,11 +20,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter.State.Empty.painter
 import edu.ucne.ureserve.R
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -277,9 +276,9 @@ fun DetallesReservacionScreen(
                                 "CUBÍCULO" -> navController?.navigate("modificar_cubiculo/$reservaId")
                                 "PROYECTOR" -> navController?.navigate("modificar_proyector/$reservaId")
                                 "LABORATORIO" -> navController?.navigate("modificar_laboratorio/$reservaId")
-                                "RESTAURANTE" -> navController?.navigate("modificar_restaurante")
-                                "SALÓN" -> navController?.navigate("modificar_salon")
-                                "SALA" -> navController?.navigate("modificar_sala_vip")
+                                "RESTAURANTE" -> navController?.navigate("modificar_restaurante/$reservaId")
+                                "SALÃ“N" -> navController?.navigate("modificar_salon/$reservaId")
+                                "SALA" -> navController?.navigate("modificar_sala_vip/$reservaId")
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF48CAE4)),
