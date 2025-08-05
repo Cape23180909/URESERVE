@@ -156,9 +156,8 @@ fun formatoFecha(calendar: Calendar): String {
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH) + 1
     val day = calendar.get(Calendar.DAY_OF_MONTH)
-    return "%04d-%02d-%02d".format(year, month, day)
+    return "%02d-%02d-%02d".format(day, month, year)
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
