@@ -277,7 +277,7 @@ fun DetallesReservacionScreen(
                                 "PROYECTOR" -> navController?.navigate("modificar_proyector/$reservaId")
                                 "LABORATORIO" -> navController?.navigate("modificar_laboratorio/$reservaId")
                                 "RESTAURANTE" -> navController?.navigate("modificar_restaurante/$reservaId")
-                                "SALÃ“N" -> navController?.navigate("modificar_salon/$reservaId")
+                                "SALON" -> navController?.navigate("modificar_salon/$reservaId")
                                 "SALA" -> navController?.navigate("modificar_sala_vip/$reservaId")
                             }
                         },
