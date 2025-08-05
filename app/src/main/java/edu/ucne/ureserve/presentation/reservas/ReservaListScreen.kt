@@ -34,6 +34,11 @@ fun ReservaListScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
+
+    LaunchedEffect(Unit) {
+        viewModel.getReservasUsuario()
+    }
+
     // Observar cambios para refrescar
     val shouldRefresh by navController
         ?.previousBackStackEntry
@@ -41,11 +46,6 @@ fun ReservaListScreen(
         ?.getStateFlow<Boolean?>("shouldRefresh", null)
         ?.collectAsState() ?: remember { mutableStateOf(null) }
 
-    LaunchedEffect(Unit) {
-        viewModel.getReservasUsuario()
-    }
-
-    // Refrescar cuando shouldRefresh cambie
     LaunchedEffect(shouldRefresh) {
         if (shouldRefresh == true) {
             viewModel.getReservasUsuario()
