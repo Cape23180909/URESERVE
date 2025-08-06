@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
@@ -45,6 +47,8 @@ fun ReservaCubiculoScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var validarCantidaHoras by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val notificationHandler = remember { NotificationHandler(context) }
 
     LaunchedEffect(usuarioDTO) {
         viewModel.initializeWithUser(usuarioDTO)
@@ -245,44 +249,69 @@ fun ReservaCubiculoScreen(
 
             Button(
                 onClick = {
-                    if (allMembers.size >= 3 && hours.isNotBlank()) {
-                        try {
-                            val cantidadHoras = hours.toInt()
-                            val matricula = usuarioDTO.estudiante?.matricula ?: ""
-                            val horaActual = LocalTime.now()
-                            val horaInicio = horaActual
-                            val horaFin = horaInicio.plusHours(cantidadHoras.toLong())
-
-                            val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-
-                            viewModel.confirmarReservaCubiculo(
-                                cubiculoId = cubiculoId ?: 0,
-                                cantidadHoras = cantidadHoras,
-                                matricula = matricula,
-                                horaInicio = horaInicio.format(formatter),
-                                horaFin = horaFin.format(formatter),
-                                onSuccess = { codigo ->
-                                    navController.navigate("ReservaCubiculoExitosa/$codigo") {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                    }
-                                },
-                                onError = { mensaje ->
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(mensaje)
-                                    }
-                                }
+                    when {
+                        hours.isBlank() -> {
+                            validarCantidaHoras = true
+                            notificationHandler.showNotification(
+                                title = "Campo incompleto",
+                                message = "Debe ingresar la cantidad de horas."
                             )
-                        } catch (e: Exception) {
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Error al procesar reserva: ${e.message}")
-                            }
                         }
-                    } else {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Debe tener mínimo 3 miembros y horas válidas.")
+
+                        allMembers.size < 3 -> {
+                            notificationHandler.showNotification(
+                                title = "Faltan miembros",
+                                message = "Debe añadir al menos 3 integrantes para finalizar la reserva."
+                            )
+                        }
+
+                        else -> {
+                            try {
+                                val cantidadHoras = hours.toInt()
+                                val matricula = usuarioDTO.estudiante?.matricula?.trim() ?: ""
+
+                                if (matricula.isBlank()) {
+                                    notificationHandler.showNotification(
+                                        title = "Matrícula inválida",
+                                        message = "Debe añadir una matrícula válida."
+                                    )
+                                    return@Button
+                                }
+
+                                val horaActual = LocalTime.now()
+                                val horaInicio = horaActual
+                                val horaFin = horaInicio.plusHours(cantidadHoras.toLong())
+                                val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+
+                                viewModel.confirmarReservaCubiculo(
+                                    cubiculoId = cubiculoId ?: 0,
+                                    cantidadHoras = cantidadHoras,
+                                    matricula = matricula,
+                                    horaInicio = horaInicio.format(formatter),
+                                    horaFin = horaFin.format(formatter),
+                                    onSuccess = { codigo ->
+                                        notificationHandler.showNotification(
+                                            title = "Reserva completada",
+                                            message = "Tu reserva ha sido finalizada correctamente."
+                                        )
+                                        navController.navigate("ReservaCubiculoExitosa/$codigo") {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                        }
+                                    },
+                                    onError = { mensaje ->
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(mensaje)
+                                        }
+                                    }
+                                )
+                            } catch (e: Exception) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Error al procesar reserva: ${e.message}")
+                                }
+                            }
                         }
                     }
                 },
@@ -296,11 +325,12 @@ fun ReservaCubiculoScreen(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
-                    text = "SIGUIENTE",
+                    text = "FINALIZAR",
                     fontSize = 16.sp,
                     modifier = Modifier.padding(8.dp)
                 )
             }
+
         }
 
         Row(
