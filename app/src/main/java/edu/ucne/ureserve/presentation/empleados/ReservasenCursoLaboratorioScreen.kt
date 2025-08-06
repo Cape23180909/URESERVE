@@ -35,7 +35,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// 👇 pantalla completa fusionada con temporizador
+//  pantalla completa fusionada con temporizador
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
