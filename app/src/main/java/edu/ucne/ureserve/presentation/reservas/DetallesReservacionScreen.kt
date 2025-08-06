@@ -1,5 +1,7 @@
 package edu.ucne.ureserve.presentation.reservas
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,12 +11,14 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,8 +28,12 @@ import edu.ucne.ureserve.R
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import coil.compose.AsyncImage
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun DetallesReservacionScreen(
     reservaId: Int,
@@ -37,6 +45,20 @@ fun DetallesReservacionScreen(
     onCancelarReserva: (() -> Unit)? = null,
     navController: NavHostController? = null
 ) {
+    val context = LocalContext.current
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     val (nombreTipo, iconoTipo) = when (tipoReserva.uppercase()) {
         "PROYECTOR" -> Pair("PROYECTOR", R.drawable.icon_proyector)
         "CUBÍCULO" -> Pair("CUBÍCULO", R.drawable.icon_cubiculo)
@@ -272,6 +294,11 @@ fun DetallesReservacionScreen(
 
                     Button(
                         onClick = {
+                            // Mostrar notificación antes de redirigir
+                            notificationHandler.showNotification(
+                                title = "Modificando reserva",
+                                message = "Estás a punto de modificar una reserva de tipo $tipoReserva."
+                            )
                             when (tipoReserva.uppercase()) {
                                 "CUBÍCULO" -> navController?.navigate("modificar_cubiculo/$reservaId")
                                 "PROYECTOR" -> navController?.navigate("modificar_proyector/$reservaId")
