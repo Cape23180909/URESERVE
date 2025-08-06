@@ -1,6 +1,5 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
-
 import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.Image
@@ -9,12 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,8 +34,6 @@ fun TerminosReservaScreen(
 ) {
     val context = LocalContext.current
 
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -54,7 +46,9 @@ fun TerminosReservaScreen(
             postNotificationPermission.launchPermissionRequest()
         }
     }
-    var aceptado by remember { mutableStateOf(false) } // Empieza en false para obligar a marcar checkbox
+
+    var aceptado by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -98,7 +92,6 @@ fun TerminosReservaScreen(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Título
                 Text(
                     text = "Términos de reservas del salón de reuniones",
                     modifier = Modifier
@@ -112,7 +105,6 @@ fun TerminosReservaScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Términos y condiciones
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -129,7 +121,6 @@ fun TerminosReservaScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Checkbox de aceptación
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -137,8 +128,8 @@ fun TerminosReservaScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
-                        checked = true,
-                        onCheckedChange = null,
+                        checked = aceptado,
+                        onCheckedChange = { aceptado = it },
                         colors = CheckboxDefaults.colors(
                             checkedColor = Color(0xFF023E8A),
                             checkmarkColor = Color.White
@@ -154,7 +145,6 @@ fun TerminosReservaScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Mensaje final
                 Text(
                     text = "Gracias por utilizar | Reserve!",
                     modifier = Modifier
@@ -168,7 +158,6 @@ fun TerminosReservaScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Botones con notificaciones
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -188,20 +177,21 @@ fun TerminosReservaScreen(
                         Text(text = "RECHAZAR", color = Color.White)
                     }
 
-                    Button(
-                        onClick = {
-                            notificationHandler.showNotification(
-                                title = "Términos aceptados",
-                                message = "Gracias por aceptar los términos de la reserva del salón."
-                            )
-                            onAceptarClick()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C))
-                    ) {
-                        Text(text = "ACEPTAR", color = Color.White)
+                    if (aceptado) {
+                        Button(
+                            onClick = {
+                                notificationHandler.showNotification(
+                                    title = "Términos aceptados",
+                                    message = "Gracias por aceptar los términos de la reserva del salón."
+                                )
+                                onAceptarClick()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C))
+                        ) {
+                            Text(text = "ACEPTAR", color = Color.White)
+                        }
                     }
                 }
-
 
                 Spacer(modifier = Modifier.height(32.dp))
             }
