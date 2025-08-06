@@ -24,6 +24,8 @@ class EmpleadoViewModel @Inject constructor(
     private val apicubiculos: CubiculosApi,
     private val apiRestaurantes: RestaurantesApi
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow(EmpleadoUiState())
+    val uiState: StateFlow<EmpleadoUiState> = _uiState
 
     private val _proyectores = MutableStateFlow<List<ProyectoresDto>>(emptyList())
     val proyectores: StateFlow<List<ProyectoresDto>> = _proyectores
