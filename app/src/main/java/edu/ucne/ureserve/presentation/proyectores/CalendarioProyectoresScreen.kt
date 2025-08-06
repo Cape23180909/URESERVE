@@ -355,11 +355,12 @@ private fun ReservationButton(
                 color = Color.White
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                painter = painterResource(id = R.drawable.icon_clock),
-                contentDescription = "Reservar Ahora",
-                modifier = Modifier.size(34.dp)
-            )
+              Icon(
+                    painter = painterResource(id = R.drawable.icon_clock),
+                    contentDescription = "Reservar Ahora",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(34.dp)
+                )
         }
     }
     Spacer(modifier = Modifier.height(70.dp))
