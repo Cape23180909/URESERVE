@@ -161,27 +161,6 @@ fun DetalleReservaEnCursoRestauranteScreen(
     }
 }
 
-//@Composable
-//fun ReservationDetailBlock(label: String, value: String) {
-//    Row(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .border(1.dp, Color(0xFF133986), RoundedCornerShape(4.dp))
-//            .padding(vertical = 9.dp, horizontal = 16.dp),
-//        horizontalArrangement = Arrangement.SpaceBetween
-//    ) {
-//        Text(
-//            text = label,
-//            color = Color.White,
-//            fontWeight = FontWeight.Bold
-//        )
-//        Text(
-//            text = value,
-//            color = Color.White
-//        )
-//    }
-//}
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewDetalleReservaEnCursoRestauranteScreen() {
