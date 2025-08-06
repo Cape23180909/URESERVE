@@ -167,7 +167,7 @@ fun DashboardCubiculoScreen(
                 iconRes = R.drawable.icon_inicio,
                 label = "Inicio",
                 isSelected = true,
-                onClick = { /* onBottomNavClick("Inicio") */ }
+                onClick = { onBottomNavClick("Inicio") }
             )
         }
     }
