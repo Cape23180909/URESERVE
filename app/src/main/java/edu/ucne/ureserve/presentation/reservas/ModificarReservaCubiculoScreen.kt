@@ -1,10 +1,12 @@
 package edu.ucne.ureserve.presentation.cubiculos
 
+import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -12,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,101 +22,56 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.presentation.login.AuthManager
 import java.time.*
 import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ModificarReservaCubiculoScreen(
     reservaId: Int? = null,
     navController: NavHostController? = null,
     viewModel: ReservaCubiculoViewModel = hiltViewModel()
 ) {
+
+    val context = LocalContext.current
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     val state by viewModel.state.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
-    var showCubiculoDropdown by remember { mutableStateOf(false) }
-
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var startTime by remember { mutableStateOf(LocalTime.NOON) }
     var endTime by remember { mutableStateOf(LocalTime.NOON.plusHours(1)) }
-
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var showErrorDialog by remember { mutableStateOf(false) }
-// Cargar reserva al iniciar
-    LaunchedEffect(reservaId) {
-        if (reservaId != null && reservaId > 0) {
-            viewModel.cargarReserva(reservaId)
-        } else {
-            errorMessage = "ID de reserva inválido"
-            showErrorDialog = true
-        }
-    }
-
-
-    // Manejar errores del estado
-    LaunchedEffect(state.error) {
-        state.error?.let {
-            errorMessage = it
-            showErrorDialog = true
-        }
-    }
 
     LaunchedEffect(reservaId) {
-        reservaId?.let { id ->
-            try {
-                val reserva = viewModel.reservaApi.getById(id)
-                val detalles = viewModel.detalleReservaApi.getAll().filter { it.codigoReserva == id }
-
-                // Validaciones antes de parsear
-                if (!reserva.fecha.isNullOrBlank()) {
-                    val fechaParseada = try {
-                        LocalDate.parse(reserva.fecha.substring(0, 10))
-                    } catch (e: Exception) {
-                        errorMessage = "Error al parsear la fecha: ${e.message}"
-                        null
-                    }
-
-                    fechaParseada?.let {
-                        selectedDate = it
-                    }
-                }
-
-                startTime = try {
-                    LocalTime.parse(reserva.horaInicio)
-                } catch (e: Exception) {
-                    LocalTime.of(12, 0) // Fallback seguro
-                }
-
-                endTime = try {
-                    LocalTime.parse(reserva.horaFin)
-                } catch (e: Exception) {
-                    startTime.plusHours(1)
-                }
-
-                if (detalles.isNotEmpty()) {
-                    try {
-                        val cubiculo = viewModel.cubiculoApi.getById(detalles.first().idCubiculo)
-                        viewModel.seleccionarCubiculo(cubiculo)
-                    } catch (e: Exception) {
-                        errorMessage = "Error al cargar cubículo: ${e.message}"
-                    }
-                }
-
-                viewModel.verificarDisponibilidad(
-                    selectedDate.toString(),
-                    startTime.toString(),
-                    endTime.toString()
-                )
-            } catch (e: Exception) {
-                errorMessage = "Error al cargar la reserva: ${e.message}"
-            }
+        reservaId?.let {
+            viewModel.cargarReservaParaModificar(it)
         }
     }
 
+    LaunchedEffect(state.fecha, state.horaInicio, state.horaFin) {
+        state.fecha?.let { selectedDate = it }
+        state.horaInicio?.let { startTime = it }
+        state.horaFin?.let { endTime = it }
+    }
 
     Scaffold(
         topBar = {
@@ -146,9 +104,7 @@ fun ModificarReservaCubiculoScreen(
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF6D87A4)
-                    )
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6D87A4))
                 )
                 Box(
                     modifier = Modifier
@@ -171,32 +127,30 @@ fun ModificarReservaCubiculoScreen(
                 Text(text = it, color = Color.Red)
                 Spacer(modifier = Modifier.height(8.dp))
             }
-
             Text(
                 text = "MODIFICAR RESERVA DE CUBÍCULO",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Reserva actual:", color = Color.White, fontWeight = FontWeight.Bold)
-                    Text("Fecha: ${selectedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}", color = Color.White)
-                    Text("Hora: $startTime - $endTime", color = Color.White)
-                    state.cubiculoSeleccionado?.let {
-                        Text("Cubículo: ${it.nombre}", color = Color.White)
-                    }
+                    Text(
+                        "Fecha: ${selectedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}",
+                        color = Color.White
+                    )
+                    Text(
+                        "Hora: ${startTime.format(DateTimeFormatter.ofPattern("HH:mm"))} - ${endTime.format(DateTimeFormatter.ofPattern("HH:mm"))}",
+                        color = Color.White
+                    )
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Button(
                 onClick = { showDatePicker = true },
                 modifier = Modifier.fillMaxWidth(),
@@ -204,9 +158,7 @@ fun ModificarReservaCubiculoScreen(
             ) {
                 Text("Cambiar Fecha", color = Color.White)
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Button(
                 onClick = { showTimePicker = true },
                 modifier = Modifier.fillMaxWidth(),
@@ -214,39 +166,29 @@ fun ModificarReservaCubiculoScreen(
             ) {
                 Text("Cambiar Horario", color = Color.Black)
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Button(
                 onClick = {
-                    navController?.navigate("agregar_estudiante")
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFADE8F4))
-            ) {
-                Text("Modificar Integrantes", color = Color.Black)
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = {
-                    reservaId?.let { id ->
-                        viewModel.modificarReservaCubiculo(
-                            reservaId = id,
-                            cubiculoId = state.cubiculoSeleccionado?.cubiculoId ?: 0,
-                            fechaLocal = selectedDate,
-                            horaInicio = startTime,
-                            horaFin = endTime,
-                            matricula = AuthManager.currentUser?.estudiante?.matricula ?: ""
+                        // Mostrar notificación de éxito
+                        notificationHandler.showNotification(
+                            title = "Cambios detectados",
+                            message = "Los cambios fueron guardados correctamente."
                         )
 
-                        navController?.navigate("reservaList") {
-                            popUpTo("modificarReservaCubiculo") { inclusive = true }
-                        }
-                    }
+                        viewModel.modificarReservaCubiculo(
+                            onSuccess = {
+                                navController?.navigate("reservaList") {
+                                    popUpTo("modificarReservaCubiculo") { inclusive = true }
+                                }
+                            },
+                            onError = { error ->
+                                errorMessage = error
+                            }
+                        )
+
                 },
-                enabled = state.cubiculoSeleccionado != null,
+                enabled = !state.isLoading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0077B6))
             ) {
@@ -254,7 +196,6 @@ fun ModificarReservaCubiculoScreen(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-
             Button(
                 onClick = { navController?.popBackStack() },
                 modifier = Modifier.fillMaxWidth(),
@@ -263,84 +204,89 @@ fun ModificarReservaCubiculoScreen(
                 Text("REGRESAR", fontWeight = FontWeight.Bold)
             }
         }
+    }
 
-        if (showDatePicker) {
-            val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = selectedDate
-                    .atStartOfDay(ZoneId.systemDefault())
-                    .toInstant()
-                    .toEpochMilli()
-            )
-
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    Button(onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            selectedDate = LocalDateTime.ofInstant(
-                                Instant.ofEpochMilli(millis),
-                                ZoneId.systemDefault()
-                            ).toLocalDate()
-                            viewModel.verificarDisponibilidad(
-                                selectedDate.toString(),
-                                startTime.toString(),
-                                endTime.toString()
-                            )
-                        }
-                        showDatePicker = false
-                    }) {
-                        Text("CONFIRMAR")
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = { showDatePicker = false }) {
-                        Text("CANCELAR")
-                    }
-                }
-            ) {
-                DatePicker(state = datePickerState)
-            }
-        }
-
-        if (showTimePicker) {
-            val startState = rememberTimePickerState(startTime.hour, startTime.minute)
-            val endState = rememberTimePickerState(endTime.hour, endTime.minute)
-
-            AlertDialog(
-                onDismissRequest = { showTimePicker = false },
-                title = { Text("Seleccionar Horario") },
-                text = {
-                    Column {
-                        Text("Hora de inicio")
-                        TimePicker(state = startState)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Hora de fin")
-                        TimePicker(state = endState)
-                    }
-                },
-                confirmButton = {
-                    Button(onClick = {
-                        startTime = LocalTime.of(startState.hour, startState.minute)
-                        endTime = LocalTime.of(endState.hour, endState.minute)
-                        showTimePicker = false
-                        viewModel.verificarDisponibilidad(
-                            selectedDate.toString(),
-                            startTime.toString(),
-                            endTime.toString()
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                Button(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val newDate = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+                        selectedDate = newDate
+                        viewModel.setFechaSeleccionada(newDate)
+                        notificationHandler.showNotification(
+                            title = "Fecha cambiada",
+                            message = "La fecha de la reserva fue actualizada a ${newDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}."
                         )
-                    }) {
-                        Text("CONFIRMAR")
                     }
-                },
-                dismissButton = {
-                    Button(onClick = { showTimePicker = false }) {
-                        Text("CANCELAR")
-                    }
+                    showDatePicker = false
+                }) {
+                    Text("CONFIRMAR")
                 }
-            )
+            },
+            dismissButton = {
+                Button(onClick = { showDatePicker = false }) {
+                    Text("CANCELAR")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
+
+    if (showTimePicker) {
+        val startState = rememberTimePickerState(startTime.hour, startTime.minute)
+        val endState = rememberTimePickerState(endTime.hour, endTime.minute)
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            title = { Text("Seleccionar Horario") },
+            text = {
+                Column {
+                    Text("Hora de inicio")
+                    TimePicker(state = startState)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Hora de fin")
+                    TimePicker(state = endState)
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val newStart = LocalTime.of(startState.hour, startState.minute)
+                    val newEnd = LocalTime.of(endState.hour, endState.minute)
+                    if (newEnd.isBefore(newStart)) {
+                        errorMessage = "La hora final no puede ser anterior a la hora de inicio"
+                    } else {
+                        startTime = newStart
+                        endTime = newEnd
+                        viewModel.setHorario(newStart, newEnd)
+                        notificationHandler.showNotification(
+                            title = "Horario actualizado",
+                            message = "Nuevo horario: ${newStart.format(DateTimeFormatter.ofPattern("HH:mm"))} - ${newEnd.format(DateTimeFormatter.ofPattern("HH:mm"))}"
+                        )
+                    }
+                    showTimePicker = false
+                }) {
+                    Text("CONFIRMAR")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showTimePicker = false }) {
+                    Text("CANCELAR")
+                }
+            }
+        )
+    }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true, showSystemUi = true)
