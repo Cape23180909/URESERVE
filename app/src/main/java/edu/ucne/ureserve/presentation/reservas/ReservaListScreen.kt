@@ -1,5 +1,7 @@
 package edu.ucne.ureserve.presentation.reservas
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,6 +14,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,12 +22,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ReservaListScreen(
     navController: NavHostController? = null,
@@ -32,6 +39,20 @@ fun ReservaListScreen(
     onBottomNavClick: (String) -> Unit,
     viewModel: ReservaViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     val state by viewModel.state.collectAsState()
 
 
@@ -137,7 +158,11 @@ fun ReservaListScreen(
                             reservas = reservas,
                             onReservaClick = { reserva ->
                                 val (nombreTipo, _) = getIconForTipo(reserva.tipoReserva)
-
+                                // Mostrar notificación al hacer clic
+                                notificationHandler.showNotification(
+                                    title = "Reserva Seleccionada",
+                                    message = "Has seleccionado una reserva de tipo $nombreTipo el ${reserva.fechaFormateada}."
+                                )
                                 navController?.navigate(
                                     "detallesReserva/${reserva.reservacionId}/${reserva.fechaFormateada}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}/${nombreTipo}"
                                 )
