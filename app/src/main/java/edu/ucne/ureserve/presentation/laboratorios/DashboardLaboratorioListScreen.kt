@@ -51,6 +51,7 @@ fun DashboardLaboratorioListScreen(
     selectedDateMillis: Long,
     onLaboratorioSelected: (laboratorioId: Int, laboratorioNombre: String) -> Unit,
     onBackClick: () -> Unit,
+    onBottomNavClick: (String) -> Unit,
     navController: NavController
 ) {
     val selectedDate = remember {
@@ -139,7 +140,7 @@ fun DashboardLaboratorioListScreen(
                     iconRes = R.drawable.icon_inicio,
                     label = "Inicio",
                     isSelected = true,
-                    onClick = { /* onBottomNavClick("Inicio") */ }
+                    onClick = { onBottomNavClick("Inicio") }
                 )
             }
         }
@@ -159,8 +160,7 @@ fun LaboratorioCard(
     laboratorio: LaboratoriosDto,
     onClick: () -> Unit,
     isSelected: Boolean,
-)
-{
+) {
 
     Card(
         modifier = Modifier
@@ -211,14 +211,3 @@ fun getLaboratorios(): List<LaboratoriosDto> {
     )
 }
 
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun DashboardLaboratorioListScreenPreview() {
-//    MaterialTheme {
-//        val navController = rememberNavController()
-//        DashboardLaboratorioListScreen(
-//            selectedDate = Calendar.getInstance(),
-//            navController = navController
-//        )
-//    }
-//}

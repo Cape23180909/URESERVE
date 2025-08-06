@@ -67,16 +67,15 @@ fun DashboardEmpleadoScreen(
 
         Spacer(modifier = Modifier.height(36.dp))
 
-        // Opciones de Empleado
         MenuItem(
             iconRes = R.drawable.icon_adminsettings,
             text = "Opciones de\nEmpleado",
             onClick = {
                 when (usuario.correoInstitucional) {
-                    "jacksonperez@gmail.com" -> navController.navigate("empleadoproyecto") //empleado exclusivo para el area de proyectores
-                    "richardbautista@gmail.com" -> navController.navigate("empleadolaboratorio")   //empleado exclusivo para el area de Laboratorios
-                    "yandelwisin@gmail.com" -> navController.navigate("empleadoCubiculo")  //empleado exclusivo para el area de Cubiculos
-                    "restauranteencargado@gmail.com" -> navController.navigate("empleadoRestaurante")  //empleado exclusivo para el area de Restaurantes
+                    "proyectores.ureserve@ucne.edu.do" -> navController.navigate("empleadoproyecto") //empleado exclusivo para el area de proyectores
+                    "laboratorio.ureserve@ucne.edu.do" -> navController.navigate("empleadolaboratorio")   //empleado exclusivo para el area de Laboratorios
+                    "cubiculos.ureserve@ucne.edu.do" -> navController.navigate("empleadoCubiculo")  //empleado exclusivo para el area de Cubiculos
+                    "restaurante.ureserve@ucne.edu.do" -> navController.navigate("empleadoRestaurante")  //empleado exclusivo para el area de Restaurantes
                     else -> {} // Puedes mostrar un mensaje de error o ignorar
                 }
             },
@@ -189,11 +188,3 @@ fun MenuItem(
     }
 }
 
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun DashboardEmpleadoScreenPreview() {
-//    DashboardEmpleadoScreen(
-//        onLogout = {},
-//        navController = NavController(LocalContext.current),
-//    )
-//}
