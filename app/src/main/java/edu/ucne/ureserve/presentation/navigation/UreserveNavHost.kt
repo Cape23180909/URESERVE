@@ -1,24 +1,19 @@
 package edu.ucne.ureserve.presentation.navigation
 
 import AgregarEstudianteScreen
-import PlanificadorLaboratorioScreen
+import DetalleReservaEnCursoProyectorScreen
 import ProyectorSwitchScreen
-import ReservaLaboratorioScreen
+import ReservasenCursoRestauranteScreen
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -27,8 +22,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
+import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
-
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
@@ -38,6 +33,9 @@ import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
 import edu.ucne.ureserve.presentation.empleados.CubiculoSwitchScreen
 import edu.ucne.ureserve.presentation.empleados.DashboardEmpleadoScreen
+import edu.ucne.ureserve.presentation.empleados.DetalleReservaEnCursoCubiculoScreen
+import edu.ucne.ureserve.presentation.empleados.DetalleReservaEnCursoLaboratorioScreen
+import edu.ucne.ureserve.presentation.empleados.DetalleReservaEnCursoRestauranteScreen
 import edu.ucne.ureserve.presentation.empleados.EmpleadoCubiculoScreen
 import edu.ucne.ureserve.presentation.empleados.EmpleadoLaboratorioScreen
 import edu.ucne.ureserve.presentation.empleados.EmpleadoRestauranteScreen
@@ -46,14 +44,14 @@ import edu.ucne.ureserve.presentation.empleados.LaboratorioSwitchScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoCubiculoScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoLaboratorioScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoProyectorScreen
-import ReservasenCursoRestauranteScreen
 import edu.ucne.ureserve.presentation.empleados.RestauranteSwitchScreen
 import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLaboratorio
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
 import edu.ucne.ureserve.presentation.laboratorios.ExistosaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
 import edu.ucne.ureserve.presentation.laboratorios.ModificarReservaLaboratorioScreen
-
+import edu.ucne.ureserve.presentation.laboratorios.PlanificadorLaboratorioScreen
+import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioViewModel
 import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
@@ -239,14 +237,14 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 EstudianteDto(
                     estudianteId = 1,  // Esto debería venir de tu backend
                     matricula = "2022-0465",
-                   facultad = "Ingeniería",
+                    facultad = "Ingeniería",
                     carrera = "Ingeniería en Sistemas"
                 )
             }
             DashboardScreen(
                 onCategoryClick = { category ->
                     when (category) {
-                         "Proyectores" -> navController.navigate("ProjectorReservation")
+                        "Proyectores" -> navController.navigate("ProjectorReservation")
                         "Cubículos" -> navController.navigate("CubiculoReservation")
                         "Laboratorios" -> navController.navigate("LaboratorioReservation")
                         "Restaurante" -> navController.navigate("RestauranteReservation")
@@ -476,15 +474,14 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 timeInMillis = fechaMillis ?: Calendar.getInstance().timeInMillis
             }
             DashboardLaboratorioListScreen(
-                selectedDate = calendar,
+                selectedDateMillis = calendar.timeInMillis, // Asegúrate de pasar el tiempo en milisegundos
                 onLaboratorioSelected = { laboratorioId, laboratorioNombre ->
-                    navController.navigate("planificador_laboratorio/$laboratorioId/$laboratorioNombre/$fechaMillis")
+                    navController.navigate("planificador_laboratorio/$laboratorioId/$laboratorioNombre/${calendar.timeInMillis}")
                 },
                 onBackClick = { navController.popBackStack() },
                 navController = navController
             )
         }
-
 
         composable(
             "planificador_laboratorio/{laboratorioId}/{laboratorioNombre}/{fechaMillis}",
@@ -497,13 +494,12 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             val laboratorioId = backStackEntry.arguments?.getInt("laboratorioId")
             val laboratorioNombre = backStackEntry.arguments?.getString("laboratorioNombre") ?: "No definido"
             val fechaMillis = backStackEntry.arguments?.getLong("fechaMillis") ?: 0L
-            val fechaSeleccionada = Calendar.getInstance().apply { timeInMillis = fechaMillis }
 
             PlanificadorLaboratorioScreen(
                 navController = navController,
                 laboratorioId = laboratorioId,
                 laboratorioNombre = laboratorioNombre,
-                fechaSeleccionada = fechaSeleccionada
+                fechaSeleccionadaMillis = fechaMillis
             )
         }
 
@@ -1257,9 +1253,72 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
+        composable(
+            route = "detalleReservaProyector/{codigoReserva}/{fecha}/{horaInicio}/{horaFin}/{matricula}",
+            arguments = listOf(
+                navArgument("codigoReserva") { type = NavType.IntType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getInt("codigoReserva") ?: 0
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: ""
+            val horaFin = backStackEntry.arguments?.getString("horaFin") ?: ""
+            val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
+
+            val reserva = ReservacionesDto(
+                codigoReserva = codigoReserva,
+                fecha = fecha,
+                horaInicio = horaInicio,
+                horaFin = horaFin,
+                matricula = matricula,
+                tipoReserva = 1
+            )
+
+            DetalleReservaEnCursoProyectorScreen(
+                navController = navController,
+                reserva = reserva
+            )
+        }
+
+
         composable("empleadolaboratorio_En_Curso") {
             ReservasenCursoLaboratorioScreen(
                 navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
+        composable(
+            route = "detalleReservaLaboratorio/{codigoReserva}/{fecha}/{horaInicio}/{horaFin}/{matricula}",
+            arguments = listOf(
+                navArgument("codigoReserva") { type = NavType.IntType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getInt("codigoReserva") ?: 0
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: ""
+            val horaFin = backStackEntry.arguments?.getString("horaFin") ?: ""
+            val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
+
+            val reserva = ReservacionesDto(
+                codigoReserva = codigoReserva,
+                fecha = fecha,
+                horaInicio = horaInicio,
+                horaFin = horaFin,
+                matricula = matricula,
+                tipoReserva = 3
+            )
+
+            DetalleReservaEnCursoLaboratorioScreen(
+                navController = navController,
+                reserva = reserva
             )
         }
 
@@ -1269,9 +1328,71 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
+        composable(
+            route = "detalleReservaCubiculo/{codigoReserva}/{fecha}/{horaInicio}/{horaFin}/{matricula}",
+            arguments = listOf(
+                navArgument("codigoReserva") { type = NavType.IntType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getInt("codigoReserva") ?: 0
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: ""
+            val horaFin = backStackEntry.arguments?.getString("horaFin") ?: ""
+            val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
+
+            val reserva = ReservacionesDto(
+                codigoReserva = codigoReserva,
+                fecha = fecha,
+                horaInicio = horaInicio,
+                horaFin = horaFin,
+                matricula = matricula,
+                tipoReserva = 2
+            )
+
+            DetalleReservaEnCursoCubiculoScreen(
+                navController = navController,
+                reserva = reserva
+            )
+        }
+
         composable("empleadorestaurante_En_Curso") {
             ReservasenCursoRestauranteScreen(
                 navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
+        composable(
+            route = "detalleReservaRestaurante/{codigoReserva}/{fecha}/{horaInicio}/{horaFin}/{matricula}/{tipoReserva}",
+            arguments = listOf(
+                navArgument("codigoReserva") { type = NavType.IntType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType },
+                navArgument("tipoReserva") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getInt("codigoReserva") ?: 0
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: ""
+            val horaFin = backStackEntry.arguments?.getString("horaFin") ?: ""
+            val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
+            val tipoReserva = backStackEntry.arguments?.getInt("tipoReserva") ?: -1
+            val reserva = ReservacionesDto(
+                codigoReserva = codigoReserva,
+                fecha = fecha,
+                horaInicio = horaInicio,
+                horaFin = horaFin,
+                matricula = matricula,
+                tipoReserva = tipoReserva
+            )
+            DetalleReservaEnCursoRestauranteScreen(
+                navController = navController,
+                reserva = reserva
             )
         }
 
