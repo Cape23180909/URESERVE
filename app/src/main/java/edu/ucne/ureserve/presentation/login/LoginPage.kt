@@ -184,7 +184,7 @@ fun LoginScreen(
                     label = { Text("Correo Institucional", color = Color.White) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(50.dp)), // 👈 Bordes redondeados
+                        .clip(RoundedCornerShape(50.dp)), //  Bordes redondeados
                     singleLine = true,
                     isError = correoError.value != null,
                     leadingIcon = {
@@ -204,14 +204,14 @@ fun LoginScreen(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
 
-                        // 👇 Fondo del campo en color 6D87A4
+                        //  Fondo del campo en color 6D87A4
                         focusedContainerColor = Color(0xFF6D87A4),
                         unfocusedContainerColor = Color(0xFF6D87A4),
 
                         focusedLabelColor = Color.White,
                         unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
 
-                        // 👇 Borde del campo también en 6D87A4
+                        //  Borde del campo también en 6D87A4
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
 

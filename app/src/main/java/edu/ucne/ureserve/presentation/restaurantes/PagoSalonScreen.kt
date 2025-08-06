@@ -222,7 +222,7 @@ fun PagoSalonScreen(
                                 )
                                 //  Aplicamos formato y limpieza
                                 val matriculaFormateada = formatearMatricula(matriculaSinFormato)
-                                val matriculaParaApi = matriculaFormateada // ✅ Usa el formato xxxx-xxxx si tu backend lo acepta
+                                val matriculaParaApi = matriculaFormateada //  Usa el formato xxxx-xxxx si tu backend lo acepta
 
                                 val fechaFormateada = try {
                                     val fechaRaw = uiState.fecha.ifEmpty {
@@ -237,12 +237,12 @@ fun PagoSalonScreen(
                                 val (horaInicio, horaFin, cantidadHoras) = if (uiState.horaInicio.isBlank() || uiState.horaFin.isBlank()) {
                                     val horaActual = LocalTime.now()
                                     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-                                    Triple(horaActual.format(formatter), horaActual.plusHours(2).format(formatter), 2)
+                                    Triple(horaActual.format(formatter), horaActual.plusHours(24).format(formatter), 24)
                                 } else {
                                     Triple(uiState.horaInicio, uiState.horaFin, calcularHoras(uiState.horaInicio, uiState.horaFin))
                                 }
 
-                                // ✅ Enviamos la matrícula con formato xxxx-xxxx
+                                //  Enviamos la matrícula con formato xxxx-xxxx
                                 viewModel.confirmarReservacionSalonReuniones(
                                     getLista = { DatosPersonalesSalonStore.lista },
                                     getMetodoPagoSeleccionado = { DatosPersonalesSalonStore.metodoPagoSeleccionado },
@@ -355,12 +355,3 @@ fun limpiarMatricula(matricula: String): String {
     return matricula.replace("-", "").replace(" ", "")
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewPagoSalonScreen() {
-//    val navController = rememberNavController()
-//    PagoSalonScreen(
-//        fecha = "20/06/2025",
-//        navController = navController
-//    )
-//}

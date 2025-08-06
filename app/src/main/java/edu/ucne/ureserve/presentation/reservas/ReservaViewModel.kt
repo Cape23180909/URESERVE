@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.reservas
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpException
@@ -29,6 +30,9 @@ class ReservaViewModel @Inject constructor(
 
     private val _state = MutableStateFlow<ReservaListState>(ReservaListState.Loading)
     val state: StateFlow<ReservaListState> = _state
+
+    private val _reservaciones = MutableStateFlow<List<ReservacionesDto>>(emptyList())
+    val reservaciones: StateFlow<List<ReservacionesDto>> = _reservaciones
 
     val _uiState = MutableStateFlow(RestaurantesUiState())
     val uiState = _uiState.asStateFlow()
@@ -61,12 +65,109 @@ class ReservaViewModel @Inject constructor(
             repository.getReservas().collect { result ->
                 when (result) {
                     is Resource.Success -> {
-                        val reservas = result.data ?: emptyList()
-                        _state.update { ReservaListState.Success(reservas) }
+                        val todasLasReservas = result.data ?: emptyList()
+
+                        val reservasDeProyector = todasLasReservas.filter {
+                            it.tipoReserva == 1 //proyectores
+                        }
+
+                        _state.update { ReservaListState.Success(reservasDeProyector) }
+                        _reservaciones.value = reservasDeProyector
+                    }
+
+                    is Resource.Error -> {
+                        _state.update {
+                            ReservaListState.Error(result.message ?: "Error al obtener las reservas")
+                        }
+                    }
+
+                    is Resource.Loading -> {
+                        _state.update { ReservaListState.Loading }
+                    }
+                }
+            }
+        }
+    }
+
+    fun getCubiculoReservas() {
+        viewModelScope.launch {
+            repository.getReservas().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val todasLasReservas = result.data ?: emptyList()
+
+                        val reservasDeCubiculo = todasLasReservas.filter {
+                            it.tipoReserva == 2
+                        }
+                        _state.update { ReservaListState.Success(reservasDeCubiculo ) }
+                        _reservaciones.value = reservasDeCubiculo
+                    }
+
+                    is Resource.Error -> {
+                        _state.update {
+                            ReservaListState.Error(result.message ?: "Error al obtener las reservas")
+                        }
+                    }
+
+                    is Resource.Loading -> {
+                        _state.update { ReservaListState.Loading }
+                    }
+                }
+            }
+        }
+    }
+
+    fun getLaboratorioReservas() {
+        viewModelScope.launch {
+            repository.getReservas().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val todasLasReservas = result.data ?: emptyList()
+                        Log.d("ViewModel", "Total de reservas obtenidas: ${todasLasReservas.size}")
+                        val reservasDeLaboratorio = todasLasReservas.filter {
+                            it.tipoReserva == 3
+                        }
+                        Log.d("ViewModel", "Reservas de laboratorio filtradas: ${reservasDeLaboratorio.size}")
+                        _state.update { ReservaListState.Success(reservasDeLaboratorio) }
+                        _reservaciones.value = reservasDeLaboratorio
                     }
                     is Resource.Error -> {
-                        _state.update { ReservaListState.Error(result.message ?: "Error al obtener las reservas") }
+                        Log.e("ViewModel", "Error al obtener las reservas: ${result.message}")
+                        _state.update {
+                            ReservaListState.Error(result.message ?: "Error al obtener las reservas")
+                        }
                     }
+                    is Resource.Loading -> {
+                        _state.update { ReservaListState.Loading }
+                    }
+                }
+            }
+        }
+    }
+
+    fun getReservasRestaurante() {
+        viewModelScope.launch {
+            repository.getReservas().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val todasLasReservas = result.data ?: emptyList()
+
+                        val reservasFiltradas = todasLasReservas.filter {
+                            it.tipoReserva == 4 || // SalaVIP
+                                    it.tipoReserva == 5 || // SalaReuniones
+                                    it.tipoReserva == 6    // Restaurante
+                        }
+
+                        _state.update { ReservaListState.Success(reservasFiltradas) }
+                        _reservaciones.value = reservasFiltradas
+                    }
+
+                    is Resource.Error -> {
+                        _state.update {
+                            ReservaListState.Error(result.message ?: "Error al obtener las reservas")
+                        }
+                    }
+
                     is Resource.Loading -> {
                         _state.update { ReservaListState.Loading }
                     }

@@ -29,6 +29,39 @@ class LaboratorioRepository @Inject constructor(
         }
     }
 
+    // En LaboratorioRepository.kt
+    suspend fun getLaboratoriosDisponibles(
+        fecha: String,
+        horaInicio: String,
+        horaFin: String
+    ): List<LaboratoriosDto> {
+        return try {
+            // Primero obtenemos todos los laboratorios
+            val todosLaboratorios = remoteDataSource.getLaboratorios()
+
+            // Luego obtenemos los laboratorios ocupados en ese horario
+            val reservaciones = remoteDataSource.getReservaciones().filter { reserva ->
+                reserva.fecha == fecha &&
+                        reserva.tipoReserva == 3 && // 3 = Laboratorio
+                        !(horaFin <= reserva.horaInicio || horaInicio >= reserva.horaFin)
+            }
+
+            // Obtenemos los IDs de laboratorios ocupados
+            val idsOcupados = remoteDataSource.getDetalleReservaLaboratorios()
+                .filter { detalle ->
+                    reservaciones.any { it.codigoReserva == detalle.codigoReserva }
+                }
+                .map { it.idLaboratorio }
+
+            // Filtramos los laboratorios disponibles
+            todosLaboratorios.filter { laboratorio ->
+                laboratorio.disponible && !idsOcupados.contains(laboratorio.laboratorioId)
+            }
+        } catch (e: Exception) {
+            Log.e("Repository", "Error al obtener laboratorios disponibles", e)
+            emptyList()
+        }
+    }
     suspend fun buscarUsuarioPorMatricula(matricula: String): UsuarioDTO? {
         return try {
             val usuarios = usuarioApi.getAll()

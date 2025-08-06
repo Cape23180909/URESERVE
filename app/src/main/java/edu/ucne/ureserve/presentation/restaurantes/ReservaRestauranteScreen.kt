@@ -142,7 +142,7 @@ fun ReservaRestauranteScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF0238BA))
+                .background(Color(0xFF2E5C94))
                 .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceAround
         ) {

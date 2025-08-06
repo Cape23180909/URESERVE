@@ -26,7 +26,12 @@ import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.time.Duration
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -243,43 +248,75 @@ fun ReservaLaboratorioScreen(
 
             Button(
                 onClick = {
-                    if (allMembers.size >= 3) {
-                        val matricula = usuarioDTO.estudiante?.matricula ?: ""
-                        val cantidadHoras = calcularHoras(horaInicio, horaFin)
-                        val horaInicio24 = convertirA24Horas(horaInicio)
-                        val horaFin24 = convertirA24Horas(horaFin)
-                        val fechaSeleccionada = formatoFecha(fechaSeleccionada)
+                    if (allMembers.isEmpty()) {
+                        notificationHandler.showNotification(
+                            title = "Integrantes requeridos",
+                            message = "Debe añadir los integrantes antes de finalizar la reserva."
+                        )
+                        return@Button
+                    }
 
-                        viewModel.confirmarReservaLaboratorio(
-                            laboratorioId = laboratorioId ?: 0,
-                            cantidadHoras = cantidadHoras,
-                            horaInicio = horaInicio24,
-                            horaFin = horaFin24,
-                            fecha = fechaSeleccionada,
-                            matricula = matricula,
-                            onSuccess = { codigo ->
-                                notificationHandler.showNotification(
-                                    title = "Reserva Exitosa",
-                                    message = "¡Has reservado el laboratorio correctamente!"
-                                )
-                                navController.navigate("ReservaLaboratorioExitosa/$codigo") {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                    if (allMembers.size < 3) {
+                        notificationHandler.showNotification(
+                            title = "Faltan miembros",
+                            message = "Debe tener mínimo 3 miembros."
+                        )
+                        return@Button
+                    }
+
+                    val matricula = usuarioDTO.estudiante?.matricula ?: ""
+                    val cantidadHoras = calcularHorasLaboratorio(horaInicio, horaFin)
+                    val horaInicio24 = convertirA24HorasLaboratorio(horaInicio)
+                    val horaFin24 = convertirA24HorasLaboratorio(horaFin)
+                    val fechaSeleccionadaStr = formatoFechaLaboratorio(fechaSeleccionada)
+
+                    if (fechaSeleccionadaStr.isEmpty() || horaInicio24.isEmpty() || horaFin24.isEmpty()) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Error: Datos de reserva inválidos")
+                        }
+                        return@Button
+                    }
+
+                    viewModel.confirmarReservaLaboratorio(
+                        laboratorioId = laboratorioId ?: 0,
+                        cantidadHoras = cantidadHoras ?: 1,
+                        horaInicio = horaInicio24,
+                        horaFin = horaFin24,
+                        fecha = fechaSeleccionadaStr,
+                        matricula = matricula,
+                        onSuccess = { codigo ->
+                            Log.d("NAVIGATION", "Código recibido: $codigo")
+                            if (codigo > 0) {
+                                try {
+                                    notificationHandler.showNotification(
+                                        title = "Reserva Exitosa",
+                                        message = "¡Has reservado el laboratorio correctamente!"
+                                    )
+                                    navController.navigate("ReservaLaboratorioExitosa/$codigo") {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
+                                } catch (e: Exception) {
+                                    Log.e("NAVIGATION_ERROR", "Error al navegar: ${e.message}")
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Error al navegar a la pantalla de éxito")
+                                    }
                                 }
-                            },
-                            onError = { mensaje ->
+                            } else {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar(mensaje)
+                                    snackbarHostState.showSnackbar("Error: Código de reserva inválido")
                                 }
                             }
-                        )
-                    } else {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Debe tener mínimo 3 miembros.")
+                        },
+                        onError = { mensaje ->
+                            scope.launch {
+                                snackbarHostState.showSnackbar(mensaje)
+                            }
                         }
-                    }
+                    )
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -290,8 +327,9 @@ fun ReservaLaboratorioScreen(
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("SIGUIENTE", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
+                Text("FINALIZAR", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
             }
+
         }
 
         Row(
@@ -310,4 +348,36 @@ fun ReservaLaboratorioScreen(
             }
         }
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun calcularHorasLaboratorio(horaInicioTexto: String, horaFinTexto: String): Int? {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+
+        val horaInicio = LocalTime.parse(horaInicioTexto.trim(), formatter)
+        val horaFin = LocalTime.parse(horaFinTexto.trim(), formatter)
+
+        val duracion = Duration.between(horaInicio, horaFin)
+        duracion.toMinutes().toInt()  // <-- ahora devuelve un Int
+    } catch (e: Exception) {
+        println("Error al calcular duración: ${e.message}")
+        null
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun convertirA24HorasLaboratorio(hora12: String): String {
+    return try {
+        val formatter12 = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+        val formatter24 = DateTimeFormatter.ofPattern("HH:mm:ss")
+        val time = LocalTime.parse(hora12.trim(), formatter12)
+        time.format(formatter24)
+    } catch (e: Exception) {
+        ""
+    }
+}
+fun formatoFechaLaboratorio(calendar: Calendar): String {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US) // ISO 8601
+    return dateFormat.format(calendar.time)
 }

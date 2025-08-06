@@ -7,11 +7,33 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,7 +54,6 @@ import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import edu.ucne.ureserve.presentation.login.AuthManager
-import edu.ucne.ureserve.presentation.proyectores.DateTimeUtils.parseHora
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -55,24 +76,17 @@ fun PrevisualizacionProyectorScreen(
     onBack: () -> Unit = {},
     onFinish: () -> Unit = {}
 ) {
-
     val context = LocalContext.current
-
-
-    // Solicitud de permiso para notificaciones en Android 13+
-    val postNotificationPermission =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-        } else null
-
+    val postNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+    } else null
     val notificationHandler = remember { NotificationHandler(context) }
-
     LaunchedEffect(true) {
         if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
             postNotificationPermission.launchPermissionRequest()
         }
     }
-    // Procesar el proyector desde el JSON
+
     val proyectorSeleccionadoFromJson = remember(proyectorJson) {
         try {
             proyectorJson?.let { Json.decodeFromString<ProyectoresDto>(it) }?.also {
@@ -83,16 +97,12 @@ fun PrevisualizacionProyectorScreen(
         }
     }
 
-    // Obtener el estado del ViewModel
     val state by viewModel.state.collectAsState()
     val proyectorSeleccionado by viewModel.proyectorSeleccionado.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-
-    // Usar el proyector de cualquiera de las dos fuentes
     val proyectorFinal = proyectorSeleccionadoFromJson ?: proyectorSeleccionado
 
-    // Verificar que tenemos un proyector
     LaunchedEffect(Unit) {
         if (proyectorFinal == null) {
             coroutineScope.launch {
@@ -106,38 +116,27 @@ fun PrevisualizacionProyectorScreen(
         "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
         "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
         "04:00 PM", "05:00 PM"
-    )
+    ).sortedBy { LocalTime.parse(it, DateTimeFormatter.ofPattern("hh:mm a", Locale.US)) }
 
-    // Formateador para fechas
     val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault())
-
-    // Parsear la fecha desde String a LocalDate
     val fechaLocalDate = try {
         LocalDate.parse(fecha, dateFormatter)
     } catch (e: DateTimeParseException) {
         null
     }
 
-    val (horaInicioParsed, horaFinParsed) = try {
-        val horaInicioNormalizada = if (horaInicio.contains(":")) horaInicio else {
-            horaInicio.replace(Regex("(\\d{2})(\\d{2})"), "$1:$2")
-        }
-
-        val horaFinNormalizada = if (horaFin.contains(":")) horaFin else {
-            horaFin.replace(Regex("(\\d{2})(\\d{2})"), "$1:$2")
-        }
-
-        Pair(parseHora(horaInicioNormalizada), parseHora(horaFinNormalizada))
+    val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+    val horaInicioParsed = try {
+        LocalTime.parse(horaInicio, timeFormatter)
     } catch (e: Exception) {
-        coroutineScope.launch {
-            snackbarHostState.showSnackbar(
-                "Error en formato de hora: ${e.message ?: "Use formato HH:MM AM/PM"}"
-            )
-        }
-        Pair(null, null)
+        null
+    }
+    val horaFinParsed = try {
+        LocalTime.parse(horaFin, timeFormatter)
+    } catch (e: Exception) {
+        null
     }
 
-    // Generar código de reserva
     val codigoReserva = remember { (100000..999999).random() }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
@@ -149,7 +148,6 @@ fun PrevisualizacionProyectorScreen(
         ) {
             item {
                 Column {
-                    // Encabezado
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -163,14 +161,12 @@ fun PrevisualizacionProyectorScreen(
                             contentDescription = "Logo",
                             modifier = Modifier.size(50.dp)
                         )
-
                         Text(
                             text = "Confirmación de Reserva",
                             color = Color.White,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
-
                         Image(
                             painter = painterResource(id = R.drawable.icon_proyector),
                             contentDescription = "Proyector",
@@ -178,7 +174,6 @@ fun PrevisualizacionProyectorScreen(
                         )
                     }
 
-                    // Resumen de la reserva
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -190,34 +185,9 @@ fun PrevisualizacionProyectorScreen(
                             color = Color.Black,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 16.dp))
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
 
-                        // Detalles del proyector
-                        proyectorFinal?.let { proyector ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.icon_proyector),
-                                    contentDescription = "Proyector",
-                                    modifier = Modifier.size(30.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(
-                                        text = "Proyector: ${proyector.nombre}",
-                                        color = Color.Black,
-                                        fontSize = 16.sp)
-                                    Text(
-                                        text = "Conectividad: ${proyector.conectividad}",
-                                        color = Color.Gray,
-                                        fontSize = 14.sp)
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-
-                        // Fecha
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -225,39 +195,22 @@ fun PrevisualizacionProyectorScreen(
                             Image(
                                 painter = painterResource(id = R.drawable.icon_reserva),
                                 contentDescription = "Fecha",
-                                modifier = Modifier.size(30.dp))
+                                modifier = Modifier.size(30.dp)
+                            )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Fecha: ${fechaLocalDate?.format(dateFormatter) ?: "--"}",
                                 color = Color.Black,
-                                fontSize = 16.sp)
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Horario
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.icon_clock),
-                                contentDescription = "Horario",
-                                modifier = Modifier.size(30.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Horario: $horaInicio - $horaFin",
-                                color = Color.Black,
-                                fontSize = 16.sp)
+                                fontSize = 16.sp
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Estado
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFFBDECB6))
+                                .background(Color(0xA4FDD835))
                                 .padding(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -265,36 +218,28 @@ fun PrevisualizacionProyectorScreen(
                                 modifier = Modifier
                                     .size(16.dp)
                                     .clip(RoundedCornerShape(4.dp))
-                                    .background(Color.Green))
+                                    .background(Color.Yellow)
+                            )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Pendiente de confirmación",
+                                text = "Pendiente de confirmar",
                                 color = Color.Black,
-                                fontSize = 16.sp)
+                                fontSize = 16.sp
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
-
-                        Text(
-                            text = "Código de reserva:",
-                            color = Color.Gray,
-                            fontSize = 14.sp)
-                        Text(
-                            text = codigoReserva.toString(),
-                            color = Color.Black,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 4.dp))
                     }
 
-                    // Lista horarios seleccionados
                     Text(
                         text = "Horarios seleccionados:",
                         color = Color.White,
                         fontSize = 18.sp,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp))
+                            .padding(16.dp)
+                    )
+
 
                     Column(
                         modifier = Modifier
@@ -303,7 +248,7 @@ fun PrevisualizacionProyectorScreen(
                             .padding(horizontal = 16.dp)
                     ) {
                         horariosDisponibles.forEach { horario ->
-                            val isReserved = isWithinReservation(horario, horaInicio, horaFin, horariosDisponibles)
+                            val isReserved = isWithinReservation(horario, horaInicio, horaFin)
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -317,21 +262,23 @@ fun PrevisualizacionProyectorScreen(
                                     Text(
                                         text = horario,
                                         color = Color.Black,
-                                        fontSize = 16.sp)
+                                        fontSize = 16.sp
+                                    )
                                     if (isReserved) {
                                         Spacer(modifier = Modifier.width(16.dp))
                                         Text(
                                             text = "✔",
                                             color = Color.Green,
-                                            fontSize = 20.sp)
+                                            fontSize = 20.sp
+                                        )
                                     }
                                 }
                             }
                         }
                     }
 
-                    // Botones inferiores
                     Spacer(modifier = Modifier.height(16.dp))
+
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
@@ -353,7 +300,8 @@ fun PrevisualizacionProyectorScreen(
                             Text(
                                 text = "CANCELAR",
                                 fontSize = 16.sp,
-                                modifier = Modifier.padding(8.dp))
+                                modifier = Modifier.padding(8.dp)
+                            )
                         }
 
                         Button(
@@ -364,59 +312,55 @@ fun PrevisualizacionProyectorScreen(
                                             snackbarHostState.showSnackbar("No se ha seleccionado un proyector")
                                             return@launch
                                         }
-
                                         val matricula = AuthManager.currentUser?.correoInstitucional ?: run {
                                             snackbarHostState.showSnackbar("Usuario no autenticado")
                                             return@launch
                                         }
-
-                                        if (fechaLocalDate == null) {
-                                            snackbarHostState.showSnackbar("Fecha inválida")
+                                        if (fechaLocalDate == null || horaInicioParsed == null || horaFinParsed == null) {
+                                            snackbarHostState.showSnackbar("Datos de reserva inválidos")
                                             return@launch
                                         }
 
-                                        // Validar horas
-                                        try {
-                                            val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
-                                            val horaInicioTime = LocalTime.parse(horaInicio, timeFormatter)
-                                            val horaFinTime = LocalTime.parse(horaFin, timeFormatter)
+                                        viewModel.confirmarReservaProyector(
+                                            proyectorId = proyectorFinal.proyectorId,
+                                            fechaLocal = fechaLocalDate,
+                                            horaInicio = horaInicioParsed,
+                                            horaFin = horaFinParsed,
+                                            matricula = matricula
+                                        )
 
-                                            viewModel.confirmarReservaProyector(
-                                                proyectorId = proyectorFinal.proyectorId,
-                                                fechaLocal = fechaLocalDate!!,
-                                                horaInicio = horaInicioTime,
-                                                horaFin = horaFinTime,
-                                                matricula = matricula
+                                        delay(1000)
+
+                                        if (viewModel.state.value.reservaConfirmada) {
+                                            notificationHandler.showNotification(
+                                                title = "Reserva Confirmada",
+                                                message = "Tu reserva del proyector ha sido registrada."
                                             )
-
-                                            // Esperar y verificar estado
-                                            delay(1000)
-
-                                            if (viewModel.state.value.reservaConfirmada) {
-                                                // Mostrar la notificación aquí
-                                                notificationHandler.showNotification(
-                                                    title = "Reserva Confirmada",
-                                                    message = "Tu reserva del proyector ha sido registrada."
-                                                )
-
-                                                navController.navigate("ReservaExitosa/${viewModel.state.value.codigoReserva}") {
-                                                    popUpTo("PrevisualizacionProyectorScreen") { inclusive = true }
-                                                }
+                                            navController.navigate("ReservaExitosa/${viewModel.state.value.codigoReserva}") {
+                                                popUpTo("PrevisualizacionProyectorScreen") { inclusive = true }
                                             }
-                                            else {
-                                                snackbarHostState.showSnackbar(viewModel.state.value.error ?: "Error desconocido")
-                                            }
-                                        } catch (e: Exception) {
-                                            snackbarHostState.showSnackbar("Formato de hora inválido")
-                                            return@launch
+                                        } else {
+                                            snackbarHostState.showSnackbar(viewModel.state.value.error ?: "Error desconocido")
                                         }
                                     } catch (e: Exception) {
                                         snackbarHostState.showSnackbar("Error: ${e.message ?: "Ocurrió un error inesperado"}")
                                     }
                                 }
-                            }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF6895D2),
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text(text = "CONFIRMAR")
+                            Text(
+                                text = "FINALIZAR",
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(8.dp)
+                            )
                         }
                     }
                 }
@@ -425,37 +369,31 @@ fun PrevisualizacionProyectorScreen(
     }
 }
 
-// Función auxiliar para determinar si un horario está dentro del rango reservado
-fun isWithinReservation(horario: String, horaInicio: String, horaFin: String, horarios: List<String>): Boolean {
-    val inicioIndex = horarios.indexOf(horaInicio)
-    val finIndex = horarios.indexOf(horaFin)
-    val currentIndex = horarios.indexOf(horario)
-    return if (inicioIndex == -1 || finIndex == -1 || currentIndex == -1) {
-        false
-    } else {
-        currentIndex in inicioIndex..finIndex
+fun isWithinReservation(horario: String, horaInicio: String, horaFin: String): Boolean {
+    val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+    return try {
+        val horarioTime = LocalTime.parse(horario, timeFormatter)
+        val inicioTime = LocalTime.parse(horaInicio, timeFormatter)
+        val finTime = LocalTime.parse(horaFin, timeFormatter)
+        // Incluir al horario de inicio y al horario de fin en la selección
+        horarioTime >= inicioTime && horarioTime <= finTime
+    } catch (e: Exception) {
+        false // En caso de error en el formato, devolvemos false
     }
 }
-
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Pevisualizacioncreen(context: Context) {
-    val postNotificationPermission =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-        } else {
-            null
-        }
-
+    val postNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+    } else null
     val notificationHandler = NotificationHandler(context)
-
     LaunchedEffect(key1 = true) {
         if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
             postNotificationPermission.launchPermissionRequest()
         }
     }
-
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -471,6 +409,7 @@ fun Pevisualizacioncreen(context: Context) {
         }
     }
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
@@ -478,7 +417,7 @@ fun PreviewPrevisualizacionProyectorScreen() {
     MaterialTheme {
         PrevisualizacionProyectorScreen(
             navController = rememberNavController(),
-            fecha = "24-06-2025",
+            fecha = "04-08-2025",
             horaInicio = "12:00 PM",
             horaFin = "01:00 PM"
         )

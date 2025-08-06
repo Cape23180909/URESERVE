@@ -28,7 +28,7 @@ import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 
 val Amarillo = Color(0xFFFFDF00)
-val Azul = Color(0xFF154AD5)
+val Azul = Color(0xFF023E8A)
 
 @Composable
 fun ProfileScreen(
@@ -134,7 +134,7 @@ fun ProfileScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF0238BA))
+                    .background(Color(0xFF2E5C94))
                     .padding(vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {

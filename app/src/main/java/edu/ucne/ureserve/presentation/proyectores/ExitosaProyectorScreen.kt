@@ -127,27 +127,3 @@ fun ReservaExitosaScreen(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewReservaExitosaScreen() {
-//    MaterialTheme {
-//        val ejemploReserva = DetalleReservaProyectorsDto(
-//            detalleReservaProyectorId = 0,
-//            codigoReserva = 123454,
-//            idProyector = 1,
-//            matricula = "20201234",
-//            fecha = "2025-06-24",
-//            horario = "12:00 PM - 01:00 PM",
-//            estado = 1,
-//            proyector = ProyectoresDto(
-//                proyectorId = 1,
-//                nombre = "Proyector Aula 101",
-//                conectividad = "HDMI, VGA"
-//            )
-//        )
-//        ReservaExitosaScreen(
-//            navController = rememberNavController(),
-//            detalleReserva = ejemploReserva
-//        )
-//    }
-//}
