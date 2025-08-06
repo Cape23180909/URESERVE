@@ -24,6 +24,7 @@ import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import edu.ucne.ureserve.presentation.admin.DashboardAdminScreen
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
@@ -120,21 +121,44 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
 
         composable("login") {
             LoginScreen(onLoginSuccess = { usuario ->
-                if (
-                    usuario.correoInstitucional == "jacksonperez@gmail.com" || //Empleado de proyectores
-                    usuario.correoInstitucional == "richardbautista@gmail.com" ||  //Empleadon de labotatorios
-                    usuario.correoInstitucional == "yandelwisin@gmail.com" ||  //Empleado de cubiculos
-                    usuario.correoInstitucional == "restauranteencargado@gmail.com" //Empleado de restaurantes
-                ) {
-                    navController.navigate("dashboard_empleado") {
-                        popUpTo("login") { inclusive = true }
+                when (usuario.correoInstitucional) {
+                    "admin.ureserve@ucne.edu.do" -> {
+                        navController.navigate("dashboard_admin") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
-                } else {
-                    navController.navigate("welcome") {
-                        popUpTo("login") { inclusive = true }
+                    "proyectores.ureserve@ucne.edu.do",
+                    "laboratorio.ureserve@ucne.edu.do",
+                    "cubiculos.ureserve@ucne.edu.do",
+                    "restaurante.ureserve@ucne.edu.do" -> {
+                        navController.navigate("dashboard_empleado") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                    else -> {
+                        navController.navigate("welcome") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 }
             })
+        }
+
+        composable("dashboard_admin") {
+            val usuario = AuthManager.currentUser ?: UsuarioDTO()
+            DashboardAdminScreen(
+                usuario = usuario,
+                onLogout = {
+                    AuthManager.logout()
+                    navController.navigate("LoadStart") {
+                        popUpTo("Profile") { inclusive = true }
+                    }
+                },
+                onOpcionesEmpleadoProyector = {
+                    navController.navigate("empleadoproyecto")
+                },
+                navController = navController
+            )
         }
 
         composable("Welcome") {
@@ -257,7 +281,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 onBottomNavClick = { destination ->
                     when(destination) {
                         "Perfil" -> navController.navigate("Profile")
-                        "Inicio" -> {} // Ya estás en Dashboard
+                        "Inicio" -> navController.navigate("Dashboard")
                         "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 }
@@ -465,21 +489,32 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
+        val onBottomNavClick: (String) -> Unit = { screen ->
+            when (screen) {
+                "Inicio" -> navController.navigate("Dashboard")
+            }
+        }
+
         composable(
-            "LaboratorioList/{fechaMillis}",
+            route = "LaboratorioList/{fechaMillis}",
             arguments = listOf(navArgument("fechaMillis") { type = NavType.LongType })
         ) { backStackEntry ->
             val fechaMillis = backStackEntry.arguments?.getLong("fechaMillis")
             val calendar = Calendar.getInstance().apply {
                 timeInMillis = fechaMillis ?: Calendar.getInstance().timeInMillis
             }
+
+            // Inyectar el ViewModel correcto:
+            val viewModel: ReservaLaboratorioViewModel = hiltViewModel()
+
             DashboardLaboratorioListScreen(
-                selectedDateMillis = calendar.timeInMillis, // Asegúrate de pasar el tiempo en milisegundos
+                selectedDateMillis = calendar.timeInMillis,
                 onLaboratorioSelected = { laboratorioId, laboratorioNombre ->
                     navController.navigate("planificador_laboratorio/$laboratorioId/$laboratorioNombre/${calendar.timeInMillis}")
                 },
                 onBackClick = { navController.popBackStack() },
-                navController = navController
+                navController = navController,
+                onBottomNavClick = onBottomNavClick
             )
         }
 
