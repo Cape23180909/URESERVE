@@ -286,13 +286,4 @@ class ReservaProyectorViewModel @Inject constructor(
     }
 }
 
-data class ReservaProyectorState(
-    val proyectores: List<ProyectoresDto> = emptyList(),
-    val proyectorSeleccionado: ProyectoresDto? = null,
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val disponibilidadVerificada: Boolean = false,
-    val reservaConfirmada: Boolean = false,
-    val codigoReserva: Int? = null,
-    val resultado: Resource<ReservacionesDto>? = null
-)
+
