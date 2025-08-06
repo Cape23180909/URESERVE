@@ -248,65 +248,75 @@ fun ReservaLaboratorioScreen(
 
             Button(
                 onClick = {
-                    if (allMembers.size >= 3) {
-                        val matricula = usuarioDTO.estudiante?.matricula ?: ""
-                        val cantidadHoras = calcularHorasLaboratorio(horaInicio, horaFin)
-                        val horaInicio24 = convertirA24HorasLaboratorio(horaInicio)
-                        val horaFin24 = convertirA24HorasLaboratorio(horaFin)
-                        val fechaSeleccionadaStr = formatoFechaLaboratorio(fechaSeleccionada)
-
-                        if (fechaSeleccionadaStr.isEmpty() || horaInicio24.isEmpty() || horaFin24.isEmpty()) {
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Error: Datos de reserva inválidos")
-                            }
-                            return@Button
-                        }
-
-                        viewModel.confirmarReservaLaboratorio(
-                            laboratorioId = laboratorioId ?: 0,
-                            cantidadHoras = cantidadHoras!!,
-                            horaInicio = horaInicio24,
-                            horaFin = horaFin24,
-                            fecha = fechaSeleccionadaStr,
-                            matricula = matricula,
-                            onSuccess = { codigo ->
-                                Log.d("NAVIGATION", "Código recibido: $codigo")
-                                if (codigo > 0) {
-                                    try {
-                                        notificationHandler.showNotification(
-                                            title = "Reserva Exitosa",
-                                            message = "¡Has reservado el laboratorio correctamente!"
-                                        )
-                                        navController.navigate("ReservaLaboratorioExitosa/$codigo") {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    } catch (e: Exception) {
-                                        Log.e("NAVIGATION_ERROR", "Error al navegar: ${e.message}")
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar("Error al navegar a la pantalla de éxito")
-                                        }
-                                    }
-                                } else {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("Error: Código de reserva inválido")
-                                    }
-                                }
-                            },
-                            onError = { mensaje ->
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(mensaje)
-                                }
-                            }
+                    if (allMembers.isEmpty()) {
+                        notificationHandler.showNotification(
+                            title = "Integrantes requeridos",
+                            message = "Debe añadir los integrantes antes de finalizar la reserva."
                         )
-                    } else {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Debe tener mínimo 3 miembros.")
-                        }
+                        return@Button
                     }
+
+                    if (allMembers.size < 3) {
+                        notificationHandler.showNotification(
+                            title = "Faltan miembros",
+                            message = "Debe tener mínimo 3 miembros."
+                        )
+                        return@Button
+                    }
+
+                    val matricula = usuarioDTO.estudiante?.matricula ?: ""
+                    val cantidadHoras = calcularHorasLaboratorio(horaInicio, horaFin)
+                    val horaInicio24 = convertirA24HorasLaboratorio(horaInicio)
+                    val horaFin24 = convertirA24HorasLaboratorio(horaFin)
+                    val fechaSeleccionadaStr = formatoFechaLaboratorio(fechaSeleccionada)
+
+                    if (fechaSeleccionadaStr.isEmpty() || horaInicio24.isEmpty() || horaFin24.isEmpty()) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Error: Datos de reserva inválidos")
+                        }
+                        return@Button
+                    }
+
+                    viewModel.confirmarReservaLaboratorio(
+                        laboratorioId = laboratorioId ?: 0,
+                        cantidadHoras = cantidadHoras ?: 1,
+                        horaInicio = horaInicio24,
+                        horaFin = horaFin24,
+                        fecha = fechaSeleccionadaStr,
+                        matricula = matricula,
+                        onSuccess = { codigo ->
+                            Log.d("NAVIGATION", "Código recibido: $codigo")
+                            if (codigo > 0) {
+                                try {
+                                    notificationHandler.showNotification(
+                                        title = "Reserva Exitosa",
+                                        message = "¡Has reservado el laboratorio correctamente!"
+                                    )
+                                    navController.navigate("ReservaLaboratorioExitosa/$codigo") {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("NAVIGATION_ERROR", "Error al navegar: ${e.message}")
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Error al navegar a la pantalla de éxito")
+                                    }
+                                }
+                            } else {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Error: Código de reserva inválido")
+                                }
+                            }
+                        },
+                        onError = { mensaje ->
+                            scope.launch {
+                                snackbarHostState.showSnackbar(mensaje)
+                            }
+                        }
+                    )
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -317,8 +327,9 @@ fun ReservaLaboratorioScreen(
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("SIGUIENTE", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
+                Text("FINALIZAR", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
             }
+
         }
 
         Row(
