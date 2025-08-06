@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -133,7 +134,12 @@ fun ReservasenCursoCubiculoScreen(
                                 horaInicio = reserva.horaInicio,
                                 horaFin = reserva.horaFin,
                                 fecha = reserva.fecha,
-                                color = Color(0xFF6EE610)
+                                color = Color(0xFF6EE610),
+                                onClick = {
+                                    navController.navigate(
+                                        "detalleReservaCubiculo/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
+                                    )
+                                }
                             )
                         }
                     }
@@ -203,7 +209,7 @@ fun CubiculoReservationItem(
     horaFin: String,
     fecha: String,
     color: Color,
-    onTimerFinished: () -> Unit = {}
+    onClick: () -> Unit
 ) {
     var tiempoRestante by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf(false) }
@@ -214,19 +220,15 @@ fun CubiculoReservationItem(
             error = true
             return@LaunchedEffect
         }
-
         while (true) {
             val ahora = System.currentTimeMillis()
             val diff = fechaHoraFin.time - ahora
-
             if (diff > 0) {
                 tiempoRestante = formatearTiempoRestante(diff)
             } else {
                 tiempoRestante = "Finalizado"
-                onTimerFinished()
                 break
             }
-
             delay(1000L - (System.currentTimeMillis() % 1000))
         }
     }
@@ -238,6 +240,7 @@ fun CubiculoReservationItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick() } // Hacer que el Row sea clickeable
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -254,7 +257,6 @@ fun CubiculoReservationItem(
                 color = if (isActive) Color.Black else Color.Gray
             )
         }
-
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(25.dp))
