@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.reservas
 
+import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,6 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorViewModel
@@ -26,13 +32,27 @@ import java.time.*
 import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ModificarReservaProyectorScreen(
     reservaId: Int? = null,
     navController: NavHostController? = null,
     viewModel: ReservaProyectorViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
+
+    val notificationHandler = remember { NotificationHandler(context) }
+
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     val state by viewModel.state.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -173,6 +193,11 @@ fun ModificarReservaProyectorScreen(
 
             Button(
                 onClick = {
+                    // Mostrar notificación de éxito
+                    notificationHandler.showNotification(
+                        title = "Cambios detectados",
+                        message = "Los cambios fueron guardados correctamente."
+                    )
                     reservaId?.let { id ->
                         viewModel.modificarReservaProyector(
                             reservaId = id,
@@ -227,6 +252,12 @@ fun ModificarReservaProyectorScreen(
                                 Instant.ofEpochMilli(millis),
                                 ZoneId.systemDefault()
                             ).toLocalDate()
+                            // Notificación de éxito
+                            notificationHandler.showNotification(
+                                title = "Fecha modificada",
+                                message = "La nueva fecha fue seleccionada correctamente."
+                            )
+
                             viewModel.verificarDisponibilidad(
                                 selectedDate.toString(),
                                 startTime.toString(),
@@ -271,6 +302,11 @@ fun ModificarReservaProyectorScreen(
                         startTime = LocalTime.of(startState.hour, startState.minute)
                         endTime = LocalTime.of(endState.hour, endState.minute)
                         showTimePicker = false
+                        // Notificación de éxito
+                        notificationHandler.showNotification(
+                            title = "Horario actualizado",
+                            message = "El nuevo horario fue seleccionado correctamente."
+                        )
                         viewModel.verificarDisponibilidad(
                             selectedDate.toString(),
                             startTime.toString(),
