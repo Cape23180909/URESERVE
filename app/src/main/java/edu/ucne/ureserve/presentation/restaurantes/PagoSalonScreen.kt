@@ -222,7 +222,7 @@ fun PagoSalonScreen(
                                 )
                                 //  Aplicamos formato y limpieza
                                 val matriculaFormateada = formatearMatricula(matriculaSinFormato)
-                                val matriculaParaApi = matriculaFormateada // ✅ Usa el formato xxxx-xxxx si tu backend lo acepta
+                                val matriculaParaApi = matriculaFormateada //  Usa el formato xxxx-xxxx si tu backend lo acepta
 
                                 val fechaFormateada = try {
                                     val fechaRaw = uiState.fecha.ifEmpty {
@@ -242,7 +242,7 @@ fun PagoSalonScreen(
                                     Triple(uiState.horaInicio, uiState.horaFin, calcularHoras(uiState.horaInicio, uiState.horaFin))
                                 }
 
-                                // ✅ Enviamos la matrícula con formato xxxx-xxxx
+                                //  Enviamos la matrícula con formato xxxx-xxxx
                                 viewModel.confirmarReservacionSalonReuniones(
                                     getLista = { DatosPersonalesSalonStore.lista },
                                     getMetodoPagoSeleccionado = { DatosPersonalesSalonStore.metodoPagoSeleccionado },
@@ -355,12 +355,3 @@ fun limpiarMatricula(matricula: String): String {
     return matricula.replace("-", "").replace(" ", "")
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewPagoSalonScreen() {
-//    val navController = rememberNavController()
-//    PagoSalonScreen(
-//        fecha = "20/06/2025",
-//        navController = navController
-//    )
-//}
