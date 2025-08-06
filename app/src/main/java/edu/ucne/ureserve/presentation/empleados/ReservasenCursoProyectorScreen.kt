@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -51,6 +52,7 @@ fun ReservasenCursoProyectorScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -71,6 +73,7 @@ fun ReservasenCursoProyectorScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
+
             Text(
                 text = "Reservas de proyectores en Curso",
                 fontSize = 23.sp,
@@ -81,6 +84,7 @@ fun ReservasenCursoProyectorScreen(
                     .wrapContentWidth(Alignment.CenterHorizontally)
                     .padding(16.dp)
             )
+
             when (state) {
                 is ReservaViewModel.ReservaListState.Loading -> {
                     Text(
@@ -123,7 +127,12 @@ fun ReservasenCursoProyectorScreen(
                                 horaInicio = reserva.horaInicio,
                                 horaFin = reserva.horaFin,
                                 fecha = reserva.fecha,
-                                color = Color(0xFF6EE610)
+                                color = Color(0xFF6EE610),
+                                onClick = {
+                                    navController.navigate(
+                                        "detalleReservaProyector/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
+                                    )
+                                }
                             )
                         }
                     }
@@ -140,6 +149,7 @@ fun ReservasenCursoProyectorScreen(
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(15.dp))
             Button(
                 onClick = { navController.popBackStack() },
@@ -165,7 +175,7 @@ fun ProyectorReservationItem(
     horaFin: String,
     fecha: String,
     color: Color,
-    onTimerFinished: () -> Unit = {}
+    onClick: () -> Unit
 ) {
     var tiempoRestante by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf(false) }
@@ -183,7 +193,6 @@ fun ProyectorReservationItem(
                 tiempoRestante = formatearTiempoRestante(diff)
             } else {
                 tiempoRestante = "Finalizado"
-                onTimerFinished()
                 break
             }
             delay(1000L - (System.currentTimeMillis() % 1000))
@@ -197,6 +206,7 @@ fun ProyectorReservationItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick() } // Hacer que el Row sea clickeable
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
