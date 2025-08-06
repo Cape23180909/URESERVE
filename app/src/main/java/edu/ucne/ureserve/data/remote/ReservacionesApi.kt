@@ -23,7 +23,7 @@ interface ReservacionesApi {
     suspend fun update(
         @Path("id") id: Int,
         @Body reservacion: ReservacionesDto
-    ): Response<ReservacionesDto> // 👈 CAMBIO CLAVE
+    ): Response<ReservacionesDto> //  CAMBIO CLAVE
 
     @DELETE("api/Reservaciones/{id}")
     suspend fun delete(@Path("id") id: Int)
