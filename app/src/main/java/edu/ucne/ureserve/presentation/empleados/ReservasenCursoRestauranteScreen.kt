@@ -1,7 +1,9 @@
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -128,8 +130,13 @@ fun ReservasenCursoRestauranteScreen(
                                 color = when (reserva.tipoReserva) {
                                     4 -> Color(0xFFFFA500)  // Naranja SalaVIP
                                     5 -> Color(0xFFADD8E6)  // Azul SalaReuniones
-                                    6 -> Color(0xFF6EE610)  // Verde Restaurante
-                                    else -> Color(0xFF6EE610)
+                                    else -> Color(0xFF6EE610)  // Verde Restaurante
+                                },
+                                onClick = {
+                                    val encodedMatricula = Uri.encode(reserva.matricula)
+                                    navController.navigate(
+                                        "detalleReservaRestaurante/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/$encodedMatricula/${reserva.tipoReserva}"
+                                    )
                                 }
                             )
                         }
@@ -172,7 +179,7 @@ fun ReservasenCursoRestauranteScreen(
 fun ReservationRestauranteItem(
     reserva: ReservacionesDto,
     color: Color,
-    onTimerFinished: () -> Unit = {}
+    onClick: () -> Unit
 ) {
     var tiempoRestante by remember { mutableStateOf<String>("Cargando...") }
     var error by remember { mutableStateOf(false) }
@@ -205,7 +212,6 @@ fun ReservationRestauranteItem(
             tiempoRestante = "--:--"
             return@LaunchedEffect
         }
-
         while (true) {
             val ahora = System.currentTimeMillis()
             val diff = fechaHoraFin.time - ahora
@@ -213,7 +219,6 @@ fun ReservationRestauranteItem(
                 tiempoRestante = formatearTiempoRestante(diff)
             } else {
                 tiempoRestante = "Finalizado"
-                onTimerFinished()
                 break
             }
             delay(1000L - (System.currentTimeMillis() % 1000))
@@ -222,21 +227,21 @@ fun ReservationRestauranteItem(
 
     val isActive = tiempoRestante != "Finalizado" && !error
     val iconRes = when (reserva.tipoReserva) {
-        4 -> R.drawable.sala  // Sala VIP
+        4 -> R.drawable.sala // Sala VIP
         5 -> R.drawable.salon // Salón de reuniones
-        6 -> R.drawable.comer // Restaurante
-        else -> R.drawable.icon_restaurante
+        else -> R.drawable.icon_restaurante // Restaurante
     }
+
     val tipoReservaText = when (reserva.tipoReserva) {
         4 -> "Sala VIP"
         5 -> "Salón de Reuniones"
-        6 -> "Restaurante"
-        else -> "Reservación"
+        else -> "Restaurante"
     }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick() }
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
