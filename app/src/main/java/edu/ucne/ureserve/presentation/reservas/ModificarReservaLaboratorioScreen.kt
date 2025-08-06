@@ -1,21 +1,20 @@
 package edu.ucne.ureserve.presentation.laboratorios
 
+import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,36 +22,58 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.login.AuthManager
-import java.time.LocalDate
-import java.time.LocalTime
+import java.time.*
 import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ModificarReservaLaboratorioScreen(
     reservaId: Int? = null,
     navController: NavHostController? = null,
     viewModel: ReservaLaboratorioViewModel = hiltViewModel()
 ) {
-    val members by viewModel.members.collectAsState()
-    val laboratorioNombre by viewModel.laboratorioNombre.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val reserva by viewModel.reservaSeleccionada.collectAsState()
-    val laboratorioId by viewModel.laboratorioSeleccionado.collectAsState()
+    val context = LocalContext.current
+    // Solicitud de permiso para notificaciones en Android 13+
+    val postNotificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        } else null
 
-    var showAddMemberDialog by remember { mutableStateOf(false) }
-    var matriculaInput by remember { mutableStateOf("") }
+    val notificationHandler = remember { NotificationHandler(context) }
 
-    LaunchedEffect(reservaId) {
-        reservaId?.let { id ->
-            viewModel.getLaboratorioNombreById(id)
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
         }
     }
+    val state by viewModel.uiState.collectAsState()
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var startTime by remember { mutableStateOf(LocalTime.NOON) }
+    var endTime by remember { mutableStateOf(LocalTime.NOON.plusHours(1)) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(reservaId) {
+        reservaId?.let {
+            viewModel.cargarReservaParaModificar(it)
+        }
+    }
+
+    LaunchedEffect(state.fecha, state.horaInicio, state.horaFin) {
+        state.fecha?.let { selectedDate = it }
+        state.horaInicio?.let { startTime = it }
+        state.horaFin?.let { endTime = it }
+    }
+
+
 
     Scaffold(
         topBar = {
@@ -61,18 +82,18 @@ fun ModificarReservaLaboratorioScreen(
                     title = {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.logo_reserve),
                                 contentDescription = "Logo",
-                                modifier = Modifier.size(60.dp)
+                                modifier = Modifier.size(50.dp)
                             )
                             Image(
                                 painter = painterResource(id = R.drawable.icon_reserva),
                                 contentDescription = "Reserva",
-                                modifier = Modifier.size(60.dp)
+                                modifier = Modifier.size(50.dp)
                             )
                         }
                     },
@@ -85,9 +106,7 @@ fun ModificarReservaLaboratorioScreen(
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF6D87A4)
-                    )
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6D87A4))
                 )
                 Box(
                     modifier = Modifier
@@ -106,233 +125,179 @@ fun ModificarReservaLaboratorioScreen(
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "MODIFICAR LABORATORIO",
-                color = Color.White,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-
             errorMessage?.let {
                 Text(text = it, color = Color.Red)
                 Spacer(modifier = Modifier.height(8.dp))
             }
+
+            Text(
+                text = "MODIFICAR RESERVA DE LABORATORIO",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Reserva actual:", color = Color.White, fontWeight = FontWeight.Bold)
                     Text(
-                        "Información de la reserva:",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        "Fecha: ${selectedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}",
+                        color = Color.White
+                    )
+                    Text(
+                        "Hora: ${startTime.format(DateTimeFormatter.ofPattern("HH:mm"))} - ${endTime.format(DateTimeFormatter.ofPattern("HH:mm"))}",
+                        color = Color.White
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
-                        "Integrantes: ${members.size}",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
 
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { showDatePicker = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7))
             ) {
-                items(members) { member ->
-                    MemberItem(
-                        member = member,
-                        onRemove = { matricula ->
-                            viewModel.eliminarMiembroPorMatricula(matricula)
-                        }
-                    )
-                }
+                Text("Cambiar Fecha", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = { showAddMemberDialog = true },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                shape = RoundedCornerShape(12.dp)
+                onClick = { showTimePicker = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF48CAE4))
             ) {
-                Text("Agregar Integrante", fontWeight = FontWeight.Bold)
+                Text("Cambiar Horario", color = Color.Black)
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Button(
                 onClick = {
-                    reservaId?.let { id ->
-                        try {
-                            val fecha = reserva?.fecha?.substring(0, 10) ?: return@let
-                            viewModel.modificarReservaLaboratorio(
-                                reservaId = id,
-                                laboratorioId = laboratorioId ?: 0,
-                                fechaLocal = LocalDate.parse(fecha),
-                                horaInicio = LocalTime.parse(reserva?.horaInicio ?: "08:00:00"),
-                                horaFin = LocalTime.parse(reserva?.horaFin ?: "09:00:00"),
-                                matricula = AuthManager.currentUser?.estudiante?.matricula ?: ""
-                            )
-
-                            // Navegar a la pantalla de lista de reservas
+                    // Mostrar notificación de éxito
+                    notificationHandler.showNotification(
+                        title = "Cambios detectados",
+                        message = "Los cambios fueron guardados correctamente."
+                    )
+                    viewModel.modificarReservaLaboratorio(
+                        onSuccess = {
                             navController?.navigate("reservaList") {
-                                popUpTo("modificar_laboratorio") { inclusive = true }
+                                popUpTo("modificarReservaLaboratorio") { inclusive = true }
                             }
-                        } catch (e: Exception) {
-                            viewModel.setError("Error al procesar fechas: ${e.message}")
+                        },
+                        onError = { error ->
+                            errorMessage = error
                         }
-                    }
+                    )
                 },
-                enabled = members.isNotEmpty(),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0077B6)
-                ),
-                shape = RoundedCornerShape(12.dp)
+                enabled = true,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0077B6))
             ) {
                 Text("GUARDAR CAMBIOS", fontWeight = FontWeight.Bold)
             }
+
+
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = { navController?.popBackStack() },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                shape = RoundedCornerShape(12.dp)
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
             ) {
-                Text("CANCELAR", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("REGRESAR", fontWeight = FontWeight.Bold)
             }
         }
 
-        if (showAddMemberDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    showAddMemberDialog = false
-                    matriculaInput = ""
-                    viewModel.clearError()
-                },
-                title = { Text("Agregar Integrante") },
-                text = {
-                    Column {
-                        TextField(
-                            value = matriculaInput,
-                            onValueChange = {
-                                matriculaInput = it
-                                viewModel.clearError()
-                            },
-                            label = { Text("Matrícula del estudiante") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        errorMessage?.takeIf { it.contains("matrícula", true) }?.let {
-                            Text(
-                                text = it,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(top = 8.dp)
+        if (showDatePicker) {
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = selectedDate
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli()
+            )
+
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    // En DatePickerDialog confirmButton:
+                    Button(onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val newDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                            selectedDate = newDate
+                            viewModel.setFechaSeleccionada(newDate)
+                            notificationHandler.showNotification(
+                                title = "Fecha cambiada",
+                                message = "La fecha de la reserva fue actualizada a ${newDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}."
                             )
                         }
+                        showDatePicker = false
+                    }) {
+                        Text("CONFIRMAR")
+                    }
+
+                },
+                dismissButton = {
+                    Button(onClick = { showDatePicker = false }) {
+                        Text("CANCELAR")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
+
+        if (showTimePicker) {
+            val startState = rememberTimePickerState(startTime.hour, startTime.minute)
+            val endState = rememberTimePickerState(endTime.hour, endTime.minute)
+
+            AlertDialog(
+                onDismissRequest = { showTimePicker = false },
+                title = { Text("Seleccionar Horario") },
+                text = {
+                    Column {
+                        Text("Hora de inicio")
+                        TimePicker(state = startState)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Hora de fin")
+                        TimePicker(state = endState)
                     }
                 },
                 confirmButton = {
-                    Button(
-                        onClick = {
-                            if (matriculaInput.isBlank()) {
-                                viewModel.setError("La matrícula no puede estar vacía")
-                                return@Button
-                            }
-                            viewModel.buscarUsuarioPorMatricula(matriculaInput) { usuario ->
-                                if (usuario != null) {
-                                    showAddMemberDialog = false
-                                    matriculaInput = ""
-                                }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF0096C7)
-                        ),
-                        enabled = matriculaInput.isNotBlank() && !isLoading
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = Color.White,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("Agregar")
-                        }
+                    // En TimePicker confirmButton:
+                    Button(onClick = {
+                        val newStart = LocalTime.of(startState.hour, startState.minute)
+                        val newEnd = LocalTime.of(endState.hour, endState.minute)
+
+                        startTime = newStart
+                        endTime = newEnd
+                        viewModel.setHorario(newStart, newEnd)
+                        notificationHandler.showNotification(
+                            title = "Horario actualizado",
+                            message = "Nuevo horario: ${newStart.format(DateTimeFormatter.ofPattern("HH:mm"))} - ${newEnd.format(DateTimeFormatter.ofPattern("HH:mm"))}"
+                        )
+
+                        showTimePicker = false
+                    }) {
+                        Text("CONFIRMAR")
                     }
+
                 },
                 dismissButton = {
-                    TextButton(
-                        onClick = {
-                            showAddMemberDialog = false
-                            matriculaInput = ""
-                            viewModel.clearError()
-                        }
-                    ) {
-                        Text("Cancelar")
+                    Button(onClick = { showTimePicker = false }) {
+                        Text("CANCELAR")
                     }
                 }
             )
-        }
-    }
-}
-
-@Composable
-fun MemberItem(
-    member: UsuarioDTO,
-    onRemove: (String) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(
-                    text = "${member.nombres} ${member.apellidos}",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = member.estudiante?.matricula ?: "Sin matrícula",
-                    color = Color.White
-                )
-            }
-
-            IconButton(
-                onClick = { member.estudiante?.matricula?.let { onRemove(it) } }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar",
-                    tint = Color.White
-                )
-            }
         }
     }
 }
