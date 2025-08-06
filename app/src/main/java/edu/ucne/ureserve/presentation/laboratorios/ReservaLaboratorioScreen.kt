@@ -1,3 +1,5 @@
+package edu.ucne.ureserve.presentation.laboratorios
+
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -23,13 +25,13 @@ import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
-import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,6 +54,7 @@ fun ReservaLaboratorioScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val fechaSeleccionada = Calendar.getInstance().apply { timeInMillis = fecha }
+
 
     LaunchedEffect(allMembers) {
         Log.d("ReservaLaboratorioScreen", "Miembros actualizados: ${allMembers.size}")
@@ -77,16 +80,8 @@ fun ReservaLaboratorioScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo_reserve),
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(60.dp)
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.icon_laboratorio),
-                        contentDescription = "Icono",
-                        modifier = Modifier.size(60.dp)
-                    )
+                    Image(painter = painterResource(id = R.drawable.logo_reserve), contentDescription = "Logo", modifier = Modifier.size(60.dp))
+                    Image(painter = painterResource(id = R.drawable.icon_laboratorio), contentDescription = "Icono", modifier = Modifier.size(60.dp))
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6D87A4))
@@ -110,10 +105,20 @@ fun ReservaLaboratorioScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            Text("Horas Seleccionadas:", fontWeight = FontWeight.Bold, color = Color.White)
+            Text(
+                "Horas Seleccionadas:",
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Desde: $horaInicio", color = Color.White)
-            Text("Hasta: $horaFin", color = Color.White)
+            Text(
+                "Desde: $horaInicio",
+                color = Color.White
+            )
+            Text(
+                "Hasta: $horaFin",
+                color = Color.White
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -128,16 +133,22 @@ fun ReservaLaboratorioScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Añade los integrantes de tu grupo", fontWeight = FontWeight.Bold, color = Color.White)
-                IconButton(onClick = {
-                    navController.navigate("AgregarEstudianteLaboratorio") {
-                        launchSingleTop = true
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                Text(
+                    "Añade los integrantes de tu grupo",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                IconButton(
+                    onClick = {
+                        navController.navigate("AgregarEstudianteLaboratorio") {
+                            launchSingleTop = true
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            restoreState = true
                         }
-                        restoreState = true
                     }
-                }) {
+                ) {
                     Image(
                         painter = painterResource(id = R.drawable.icon_agregarcubicul),
                         contentDescription = "Agregar",
@@ -157,19 +168,8 @@ fun ReservaLaboratorioScreen(
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        "Nombre",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Yellow,
-                        modifier = Modifier.weight(1f).padding(start = 16.dp)
-                    )
-                    Text(
-                        "Matrícula",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Yellow,
-                        modifier = Modifier.weight(1f).padding(end = 16.dp),
-                        textAlign = TextAlign.End
-                    )
+                    Text("Nombre", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(start = 16.dp))
+                    Text("Matrícula", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(end = 16.dp), textAlign = TextAlign.End)
                 }
                 Divider(color = Color.White, thickness = 1.dp)
                 allMembers.forEachIndexed { index, member ->
@@ -229,6 +229,21 @@ fun ReservaLaboratorioScreen(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text("VOLVER", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
+            }
+
+            @RequiresApi(Build.VERSION_CODES.O)
+            fun calcularHoras(inicio: String, fin: String): Int {
+                val formatter = java.time.format.DateTimeFormatter.ofPattern("h:mma", java.util.Locale.US)
+                val inicioTime = java.time.LocalTime.parse(inicio, formatter)
+                val finTime = java.time.LocalTime.parse(fin, formatter)
+                return java.time.Duration.between(inicioTime, finTime).toHours().toInt().coerceAtLeast(1)
+            }
+
+            @RequiresApi(Build.VERSION_CODES.O)
+            fun convertirA24Horas(hora12: String): String {
+                val formatter12 = java.time.format.DateTimeFormatter.ofPattern("h:mma", java.util.Locale.US)
+                val formatter24 = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
+                return java.time.LocalTime.parse(hora12, formatter12).format(formatter24)
             }
 
             Button(
@@ -324,7 +339,6 @@ fun ReservaLaboratorioScreen(
     }
 }
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 fun calcularHorasLaboratorio(horaInicioTexto: String, horaFinTexto: String): Int? {
     return try {
@@ -352,8 +366,7 @@ fun convertirA24HorasLaboratorio(hora12: String): String {
         ""
     }
 }
-
 fun formatoFechaLaboratorio(calendar: Calendar): String {
-    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US) // ISO 8601
     return dateFormat.format(calendar.time)
 }
