@@ -372,15 +372,6 @@ fun calcularHoras(horaInicio: String, horaFin: String): Int {
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewPagoSalaVipScreen() {
-//    val navController = rememberNavController()
-//    PagoSalaVipScreen(
-//        fecha = "15/06/2025",
-//        navController = navController
-//    )
-//}
 
 data class DatosPersonalesSalaVip(
     val restauranteId: Int? = null,
