@@ -121,7 +121,8 @@ fun LaboratorioReservationScreen(
                         selectedDate?.let { date ->
                             navController.navigate("LaboratorioList/${date.timeInMillis}")
                         }
-                    }
+                    },
+                    onBottomNavClick = onBottomNavClick
                 )
             }
         }
@@ -349,7 +350,8 @@ private fun CalendarDay(
 @Composable
 private fun ReservationButton(
     isEnabled: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onBottomNavClick: (String) -> Unit
 ) {
     Button(
         onClick = onClick,
@@ -371,15 +373,8 @@ private fun ReservationButton(
             iconRes = R.drawable.icon_inicio,
             label = "Inicio",
             isSelected = true,
-            onClick = { /* Asegúrate de manejar el clic correctamente */ }
+            onClick = { onBottomNavClick("Inicio") }
         )
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewLaboratorioReservationScreen() {
-//    MaterialTheme {
-//        LaboratorioReservationScreen(onBottomNavClick = {})
-//    }
-//}
