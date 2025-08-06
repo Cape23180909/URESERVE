@@ -2,6 +2,7 @@ package edu.ucne.ureserve.presentation.salones
 
 import android.Manifest
 import android.os.Build
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,8 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,8 +37,6 @@ fun RegistroReservaSalonScreen(
 ) {
     val context = LocalContext.current
 
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -48,66 +49,90 @@ fun RegistroReservaSalonScreen(
             postNotificationPermission.launchPermissionRequest()
         }
     }
-    Column(
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(Color(0xFF023E8A))
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.size(40.dp))
-            Text(
-                text = "Registro Salón",
-                color = Color(0xFF023E8A),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.size(40.dp))
-        }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Registro Salón",
+                            color = Color(0xFF023E8A),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
 
-        Text(
-            text = "Formulario para $fecha",
-            style = MaterialTheme.typography.headlineSmall,
-            color = Color(0xFF023E8A),
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        RegistroReservaSalonForm(
-            fecha = fecha,
-            onCancelarClick = {
-                //  Notificación de cancelación
-                notificationHandler.showNotification(
-                    title = "Formulario Cancelado",
-                    message = "La reserva del salón no fue guardada."
-                )
-                onCancelarClick()
-            },
-            onConfirmarClick = { nombres, apellidos, telefono, matricula, cedula, correoElectronico, direccion ->
-                DatosPersonalesSalonStore.lista.add(
-                    DatosPersonalesSalon(
-                        nombres = nombres,
-                        apellidos = apellidos,
-                        telefono = telefono,
-                        matricula = matricula,
-                        cedula = cedula,
-                        correoElectronico = correoElectronico,
-                        direccion = direccion,
-                        fecha = fecha
+                    Text(
+                        text = "COMPLETAR REGISTRO DE RESERVA PARA $fecha",
+                        color = Color(0xFF023E8A),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        textAlign = TextAlign.Center
                     )
-                )
-                viewModel.setFecha(fecha)
-                notificationHandler.showNotification(
-                    title = "Reserva Confirmada",
-                    message = "La reserva del salón a nombre de $nombres fue registrada correctamente."
-                )
-                onConfirmarClick()
+
+                    RegistroReservaSalonForm(
+                        fecha = fecha,
+                        onCancelarClick = {
+                            notificationHandler.showNotification(
+                                title = "Formulario Cancelado",
+                                message = "La reserva del salón no fue guardada."
+                            )
+                            onCancelarClick()
+                        },
+                        onConfirmarClick = { nombres, apellidos, telefono, matricula, cedula, correoElectronico, direccion ->
+                            DatosPersonalesSalonStore.lista.add(
+                                DatosPersonalesSalon(
+                                    nombres = nombres,
+                                    apellidos = apellidos,
+                                    telefono = telefono,
+                                    matricula = matricula,
+                                    cedula = cedula,
+                                    correoElectronico = correoElectronico,
+                                    direccion = direccion,
+                                    fecha = fecha
+                                )
+                            )
+                            viewModel.setFecha(fecha)
+                            notificationHandler.showNotification(
+                                title = "Reserva Confirmada",
+                                message = "La reserva del salón a nombre de $nombres fue registrada correctamente."
+                            )
+                            onConfirmarClick()
+                        }
+                    )
+                }
             }
-        )
+        }
     }
 }
 
@@ -142,50 +167,46 @@ private fun RegistroReservaSalonForm(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "Datos del Salón",
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            color = Color(0xFF023E8A)
-        )
-        Spacer(Modifier.height(12.dp))
-
         OutlinedTextField(
             value = correoElectronico,
             onValueChange = { correoElectronico = it },
-            label = { Text("Correo electrónico *") },
+            label = { Text("Correo electrónico *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = nombres,
             onValueChange = { nombres = it },
-            label = { Text("Nombres *") },
+            label = { Text("Nombres *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = apellidos,
             onValueChange = { apellidos = it },
-            label = { Text("Apellidos *") },
+            label = { Text("Apellidos *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = telefono,
             onValueChange = { telefono = it },
-            label = { Text("Teléfono *") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+            label = { Text("Número de celular *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = buildString {
@@ -195,11 +216,13 @@ private fun RegistroReservaSalonForm(
             onValueChange = { newValue ->
                 matricula = newValue.filter { it.isDigit() }.take(8)
             },
-            label = { Text("Matrícula *") },
-            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Matrícula *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            placeholder = { Text("XXXX-XXXX") }
+            modifier = Modifier.fillMaxWidth()
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = cedula.run {
@@ -213,54 +236,54 @@ private fun RegistroReservaSalonForm(
                 val clean = newValue.filter { it.isDigit() }.take(11)
                 cedula = clean
             },
-            label = { Text("Cédula *") },
-            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Cédula *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            placeholder = { Text("XXX-XXXXXXX-X") }
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = direccion,
             onValueChange = { direccion = it },
-            label = { Text("Dirección *") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+            label = { Text("Dirección *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            OutlinedButton(
-                onClick = onCancelarClick,
-                modifier = Modifier.weight(1f)
+            Button(
+                onClick = {
+                    correoElectronico = ""
+                    nombres = ""
+                    apellidos = ""
+                    telefono = ""
+                    matricula = ""
+                    cedula = ""
+                    direccion = ""
+                    onCancelarClick()
+                },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF023E8A))
             ) {
-                Text("CANCELAR")
+                Text("CANCELAR", color = Color.White)
             }
 
-            Spacer(Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             Button(
                 onClick = {
-                    onConfirmarClick(
-                        nombres,
-                        apellidos,
-                        telefono,
-                        matricula,
-                        cedula,
-                        correoElectronico,
-                        direccion
-                    )
+                    onConfirmarClick(nombres, apellidos, telefono, matricula, cedula, correoElectronico, direccion)
                 },
                 enabled = formularioCompleto,
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (formularioCompleto) Color(0xFF388E3C) else Color.Gray
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C))
             ) {
                 Text("CONFIRMAR", color = Color.White)
             }
@@ -268,10 +291,10 @@ private fun RegistroReservaSalonForm(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewRegistroReservaSalon() {
-    androidx.compose.material3.MaterialTheme {
+    MaterialTheme {
         RegistroReservaSalonScreen(
             fecha = "30/06/2025",
             onCancelarClick = {},

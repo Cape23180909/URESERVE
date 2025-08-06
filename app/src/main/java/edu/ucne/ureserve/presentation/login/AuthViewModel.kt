@@ -19,8 +19,13 @@ class AuthViewModel @Inject constructor(
     private val repository: AuthRepository
 ) : ViewModel() {
 
+    // Estado de autenticación (Loading, Authenticated, Error, etc.)
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
+
+    // Estado del formulario de usuario
+    private val _usuarioUiState = MutableLiveData(UsuarioUiState())
+    val usuarioUiState: LiveData<UsuarioUiState> = _usuarioUiState
 
     fun login(email: String, password: String) {
         if (email.isEmpty() || password.isEmpty()) {
@@ -61,24 +66,11 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-
-
     fun signOut() {
         repository.logout()
         _authState.value = AuthState.Unauthenticated
     }
 }
 
-sealed class AuthState {
-    object Authenticated : AuthState()
-    object Unauthenticated : AuthState()
-    object Loading : AuthState()
-    data class Error(val message: String) : AuthState()
-}
 
-data class UsuarioUiState(
-    val nombres: String = "",
-    val apellidos: String = "",
-    val correoelectronico: String = "",
-    val clave: String = ""
-)
+

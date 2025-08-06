@@ -46,17 +46,14 @@ import java.util.Locale
 @Composable
 fun LaboratorioReservationScreen(
     onBottomNavClick: (String) -> Unit = {},
-    onDateSelected: (Calendar) -> Unit = {},
     navController: NavController
 ) {
     val calendar = Calendar.getInstance()
     var selectedDate by remember { mutableStateOf<Calendar?>(null) }
-
     val isSunday = selectedDate?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
     val isDateValid = selectedDate != null && !isSunday
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // TopAppBar con borde inferior
         Column {
             TopAppBar(
                 title = {
@@ -72,26 +69,22 @@ fun LaboratorioReservationScreen(
                         )
                         Image(
                             painter = painterResource(id = R.drawable.icon_laboratorio),
-                            contentDescription = "Cubiculo",
+                            contentDescription = "Laboratorio",
                             modifier = Modifier.size(60.dp)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF6D87A4) // Color de fondo de la barra superior
+                    containerColor = Color(0xFF6D87A4)
                 )
             )
-
-            // Línea separadora (borde inferior)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
-                    .background(Color(0xFF023E8A)) // Color del borde
+                    .background(Color(0xFF023E8A))
             )
         }
-
-        // Contenido principal
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -125,8 +118,8 @@ fun LaboratorioReservationScreen(
                 ReservationButton(
                     isEnabled = isDateValid,
                     onClick = {
-                        if (selectedDate != null && !isSunday) {
-                            onDateSelected(selectedDate!!)
+                        selectedDate?.let { date ->
+                            navController.navigate("LaboratorioList/${date.timeInMillis}")
                         }
                     },
                     onBottomNavClick = onBottomNavClick
@@ -360,20 +353,15 @@ private fun ReservationButton(
     onClick: () -> Unit,
     onBottomNavClick: (String) -> Unit
 ) {
-    // Botón de reservar
     Button(
         onClick = onClick,
         enabled = isEnabled,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         Text("Reservar", fontWeight = FontWeight.Bold)
     }
-
     Spacer(modifier = Modifier.height(32.dp))
-
-    // Barra inferior
+    // Si necesitas el BottomNavItem, asegúrate de que esté definido correctamente
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -390,10 +378,3 @@ private fun ReservationButton(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewLaboratorioReservationScreen() {
-//    MaterialTheme {
-//        LaboratorioReservationScreen(onBottomNavClick = {})
-//    }
-//}

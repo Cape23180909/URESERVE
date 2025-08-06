@@ -9,6 +9,12 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import edu.ucne.ureserve.data.local.database.UReserveDb
+import edu.ucne.ureserve.data.remote.CubiculosApi
+import edu.ucne.ureserve.data.remote.LaboratoriosApi
+import edu.ucne.ureserve.data.remote.ProyectoresApi
+import edu.ucne.ureserve.data.remote.ReservacionesApi
+import edu.ucne.ureserve.data.remote.RestaurantesApi
+import edu.ucne.ureserve.presentation.empleados.EmpleadoViewModel
 import edu.ucne.ureserve.presentation.login.AuthManager
 import javax.inject.Singleton
 
@@ -87,5 +93,16 @@ object AppModule {
     @Singleton
     fun provideAuthManager(): AuthManager {
         return AuthManager
+    }
+
+    @Provides
+    @Singleton
+    fun provideProyectoresViewModel(
+        api: ProyectoresApi,
+        apiLaboratorios: LaboratoriosApi,
+        apiCubiculos: CubiculosApi,
+        apiRestaurantes: RestaurantesApi
+    ): EmpleadoViewModel {
+        return EmpleadoViewModel(api, apiLaboratorios, apiCubiculos, apiRestaurantes)
     }
 }

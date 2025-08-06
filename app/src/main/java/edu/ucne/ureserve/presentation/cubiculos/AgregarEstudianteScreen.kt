@@ -175,35 +175,48 @@ fun AgregarEstudianteScreen(
                     Button(
                         onClick = {
                             val matriculaLimpia = matricula.replace("-", "")
-                            if (matriculaLimpia.length == 8) {
-                                viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
-                                    if (usuarioEncontrado != null) {
-                                        viewModel.addMember(usuarioEncontrado)
 
-                                        // Notificación
-                                        notificationHandler.showNotification(
-                                            title = "Estudiante añadido",
-                                            message = "Matrícula ${matriculaLimpia} añadida correctamente."
-                                        )
+                            when {
+                                matriculaLimpia.isEmpty() -> {
+                                    viewModel.setError("Debe añadir una matrícula válida")
+                                    notificationHandler.showNotification(
+                                        title = "Error",
+                                        message = "Debe añadir una matrícula válida"
+                                    )
+                                }
 
-                                        navController.popBackStack()
-                                    } else {
-                                        viewModel.setError("Matrícula no válida")
+                                matriculaLimpia.length < 8 -> {
+                                    viewModel.setError("La matrícula debe tener 8 dígitos")
+                                    notificationHandler.showNotification(
+                                        title = "Error",
+                                        message = "La matrícula debe tener 8 dígitos"
+                                    )
+                                }
+
+                                else -> {
+                                    viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
+                                        if (usuarioEncontrado != null) {
+                                            viewModel.addMember(usuarioEncontrado)
+
+                                            // Notificación exitosa
+                                            notificationHandler.showNotification(
+                                                title = "Estudiante añadido",
+                                                message = "Matrícula ${matriculaLimpia} añadida correctamente."
+                                            )
+
+                                            navController.popBackStack()
+                                        } else {
+                                            viewModel.setError("Matrícula no válida")
+                                            notificationHandler.showNotification(
+                                                title = "Error",
+                                                message = "Matrícula no válida"
+                                            )
+                                        }
                                     }
                                 }
-                            } else {
-                                viewModel.setError("La matrícula debe tener 8 dígitos")
                             }
-                        },
-                        enabled = !isLoading,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF3A7BD5),
-                            contentColor = Color.White
-                        ),
-                        modifier = Modifier
-                            .height(50.dp)
-                            .width(120.dp),
-                        shape = RoundedCornerShape(20.dp)
+                        }
+
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
@@ -283,8 +296,3 @@ fun AgregarEstudianteScreen(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewAgregarEstudianteScreen() {
-//    AgregarEstudianteScreen()
-//}

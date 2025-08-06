@@ -13,6 +13,7 @@ import edu.ucne.ureserve.presentation.login.AuthManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
+import retrofit2.Response
 import javax.inject.Inject
 
 
@@ -107,7 +108,7 @@ class ReservacionRepository @Inject constructor(
     suspend fun createReservacion(reservacion: ReservacionesDto): ReservacionesDto =
         remoteDataSource.createReservacion(reservacion)
 
-    suspend fun updateReservacion(reservacion: ReservacionesDto): ReservacionesDto =
+    suspend fun updateReservacion(reservacion: ReservacionesDto): Response<ReservacionesDto> =
         remoteDataSource.updateReservacion(reservacion.reservacionId, reservacion)
 
     suspend fun deleteReservacion(id: Int) = remoteDataSource.deleteReservacion(id)

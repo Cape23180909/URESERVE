@@ -7,5 +7,6 @@ data class ProyectoresDto(
     val proyectorId: Int,
     val nombre: String,
     val cantidad: Int,
-    val conectividad: String
+    val conectividad: String,
+    val disponible: Boolean
 )

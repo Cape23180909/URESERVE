@@ -36,14 +36,9 @@ fun TarjetaCreditoSalaVipScreen(
     navController: NavController
 ) {
     val context = LocalContext.current
-
-
-    // Solicitud de permiso para notificaciones en Android 13+
-    val postNotificationPermission =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-        } else null
-
+    val postNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+    } else null
     val notificationHandler = remember { NotificationHandler(context) }
 
     LaunchedEffect(true) {
@@ -51,14 +46,13 @@ fun TarjetaCreditoSalaVipScreen(
             postNotificationPermission.launchPermissionRequest()
         }
     }
+
     var numeroTarjeta by remember { mutableStateOf("") }
     var nombreTitular by remember { mutableStateOf("") }
     var fechaVencimiento by remember { mutableStateOf("") }
     var codigoSeguridad by remember { mutableStateOf("") }
 
-
     val calendar = Calendar.getInstance()
-
     val datePickerDialog = remember {
         DatePickerDialog(
             context,
@@ -75,14 +69,10 @@ fun TarjetaCreditoSalaVipScreen(
         }
     }
 
-    // Validaciones
     val isCardValid = numeroTarjeta.length == 16
     val isNameValid = nombreTitular.trim().isNotEmpty()
-    val isFechaValid =
-        fechaVencimiento.length == 4 &&
-                fechaVencimiento.take(2).toIntOrNull() in 1..12
+    val isFechaValid = fechaVencimiento.length == 4 && fechaVencimiento.take(2).toIntOrNull() in 1..12
     val isCvvValid = codigoSeguridad.length in 3..4 && codigoSeguridad.all { it.isDigit() }
-
     val isFormValid = isCardValid && isNameValid && isFechaValid && isCvvValid
 
     Box(
@@ -95,21 +85,24 @@ fun TarjetaCreditoSalaVipScreen(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
-                .background(Color(0xFFF1F1F1), shape = MaterialTheme.shapes.medium)
+                .background(Color(0xFFF5F5F5), shape = MaterialTheme.shapes.medium)
                 .padding(16.dp)
         ) {
             Text(
                 text = "Datos de pago",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.Black,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
             Text(
                 text = "Tarjeta de crédito",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.Gray
+                color = Color.Gray,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
@@ -118,25 +111,25 @@ fun TarjetaCreditoSalaVipScreen(
                     val digits = it.filter { it.isDigit() }.take(16)
                     numeroTarjeta = digits
                 },
-                label = { Text("Número de Tarjeta") },
+                label = { Text("Número de Tarjeta", fontWeight = FontWeight.Bold, color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 visualTransformation = CreditCardVisualTransformation,
                 singleLine = true,
-                maxLines = 1
+                maxLines = 1,
+                textStyle = LocalTextStyle.current.copy(color = Color.Black)
             )
-
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = nombreTitular,
                 onValueChange = { nombreTitular = it },
-                label = { Text("Nombre del titular de la tarjeta") },
+                label = { Text("Nombre del titular de la tarjeta", fontWeight = FontWeight.Bold, color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                maxLines = 1
+                maxLines = 1,
+                textStyle = LocalTextStyle.current.copy(color = Color.Black)
             )
-
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -146,7 +139,7 @@ fun TarjetaCreditoSalaVipScreen(
                         val filtered = it.filter { it.isDigit() }.take(4)
                         fechaVencimiento = filtered
                     },
-                    label = { Text("Fecha de vencimiento") },
+                    label = { Text("Fecha de vencimiento", fontWeight = FontWeight.Bold, color = Color.Black) },
                     placeholder = { Text("MM / AA") },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -157,7 +150,8 @@ fun TarjetaCreditoSalaVipScreen(
                         }
                     },
                     singleLine = true,
-                    maxLines = 1
+                    maxLines = 1,
+                    textStyle = LocalTextStyle.current.copy(color = Color.Black)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 OutlinedTextField(
@@ -166,28 +160,27 @@ fun TarjetaCreditoSalaVipScreen(
                         val digits = it.filter { it.isDigit() }.take(4)
                         codigoSeguridad = digits
                     },
-                    label = { Text("Código de seguridad") },
+                    label = { Text("Código de seguridad", fontWeight = FontWeight.Bold, color = Color.Black) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                     singleLine = true,
-                    maxLines = 1
+                    maxLines = 1,
+                    textStyle = LocalTextStyle.current.copy(color = Color.Black)
                 )
             }
-
             Text(
                 text = "3 dígitos en el reverso de la tarjeta\n4 dígitos en el anverso de la tarjeta*",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray,
                 modifier = Modifier.padding(top = 8.dp)
             )
-
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                OutlinedButton(
+                Button(
                     onClick = {
                         notificationHandler.showNotification(
                             title = "Reserva Cancelada",
@@ -195,36 +188,35 @@ fun TarjetaCreditoSalaVipScreen(
                         )
                         navController.popBackStack()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004BBB)),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("CANCELAR")
+                    Text("CANCELAR", color = Color.White)
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(
                     onClick = {
-                        notificationHandler.showNotification(
-                            title = "Pago Confirmado",
-                            message = "Los datos de tu tarjeta han sido registrados correctamente."
-                        )
-                        navController.navigate("ReservaSalaVip")
-                        navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
+                        if (isFormValid) {
+                            notificationHandler.showNotification(
+                                title = "Pago Confirmado",
+                                message = "Los datos de tu tarjeta han sido registrados correctamente."
+                            )
+                            navController.navigate("ReservaSalaVip")
+                            navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
+                        }
                     },
-                    enabled = isFormValid,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isFormValid) Color(0xFF2E7D32) else Color.Gray
+                        containerColor = if (isFormValid) Color(0xFF00B81D) else Color(0xFF6895D2)
                     ),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("CONFIRMAR")
+                    Text("CONFIRMAR", color = Color.White)
                 }
-
             }
         }
     }
 }
 
-// VisualTransformation para mostrar espacios cada 4 dígitos en la tarjeta
 val CreditCardVisualTransformation = VisualTransformation { text ->
     val trimmed = text.text.take(16)
     val spaced = buildString {
@@ -233,25 +225,17 @@ val CreditCardVisualTransformation = VisualTransformation { text ->
             if ((i + 1) % 4 == 0 && i != 15) append(" ")
         }
     }
-
     val offsetTranslator = object : OffsetMapping {
         override fun originalToTransformed(offset: Int): Int {
-            // Cada 4 dígitos agregamos 1 espacio extra
             return offset + (offset / 4).coerceAtMost(3)
         }
-
         override fun transformedToOriginal(offset: Int): Int {
             return offset - (offset / 5).coerceAtMost(3)
         }
     }
-
-    TransformedText(
-        AnnotatedString(spaced),
-        offsetTranslator
-    )
+    TransformedText(AnnotatedString(spaced), offsetTranslator)
 }
 
-// VisualTransformation para mostrar fecha MM / AA
 val FechaVisualTransformation = VisualTransformation { text ->
     val trimmed = text.text.take(4)
     val formatted = buildString {
@@ -260,21 +244,15 @@ val FechaVisualTransformation = VisualTransformation { text ->
             if (i == 1 && trimmed.length > 2) append(" / ")
         }
     }
-
     val offsetTranslator = object : OffsetMapping {
         override fun originalToTransformed(offset: Int): Int {
             return if (offset <= 1) offset else offset + 3
         }
-
         override fun transformedToOriginal(offset: Int): Int {
             return if (offset <= 2) offset else offset - 3
         }
     }
-
-    TransformedText(
-        AnnotatedString(formatted),
-        offsetTranslator
-    )
+    TransformedText(AnnotatedString(formatted), offsetTranslator)
 }
 
 @Preview(showBackground = true, showSystemUi = true)

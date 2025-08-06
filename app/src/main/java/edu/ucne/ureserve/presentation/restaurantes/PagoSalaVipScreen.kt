@@ -266,25 +266,11 @@ fun PagoSalaVipScreen(
                                     LocalDate.now().format(DateTimeFormatter.ofPattern("d/M/yyyy"))
                                 }
 
-                                val (horaInicio, horaFin, cantidadHoras) = if (
-                                    viewModel.uiState.value.horaInicio.isBlank() || viewModel.uiState.value.horaFin.isBlank()
-                                ) {
-                                    val horaActual = LocalTime.now()
-                                    val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-                                    val horasReserva = 2
+                                // Establecer hora de inicio y fin para un día completo
+                                val horaInicio = "00:00:00"
+                                val horaFin = "23:59:59"
+                                val cantidadHoras = 24
 
-                                    Triple(
-                                        horaActual.format(formatter),
-                                        horaActual.plusHours(horasReserva.toLong()).format(formatter),
-                                        horasReserva
-                                    )
-                                } else {
-                                    Triple(
-                                        viewModel.uiState.value.horaInicio,
-                                        viewModel.uiState.value.horaFin,
-                                        calcularHoras(viewModel.uiState.value.horaInicio, viewModel.uiState.value.horaFin)
-                                    )
-                                }
                                 notificationHandler.showNotification(
                                     title = "Reserva Confirmada",
                                     message = "Tu reserva en el restaurante se está procesando."
@@ -304,7 +290,6 @@ fun PagoSalaVipScreen(
                                     miembros = datosPersonales.map { it.matricula },
                                     tipoReserva = 4
                                 )
-
                             } catch (e: Exception) {
                                 viewModel._uiState.update {
                                     it.copy(errorMessage = "Error al procesar reserva: ${e.localizedMessage}")
@@ -387,15 +372,6 @@ fun calcularHoras(horaInicio: String, horaFin: String): Int {
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewPagoSalaVipScreen() {
-//    val navController = rememberNavController()
-//    PagoSalaVipScreen(
-//        fecha = "15/06/2025",
-//        navController = navController
-//    )
-//}
 
 data class DatosPersonalesSalaVip(
     val restauranteId: Int? = null,

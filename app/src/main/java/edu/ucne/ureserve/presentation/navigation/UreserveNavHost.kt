@@ -1,6 +1,9 @@
 package edu.ucne.ureserve.presentation.navigation
 
 import AgregarEstudianteScreen
+import DetalleReservaEnCursoProyectorScreen
+import ProyectorSwitchScreen
+import ReservasenCursoRestauranteScreen
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
@@ -19,22 +22,39 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
+import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import edu.ucne.ureserve.presentation.admin.DashboardAdminScreen
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
+import edu.ucne.ureserve.presentation.cubiculos.ModificarReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 import edu.ucne.ureserve.presentation.dashboard.DashboardScreen
+import edu.ucne.ureserve.presentation.empleados.CubiculoSwitchScreen
+import edu.ucne.ureserve.presentation.empleados.DashboardEmpleadoScreen
+import edu.ucne.ureserve.presentation.empleados.DetalleReservaEnCursoCubiculoScreen
+import edu.ucne.ureserve.presentation.empleados.DetalleReservaEnCursoLaboratorioScreen
+import edu.ucne.ureserve.presentation.empleados.DetalleReservaEnCursoRestauranteScreen
+import edu.ucne.ureserve.presentation.empleados.EmpleadoCubiculoScreen
+import edu.ucne.ureserve.presentation.empleados.EmpleadoLaboratorioScreen
+import edu.ucne.ureserve.presentation.empleados.EmpleadoRestauranteScreen
+import edu.ucne.ureserve.presentation.empleados.EmpleadoproyectoScreen
+import edu.ucne.ureserve.presentation.empleados.LaboratorioSwitchScreen
+import edu.ucne.ureserve.presentation.empleados.ReservasenCursoCubiculoScreen
+import edu.ucne.ureserve.presentation.empleados.ReservasenCursoLaboratorioScreen
+import edu.ucne.ureserve.presentation.empleados.ReservasenCursoProyectorScreen
+import edu.ucne.ureserve.presentation.empleados.RestauranteSwitchScreen
 import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLaboratorio
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
 import edu.ucne.ureserve.presentation.laboratorios.ExistosaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.LaboratorioReservationScreen
+import edu.ucne.ureserve.presentation.laboratorios.ModificarReservaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.PlanificadorLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioScreen
 import edu.ucne.ureserve.presentation.laboratorios.ReservaLaboratorioViewModel
 import edu.ucne.ureserve.presentation.login.AuthManager
-import edu.ucne.ureserve.presentation.login.AuthViewModel
 import edu.ucne.ureserve.presentation.login.LoadStartScreen
 import edu.ucne.ureserve.presentation.login.LoginScreen
 import edu.ucne.ureserve.presentation.login.ProfileScreen
@@ -42,10 +62,11 @@ import edu.ucne.ureserve.presentation.proyectores.PrevisualizacionProyectorScree
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
+import edu.ucne.ureserve.presentation.reservas.DetallesReservacionScreen
+import edu.ucne.ureserve.presentation.reservas.ModificarReservaProyectorScreen
 import edu.ucne.ureserve.presentation.reservas.ReservaListScreen
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
-import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesRestaurante
-import edu.ucne.ureserve.presentation.restaurantes.DatosPersonalesRestauranteStore
+import edu.ucne.ureserve.presentation.restaurantes.ModificarReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoRestauranteScreen
 import edu.ucne.ureserve.presentation.restaurantes.PagoSalaVipScreen
 import edu.ucne.ureserve.presentation.restaurantes.RegistroReservaRestauranteScreen
@@ -70,6 +91,8 @@ import edu.ucne.ureserve.presentation.restaurantes.TerminosReservaVipScreen
 import edu.ucne.ureserve.presentation.salareuniones.SalonReunionesReservationScreen
 import edu.ucne.ureserve.presentation.salavip.ReservaSalaVipExitosaScreen
 import edu.ucne.ureserve.presentation.salavip.SalaVipReservationScreen
+import edu.ucne.ureserve.presentation.salones.ModificarReservaSalaVipScreen
+import edu.ucne.ureserve.presentation.salones.ModificarReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.PagoSalonScreen
 import edu.ucne.ureserve.presentation.salones.RegistroReservaSalonScreen
 import edu.ucne.ureserve.presentation.salones.ReservaSalonScreen
@@ -96,17 +119,48 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
-        composable("Login") {
-            LoginScreen(
-                onLoginSuccess = { usuario ->
-                    AuthManager.login(usuario)
-                    navController.navigate("Welcome") {
-                        popUpTo("Login") { inclusive = true }
+        composable("login") {
+            LoginScreen(onLoginSuccess = { usuario ->
+                when (usuario.correoInstitucional) {
+                    "admin.ureserve@ucne.edu.do" -> {
+                        navController.navigate("dashboard_admin") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                    "proyectores.ureserve@ucne.edu.do",
+                    "laboratorio.ureserve@ucne.edu.do",
+                    "cubiculos.ureserve@ucne.edu.do",
+                    "restaurante.ureserve@ucne.edu.do" -> {
+                        navController.navigate("dashboard_empleado") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                    else -> {
+                        navController.navigate("welcome") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                }
+            })
+        }
+
+        composable("dashboard_admin") {
+            val usuario = AuthManager.currentUser ?: UsuarioDTO()
+            DashboardAdminScreen(
+                usuario = usuario,
+                onLogout = {
+                    AuthManager.logout()
+                    navController.navigate("LoadStart") {
+                        popUpTo("Profile") { inclusive = true }
                     }
                 },
-                apiUrl = ""
+                onOpcionesEmpleadoProyector = {
+                    navController.navigate("empleadoproyecto")
+                },
+                navController = navController
             )
         }
+
         composable("Welcome") {
             WelcomeScreen(
                 onContinue = {
@@ -120,6 +174,84 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             CanalYoutubeScreen()
         }
 
+
+
+        composable("modificar_proyector/{reservaId}") { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getString("reservaId")?.toIntOrNull()
+            ModificarReservaProyectorScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
+        }
+
+        // Dentro de tu NavHost composable
+        composable(
+            route = "modificar_cubiculo/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0
+            ModificarReservaCubiculoScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
+        }
+
+
+        composable(
+            route = "modificar_restaurante/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0
+            ModificarReservaRestauranteScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
+        }
+// Ruta para modificar reserva en salón VIP
+        composable(
+            route = "modificar_sala_vip/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0
+            ModificarReservaSalaVipScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
+        }
+
+
+        composable(
+            route = "modificar_salon/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0
+            ModificarReservaSalonScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
+        }
+
+
+
+
+        composable("reservaList") {
+            ReservaListScreen(
+                navController = navController,
+                onBottomNavClick = { route -> navController.navigate(route) }
+            )
+        }
+
+
+        composable(
+            route = "modificar_laboratorio/{reservaId}",
+            arguments = listOf(navArgument("reservaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0
+            ModificarReservaLaboratorioScreen(
+                reservaId = reservaId,
+                navController = navController
+            )
+        }
 
 
         composable("Dashboard") {
@@ -149,7 +281,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 onBottomNavClick = { destination ->
                     when(destination) {
                         "Perfil" -> navController.navigate("Profile")
-                        "Inicio" -> {} // Ya estás en Dashboard
+                        "Inicio" -> navController.navigate("Dashboard")
                         "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 }
@@ -163,7 +295,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         }
 
         composable("ReservaList") {
-            // 1. Verificar que el usuario esté autenticado
+            // Verificación de autenticación y obtención de matrícula
             val usuario = AuthManager.currentUser
             if (usuario == null) {
                 navController.navigate("Login") {
@@ -172,23 +304,20 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 return@composable
             }
 
-            // 2. Extraer la matrícula del estudiante
             val matricula = usuario.estudiante?.matricula
             if (matricula.isNullOrBlank()) {
-                // Opcional: redirigir o mostrar error
+                // Manejar caso de matrícula no disponible
                 return@composable
             }
 
-            // 3. Inyectar el ViewModel
             val viewModel: ReservaViewModel = hiltViewModel()
 
-            // 4. Recargar reservas cuando la pantalla aparezca
             LaunchedEffect(Unit) {
                 viewModel.loadReservas()
             }
 
-            // 5. Mostrar la pantalla
             ReservaListScreen(
+                navController = navController,
                 onBottomNavClick = { destination ->
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard") {
@@ -199,6 +328,30 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 viewModel = viewModel
             )
         }
+
+        // En tu NavHost
+        composable(
+            "detallesReserva/{reservaId}/{fecha}/{horaInicio}/{horaFin}/{matricula}/{tipoReserva}",
+            arguments = listOf(
+                navArgument("reservaId") { type = NavType.IntType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType },
+                navArgument("tipoReserva") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            DetallesReservacionScreen(
+                reservaId = backStackEntry.arguments?.getInt("reservaId") ?: 0,
+                fecha = backStackEntry.arguments?.getString("fecha") ?: "",
+                horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: "",
+                horaFin = backStackEntry.arguments?.getString("horaFin") ?: "",
+                matricula = backStackEntry.arguments?.getString("matricula") ?: "",
+                tipoReserva = backStackEntry.arguments?.getString("tipoReserva") ?: "",
+                navController = navController
+            )
+        }
+
 
         composable("ProjectorReservation") {
             ProjectorReservationScreen(
@@ -332,29 +485,36 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     when (destination) {
                         "Inicio" -> navController.navigate("Dashboard")
                     }
-                },
-                onDateSelected = { selectedDate ->
-                    navController.navigate("LaboratorioList/${selectedDate.timeInMillis}")
                 }
             )
         }
 
+        val onBottomNavClick: (String) -> Unit = { screen ->
+            when (screen) {
+                "Inicio" -> navController.navigate("Dashboard")
+            }
+        }
+
         composable(
-            "LaboratorioList/{fechaMillis}",
+            route = "LaboratorioList/{fechaMillis}",
             arguments = listOf(navArgument("fechaMillis") { type = NavType.LongType })
         ) { backStackEntry ->
             val fechaMillis = backStackEntry.arguments?.getLong("fechaMillis")
             val calendar = Calendar.getInstance().apply {
-                timeInMillis = fechaMillis ?: timeInMillis
+                timeInMillis = fechaMillis ?: Calendar.getInstance().timeInMillis
             }
 
+            // Inyectar el ViewModel correcto:
+            val viewModel: ReservaLaboratorioViewModel = hiltViewModel()
+
             DashboardLaboratorioListScreen(
-                selectedDate = calendar,
+                selectedDateMillis = calendar.timeInMillis,
                 onLaboratorioSelected = { laboratorioId, laboratorioNombre ->
-                    navController.navigate("planificador_laboratorio/${laboratorioId}/${laboratorioNombre}/${fechaMillis}")
+                    navController.navigate("planificador_laboratorio/$laboratorioId/$laboratorioNombre/${calendar.timeInMillis}")
                 },
                 onBackClick = { navController.popBackStack() },
-                navController = navController
+                navController = navController,
+                onBottomNavClick = onBottomNavClick
             )
         }
 
@@ -369,13 +529,12 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             val laboratorioId = backStackEntry.arguments?.getInt("laboratorioId")
             val laboratorioNombre = backStackEntry.arguments?.getString("laboratorioNombre") ?: "No definido"
             val fechaMillis = backStackEntry.arguments?.getLong("fechaMillis") ?: 0L
-            val fechaSeleccionada = Calendar.getInstance().apply { timeInMillis = fechaMillis }
 
             PlanificadorLaboratorioScreen(
                 navController = navController,
                 laboratorioId = laboratorioId,
                 laboratorioNombre = laboratorioNombre,
-                fechaSeleccionada = fechaSeleccionada
+                fechaSeleccionadaMillis = fechaMillis
             )
         }
 
@@ -445,12 +604,12 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         ) { backStackEntry ->
             val codigoReserva = backStackEntry.arguments?.getInt("codigo")
-
             ExistosaLaboratorioScreen(
                 navController = navController,
                 codigoReserva = codigoReserva
             )
         }
+
 
         composable("SalaVipReservation") {
             SalaVipReservationScreen(
@@ -465,14 +624,14 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
-        composable("ReservaProyector") {
+        composable(
+            "ReservaProyector/{fecha}",
+            arguments = listOf(navArgument("fecha") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha")
             ReservaProyectorScreen(
-                onBottomNavClick = { destination ->
-                    when (destination) {
-                        "Inicio" -> navController.navigate("Dashboard")
-                    }
-                },
-                navController = navController
+                navController = navController,
+                fecha = fecha
             )
         }
 
@@ -597,6 +756,18 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                         "Tutorial" -> navController.navigate("CanalYoutube")
                     }
                 },
+                navController = navController
+            )
+        }
+        composable("agregar_estudiante") {
+            AgregarEstudianteScreen(
+                navController = navController
+            )
+        }
+
+
+        composable("agregar_estudiante_laboratorio") {
+            AgregarEstudianteScreenLaboratorio(
                 navController = navController
             )
         }
@@ -1071,6 +1242,216 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 onConfirmarClick = { fechaConfirmada ->
                     navController.navigate("RegistroReservaRestaurante?fecha=$fechaConfirmada")
                 }
+            )
+        }
+
+        //Empleado Proyector
+
+        composable("dashboard_empleado") {
+            val usuario = AuthManager.currentUser ?: UsuarioDTO()
+            DashboardEmpleadoScreen(
+                usuario = usuario,
+                onLogout = {
+                    AuthManager.logout()
+                    navController.navigate("LoadStart") {
+                        popUpTo("Profile") { inclusive = true }
+                    }
+                },
+                onOpcionesEmpleadoProyector = {
+                    navController.navigate("empleadoproyecto")
+                },
+                navController = navController
+            )
+        }
+
+        composable("empleadoproyecto") {
+            EmpleadoproyectoScreen(
+                navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
+        composable("empleadolaboratorio") {
+            EmpleadoLaboratorioScreen(navController)
+        }
+
+        composable("empleadoCubiculo") {
+            EmpleadoCubiculoScreen(navController)
+        }
+
+        composable("empleadoRestaurante") {
+            EmpleadoRestauranteScreen(navController)
+        }
+
+        composable("empleadoproyector_En_Curso") {
+            ReservasenCursoProyectorScreen(
+                navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
+        composable(
+            route = "detalleReservaProyector/{codigoReserva}/{fecha}/{horaInicio}/{horaFin}/{matricula}",
+            arguments = listOf(
+                navArgument("codigoReserva") { type = NavType.IntType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getInt("codigoReserva") ?: 0
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: ""
+            val horaFin = backStackEntry.arguments?.getString("horaFin") ?: ""
+            val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
+
+            val reserva = ReservacionesDto(
+                codigoReserva = codigoReserva,
+                fecha = fecha,
+                horaInicio = horaInicio,
+                horaFin = horaFin,
+                matricula = matricula,
+                tipoReserva = 1
+            )
+
+            DetalleReservaEnCursoProyectorScreen(
+                navController = navController,
+                reserva = reserva
+            )
+        }
+
+
+        composable("empleadolaboratorio_En_Curso") {
+            ReservasenCursoLaboratorioScreen(
+                navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
+        composable(
+            route = "detalleReservaLaboratorio/{codigoReserva}/{fecha}/{horaInicio}/{horaFin}/{matricula}",
+            arguments = listOf(
+                navArgument("codigoReserva") { type = NavType.IntType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getInt("codigoReserva") ?: 0
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: ""
+            val horaFin = backStackEntry.arguments?.getString("horaFin") ?: ""
+            val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
+
+            val reserva = ReservacionesDto(
+                codigoReserva = codigoReserva,
+                fecha = fecha,
+                horaInicio = horaInicio,
+                horaFin = horaFin,
+                matricula = matricula,
+                tipoReserva = 3
+            )
+
+            DetalleReservaEnCursoLaboratorioScreen(
+                navController = navController,
+                reserva = reserva
+            )
+        }
+
+        composable("empleadocubiculo_En_Curso") {
+            ReservasenCursoCubiculoScreen(
+                navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
+        composable(
+            route = "detalleReservaCubiculo/{codigoReserva}/{fecha}/{horaInicio}/{horaFin}/{matricula}",
+            arguments = listOf(
+                navArgument("codigoReserva") { type = NavType.IntType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getInt("codigoReserva") ?: 0
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: ""
+            val horaFin = backStackEntry.arguments?.getString("horaFin") ?: ""
+            val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
+
+            val reserva = ReservacionesDto(
+                codigoReserva = codigoReserva,
+                fecha = fecha,
+                horaInicio = horaInicio,
+                horaFin = horaFin,
+                matricula = matricula,
+                tipoReserva = 2
+            )
+
+            DetalleReservaEnCursoCubiculoScreen(
+                navController = navController,
+                reserva = reserva
+            )
+        }
+
+        composable("empleadorestaurante_En_Curso") {
+            ReservasenCursoRestauranteScreen(
+                navController = navController // Asegúrate de recibirlo en el composable
+            )
+        }
+
+        composable(
+            route = "detalleReservaRestaurante/{codigoReserva}/{fecha}/{horaInicio}/{horaFin}/{matricula}/{tipoReserva}",
+            arguments = listOf(
+                navArgument("codigoReserva") { type = NavType.IntType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("horaInicio") { type = NavType.StringType },
+                navArgument("horaFin") { type = NavType.StringType },
+                navArgument("matricula") { type = NavType.StringType },
+                navArgument("tipoReserva") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val codigoReserva = backStackEntry.arguments?.getInt("codigoReserva") ?: 0
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val horaInicio = backStackEntry.arguments?.getString("horaInicio") ?: ""
+            val horaFin = backStackEntry.arguments?.getString("horaFin") ?: ""
+            val matricula = backStackEntry.arguments?.getString("matricula") ?: ""
+            val tipoReserva = backStackEntry.arguments?.getInt("tipoReserva") ?: -1
+            val reserva = ReservacionesDto(
+                codigoReserva = codigoReserva,
+                fecha = fecha,
+                horaInicio = horaInicio,
+                horaFin = horaFin,
+                matricula = matricula,
+                tipoReserva = tipoReserva
+            )
+            DetalleReservaEnCursoRestauranteScreen(
+                navController = navController,
+                reserva = reserva
+            )
+        }
+
+        composable("proyector_switch") {
+            ProyectorSwitchScreen(
+                navController = navController
+            )
+        }
+
+        composable("laboratorio_switch") {
+            LaboratorioSwitchScreen(
+                navController = navController
+            )
+        }
+
+        composable("cubiculo_switch") {
+            CubiculoSwitchScreen(
+                navController = navController
+            )
+        }
+
+        composable("restaurante_switch") {
+            RestauranteSwitchScreen(
+                navController = navController
             )
         }
     }

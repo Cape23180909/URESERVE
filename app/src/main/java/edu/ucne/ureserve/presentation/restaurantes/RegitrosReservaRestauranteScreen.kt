@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +29,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 
+
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RegistroReservaRestauranteScreen(
@@ -37,8 +39,6 @@ fun RegistroReservaRestauranteScreen(
 ) {
     val context = LocalContext.current
 
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -51,6 +51,7 @@ fun RegistroReservaRestauranteScreen(
             postNotificationPermission.launchPermissionRequest()
         }
     }
+
     var correoElectronico by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
@@ -109,7 +110,10 @@ fun RegistroReservaRestauranteScreen(
             OutlinedTextField(
                 value = correoElectronico,
                 onValueChange = { correoElectronico = it },
-                label = { Text("Correo electrónico *") },
+                label = {
+                    Text("Correo electrónico *", color = Color.Black, fontWeight = FontWeight.Bold)
+                },
+                textStyle = TextStyle(color = Color.Black),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -118,7 +122,10 @@ fun RegistroReservaRestauranteScreen(
             OutlinedTextField(
                 value = nombres,
                 onValueChange = { nombres = it },
-                label = { Text("Nombres *") },
+                label = {
+                    Text("Nombres *", color = Color.Black, fontWeight = FontWeight.Bold)
+                },
+                textStyle = TextStyle(color = Color.Black),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -127,7 +134,10 @@ fun RegistroReservaRestauranteScreen(
             OutlinedTextField(
                 value = apellidos,
                 onValueChange = { apellidos = it },
-                label = { Text("Apellidos *") },
+                label = {
+                    Text("Apellidos *", color = Color.Black, fontWeight = FontWeight.Bold)
+                },
+                textStyle = TextStyle(color = Color.Black),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -136,7 +146,10 @@ fun RegistroReservaRestauranteScreen(
             OutlinedTextField(
                 value = telefono,
                 onValueChange = { telefono = it },
-                label = { Text("Teléfono *") },
+                label = {
+                    Text("Teléfono *", color = Color.Black, fontWeight = FontWeight.Bold)
+                },
+                textStyle = TextStyle(color = Color.Black),
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
             )
@@ -151,10 +164,15 @@ fun RegistroReservaRestauranteScreen(
                 onValueChange = { newValue ->
                     matricula = newValue.filter { it.isDigit() }.take(8)
                 },
-                label = { Text("Matrícula *") },
+                label = {
+                    Text("Matrícula *", color = Color.Black, fontWeight = FontWeight.Bold)
+                },
+                textStyle = TextStyle(color = Color.Black),
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                placeholder = { Text("XXXX-XXXX") }
+                placeholder = {
+                    Text("XXXX-XXXX", fontWeight = FontWeight.Bold)
+                }
             )
 
             OutlinedTextField(
@@ -169,10 +187,15 @@ fun RegistroReservaRestauranteScreen(
                     val cleanValue = newValue.filter { it.isDigit() }.take(11)
                     cedula = cleanValue
                 },
-                label = { Text("Cédula *") },
+                label = {
+                    Text("Cédula *", color = Color.Black, fontWeight = FontWeight.Bold)
+                },
+                textStyle = TextStyle(color = Color.Black),
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                placeholder = { Text("XXX-XXXXXXX-X") }
+                placeholder = {
+                    Text("XXX-XXXXXXX-X", fontWeight = FontWeight.Bold)
+                }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -180,7 +203,10 @@ fun RegistroReservaRestauranteScreen(
             OutlinedTextField(
                 value = direccion,
                 onValueChange = { direccion = it },
-                label = { Text("Dirección *") },
+                label = {
+                    Text("Dirección *", color = Color.Black, fontWeight = FontWeight.Bold)
+                },
+                textStyle = TextStyle(color = Color.Black),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -192,7 +218,6 @@ fun RegistroReservaRestauranteScreen(
             ) {
                 Button(
                     onClick = {
-                        // Limpiar campos
                         nombres = ""
                         apellidos = ""
                         cedula = ""
@@ -200,7 +225,6 @@ fun RegistroReservaRestauranteScreen(
                         telefono = ""
                         correoElectronico = ""
                         direccion = ""
-                        // Notificación de cancelación
                         notificationHandler.showNotification(
                             title = "Formulario cancelado",
                             message = "Has cancelado el registro de reserva."
@@ -218,10 +242,8 @@ fun RegistroReservaRestauranteScreen(
 
                 Button(
                     onClick = {
-                        // Limpiar lista previa para evitar duplicados
                         DatosPersonalesRestauranteStore.lista.clear()
 
-                        // Agregar nuevo registro
                         DatosPersonalesRestauranteStore.lista.add(
                             DatosPersonalesRestaurante(
                                 nombres = nombres,
@@ -234,12 +256,12 @@ fun RegistroReservaRestauranteScreen(
                                 fecha = fecha
                             )
                         )
-                        // Notificación de confirmación
+
                         notificationHandler.showNotification(
                             title = "Reserva enviada",
                             message = "Tu registro de reserva fue guardado exitosamente."
                         )
-                        // Navegar a pantalla de pago
+
                         navController.navigate("PagoRestaurante?fecha=${Uri.encode(fecha)}")
                     },
                     enabled = formularioCompleto,

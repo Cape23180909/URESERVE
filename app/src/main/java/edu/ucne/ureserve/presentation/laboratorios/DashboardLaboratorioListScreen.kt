@@ -43,23 +43,27 @@ import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardLaboratorioListScreen(
-    selectedDate: Calendar,
+    selectedDateMillis: Long,
     onLaboratorioSelected: (laboratorioId: Int, laboratorioNombre: String) -> Unit,
     onBackClick: () -> Unit,
+    onBottomNavClick: (String) -> Unit,
     navController: NavController
 ) {
+    val selectedDate = remember {
+        Calendar.getInstance().apply {
+            timeInMillis = selectedDateMillis
+        }
+    }
     val context = LocalContext.current
     val notificationHandler = remember { NotificationHandler(context) }
-
-    // Laboratorio Seleccionado
     var laboratorioSeleccionado by remember { mutableStateOf<LaboratoriosDto?>(null) }
 
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFF023E8A))) {
-        // ... (código del TopAppBar igual)
         TopAppBar(
             title = {
                 Row(
@@ -83,20 +87,16 @@ fun DashboardLaboratorioListScreen(
                 containerColor = Color(0xFF6D87A4)
             )
         )
-
-        // Contenido principal
         Column(
             modifier = Modifier.weight(1f).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Mostrar la fecha seleccionada
             Text(
                 text = "Fecha seleccionada: ${formatoFecha(selectedDate)}",
                 color = Color.White,
                 fontSize = 16.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-
             Text(
                 text = "Elige el laboratorio deseado:",
                 color = Color.White,
@@ -104,7 +104,6 @@ fun DashboardLaboratorioListScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
-
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -115,23 +114,20 @@ fun DashboardLaboratorioListScreen(
                         isSelected = laboratorio == laboratorioSeleccionado,
                         onClick = {
                             laboratorioSeleccionado = laboratorio
-                            // Notificación al seleccionar laboratorio
                             notificationHandler.showNotification(
                                 title = "Laboratorio seleccionado",
                                 message = "Has seleccionado: ${laboratorio.nombre}"
                             )
-                            val fechaMillis = selectedDate.timeInMillis
-                            navController.navigate("planificador_laboratorio/${laboratorio.laboratorioId}/${laboratorio.nombre}/$fechaMillis")
+                            navController.navigate("planificador_laboratorio/${laboratorio.laboratorioId}/${laboratorio.nombre}/$selectedDateMillis")
                         }
                     )
                 }
             }
         }
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp) // Margen inferior adicional
+                .padding(bottom = 24.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -144,7 +140,7 @@ fun DashboardLaboratorioListScreen(
                     iconRes = R.drawable.icon_inicio,
                     label = "Inicio",
                     isSelected = true,
-                    onClick = { /* onBottomNavClick("Inicio") */ }
+                    onClick = { onBottomNavClick("Inicio") }
                 )
             }
         }
@@ -152,13 +148,10 @@ fun DashboardLaboratorioListScreen(
 }
 
 fun formatoFecha(calendar: Calendar): String {
-    if (calendar == null) return ""
-    val year = calendar.get(Calendar.YEAR)
-    val month = calendar.get(Calendar.MONTH) + 1
-    val day = calendar.get(Calendar.DAY_OF_MONTH)
-    return "%04d-%02d-%02d".format(year, month, day)
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+    dateFormat.timeZone = TimeZone.getDefault() // o TimeZone.getTimeZone("UTC")
+    return dateFormat.format(calendar.time)
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -167,8 +160,7 @@ fun LaboratorioCard(
     laboratorio: LaboratoriosDto,
     onClick: () -> Unit,
     isSelected: Boolean,
-)
-{
+) {
 
     Card(
         modifier = Modifier
@@ -219,14 +211,3 @@ fun getLaboratorios(): List<LaboratoriosDto> {
     )
 }
 
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun DashboardLaboratorioListScreenPreview() {
-//    MaterialTheme {
-//        val navController = rememberNavController()
-//        DashboardLaboratorioListScreen(
-//            selectedDate = Calendar.getInstance(),
-//            navController = navController
-//        )
-//    }
-//}

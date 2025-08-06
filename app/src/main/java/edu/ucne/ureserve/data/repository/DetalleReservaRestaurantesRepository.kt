@@ -32,8 +32,8 @@ class DetalleReservaRestaurantesRepository @Inject constructor(
     suspend fun createDetalleReservaRestaurante(detalle: DetalleReservaRestaurantesDto): DetalleReservaRestaurantesDto =
         remoteDataSource.createDetalleReservaRestaurante(detalle)
 
-//    suspend fun updateDetalleReservaRestaurante(detalle: DetalleReservaRestaurantesDto): DetalleReservaRestaurantesDto =
-//        remoteDataSource.updateDetalleReservaRestaurante(detalle.detalleReservaRestauranteId, detalle)
+    suspend fun updateDetalleReservaRestaurante(detalle: DetalleReservaRestaurantesDto): DetalleReservaRestaurantesDto =
+        remoteDataSource.updateDetalleReservaRestaurante(detalle.detalleReservaRestauranteId, detalle)
 
     suspend fun deleteDetalleReservaRestaurante(id: Int) =
         remoteDataSource.deleteDetalleReservaRestaurante(id)

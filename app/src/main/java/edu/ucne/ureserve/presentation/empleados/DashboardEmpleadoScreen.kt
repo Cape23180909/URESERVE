@@ -8,25 +8,36 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 
 @Composable
 fun DashboardEmpleadoScreen(
-    onOpcionesEmpleado: () -> Unit = {},
+    onOpcionesEmpleadoProyector: () -> Unit = {},
     onReportes: () -> Unit = {},
     onBuscarReservas: () -> Unit = {},
-    onCerrarSesion: () -> Unit = {}
+    onLogout: () -> Unit,
+    navController: NavController,
+    usuario: UsuarioDTO
 ) {
+
+    val context = LocalContext.current
+    val notificationHandler = remember { NotificationHandler(context) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -56,11 +67,18 @@ fun DashboardEmpleadoScreen(
 
         Spacer(modifier = Modifier.height(36.dp))
 
-        // Opciones de Empleado
         MenuItem(
             iconRes = R.drawable.icon_adminsettings,
             text = "Opciones de\nEmpleado",
-            onClick = onOpcionesEmpleado,
+            onClick = {
+                when (usuario.correoInstitucional) {
+                    "proyectores.ureserve@ucne.edu.do" -> navController.navigate("empleadoproyecto") //empleado exclusivo para el area de proyectores
+                    "laboratorio.ureserve@ucne.edu.do" -> navController.navigate("empleadolaboratorio")   //empleado exclusivo para el area de Laboratorios
+                    "cubiculos.ureserve@ucne.edu.do" -> navController.navigate("empleadoCubiculo")  //empleado exclusivo para el area de Cubiculos
+                    "restaurante.ureserve@ucne.edu.do" -> navController.navigate("empleadoRestaurante")  //empleado exclusivo para el area de Restaurantes
+                    else -> {} // Puedes mostrar un mensaje de error o ignorar
+                }
+            },
             rowAlignment = Arrangement.Start,
             rowWidthFraction = 0.94f
         )
@@ -91,7 +109,14 @@ fun DashboardEmpleadoScreen(
 
         // Botón cerrar sesión
         Button(
-            onClick = onCerrarSesion,
+            onClick = {
+                // Mostrar notificación al cerrar sesión
+                notificationHandler.showNotification(
+                    title = "Sesión Cerrada",
+                    message = "Has cerrado sesión correctamente."
+                )
+                onLogout()
+            },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF457BD1),
                 contentColor = Color.White
@@ -137,7 +162,7 @@ fun MenuItem(
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = iconRes),
+                painter = painterResource(id = iconRes) ,
                 contentDescription = null,
                 modifier = Modifier
                     .width(iconWidth)
@@ -163,8 +188,3 @@ fun MenuItem(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun DashboardEmpleadoScreenPreview() {
-    DashboardEmpleadoScreen()
-}
