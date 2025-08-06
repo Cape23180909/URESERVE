@@ -1,3 +1,5 @@
+package edu.ucne.ureserve.presentation.laboratorios
+
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -22,11 +24,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -34,8 +35,13 @@ fun PlanificadorLaboratorioScreen(
     navController: NavController,
     laboratorioId: Int?,
     laboratorioNombre: String,
-    fechaSeleccionada: Calendar
+    fechaSeleccionadaMillis: Long
 ) {
+    val fechaSeleccionada = remember {
+        Calendar.getInstance().apply {
+            timeInMillis = fechaSeleccionadaMillis
+        }
+    }
     val context = LocalContext.current
     val notificationHandler = remember { NotificationHandler(context) }
     val horariosDisponibles = listOf(
@@ -47,18 +53,15 @@ fun PlanificadorLaboratorioScreen(
         "06:00 PM", "06:30 PM", "07:00 PM", "08:00 PM", "08:30 PM", "09:00 PM", "09:30 PM", "10:00 PM", "10:30 PM",
         "11:00 PM", "11:30 PM", "12:00 AM",
     )
-
     var horaInicioSeleccionada by remember { mutableStateOf("") }
     var horaFinSeleccionada by remember { mutableStateOf("") }
     var mostrarSeleccionFin by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    // Obtener la hora actual y configurar la hora de inicio y fin
     LaunchedEffect(Unit) {
         val horaActual = LocalTime.now()
         val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
         horaInicioSeleccionada = horaActual.format(formatter)
-
         val horaActualIndex = horariosDisponibles.indexOfFirst {
             LocalTime.parse(it, DateTimeFormatter.ofPattern("hh:mm a", Locale.US)) >= horaActual
         }
@@ -100,7 +103,6 @@ fun PlanificadorLaboratorioScreen(
                 )
             }
         }
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -117,16 +119,13 @@ fun PlanificadorLaboratorioScreen(
                 )
             )
         }
-
         Text(
             text = "Fecha seleccionada: ${formatoFecha(fechaSeleccionada)}",
             color = Color.White,
             fontSize = 16.sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -152,18 +151,14 @@ fun PlanificadorLaboratorioScreen(
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             text = "Seleccione el horario:",
             fontSize = 16.sp,
             color = Color.White,
             fontWeight = FontWeight.Medium
         )
-
         Spacer(modifier = Modifier.height(12.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -195,7 +190,6 @@ fun PlanificadorLaboratorioScreen(
                 }
             }
         }
-
         if (mostrarSeleccionFin) {
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn(
@@ -226,9 +220,7 @@ fun PlanificadorLaboratorioScreen(
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(24.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -271,7 +263,9 @@ fun PlanificadorLaboratorioScreen(
     }
 }
 
-fun formatoFecha(calendar: Calendar): String {
-    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-    return dateFormat.format(calendar.time)
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewPlanificadorLaboratorioScreen() {
+//    val navController = rememberNavController()
+//    PlanificadorLaboratorioScreen(navController = navController, laboratorioId = 1, laboratorioNombre = "Laboratorio A")
+//}
