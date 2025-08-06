@@ -263,9 +263,3 @@ fun PlanificadorLaboratorioScreen(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewPlanificadorLaboratorioScreen() {
-//    val navController = rememberNavController()
-//    PlanificadorLaboratorioScreen(navController = navController, laboratorioId = 1, laboratorioNombre = "Laboratorio A")
-//}
