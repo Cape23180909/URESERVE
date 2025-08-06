@@ -201,34 +201,47 @@ fun AgregarEstudianteScreenLaboratorio(
                     Button(
                         onClick = {
                             val matriculaLimpia = matricula.replace("-", "")
-                            if (matriculaLimpia.length == 8) {
-                                viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
-                                    if (usuarioEncontrado != null) {
-                                        viewModel.addMember(usuarioEncontrado)
-                                        //  Mostrar notificación al agregar el estudiante
-                                        notificationHandler.showNotification(
-                                            title = "Estudiante Agregado",
-                                            message = "El estudiante con matrícula $matricula fue agregado correctamente."
-                                        )
 
-                                        navController.popBackStack()
-                                    } else {
-                                        viewModel.setError("Matrícula no válida")
+                            when {
+                                matriculaLimpia.isEmpty() -> {
+                                    viewModel.setError("Debe añadir una matrícula válida")
+                                    notificationHandler.showNotification(
+                                        title = "Error",
+                                        message = "Debe añadir una matrícula válida"
+                                    )
+                                }
+
+                                matriculaLimpia.length < 8 -> {
+                                    viewModel.setError("La matrícula debe tener 8 dígitos")
+                                    notificationHandler.showNotification(
+                                        title = "Error",
+                                        message = "La matrícula debe tener 8 dígitos"
+                                    )
+                                }
+
+                                else -> {
+                                    viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
+                                        if (usuarioEncontrado != null) {
+                                            viewModel.addMember(usuarioEncontrado)
+
+                                            notificationHandler.showNotification(
+                                                title = "Estudiante añadido",
+                                                message = "Matrícula ${matricula} añadida correctamente."
+                                            )
+
+                                            navController.popBackStack()
+                                        } else {
+                                            viewModel.setError("Matrícula no válida")
+                                            notificationHandler.showNotification(
+                                                title = "Error",
+                                                message = "Matrícula no válida"
+                                            )
+                                        }
                                     }
                                 }
-                            } else {
-                                viewModel.setError("La matrícula debe tener 8 dígitos")
                             }
-                        },
-                        enabled = !isLoading,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF3A7BD5),
-                            contentColor = Color.White
-                        ),
-                        modifier = Modifier
-                            .height(50.dp)
-                            .width(120.dp),
-                        shape = RoundedCornerShape(20.dp)
+                        }
+
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
