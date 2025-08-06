@@ -271,10 +271,6 @@ private fun formatearTiempoRestante(diferencia: Long): String {
     return String.format("%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
 }
 
-//fun isReservaFinalizada(fecha: String, horaFin: String): Boolean {
-//    val fechaHora = parsearFechaHoraSeguro(fecha, horaFin)
-//    return fechaHora?.time ?: 0 < System.currentTimeMillis()
-//}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
