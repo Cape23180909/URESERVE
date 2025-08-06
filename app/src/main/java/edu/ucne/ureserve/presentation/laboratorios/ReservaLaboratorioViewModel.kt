@@ -11,9 +11,11 @@ import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.data.repository.LaboratorioRepository
+import edu.ucne.ureserve.presentation.login.AuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -53,6 +55,44 @@ class ReservaLaboratorioViewModel @Inject constructor(
     private val _laboratorioSeleccionado = MutableStateFlow<Int?>(null)
     val laboratorioSeleccionado: StateFlow<Int?> = _laboratorioSeleccionado.asStateFlow()
 
+    private val _uiState = MutableStateFlow(ReservaLaboratorioUiState())
+    val uiState: StateFlow<ReservaLaboratorioUiState> = _uiState.asStateFlow()
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun cargarReservaParaModificar(reservaId: Int) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            try {
+                val reserva = reservaApi.getById(reservaId)
+
+                // Parsear fecha y hora de la reserva existente
+                val fecha = LocalDate.parse(reserva.fecha.substring(0, 10))
+                val horaInicio = LocalTime.parse(reserva.horaInicio)
+                val horaFin = LocalTime.parse(reserva.horaFin)
+
+                _uiState.update {
+                    it.copy(
+                        reservaId = reserva.reservacionId,
+                        codigoReserva = reserva.codigoReserva,
+                        cantidadEstudiantes = reserva.cantidadEstudiantes,
+                        fecha = fecha,
+                        horaInicio = horaInicio,
+                        horaFin = horaFin,
+                        estado = reserva.estado,
+                        matricula = reserva.matricula,
+                        fechaString = fecha.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                        horaInicioString = horaInicio.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        horaFinString = horaFin.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        isLoading = false
+                    )
+                }
+
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = "Error al cargar reserva: ${e.message}", isLoading = false) }
+                Log.e("ReservaVM", "Error cargando reserva", e)
+            }
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun confirmarReservaLaboratorio(
         laboratorioId: Int,
@@ -90,119 +130,74 @@ class ReservaLaboratorioViewModel @Inject constructor(
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun modificarReservaLaboratorio(
-        reservaId: Int,
-        laboratorioId: Int,
-        fechaLocal: LocalDate,
-        horaInicio: LocalTime,
-        horaFin: LocalTime,
-        matricula: String
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                _isLoading.value = true
+                _uiState.update { it.copy(isLoading = true) }
+
+                val state = uiState.value
+                if (state.reservaId == null) {
+                    throw Exception("ID de reserva no disponible")
+                }
+
+                val fecha = state.fecha ?: throw Exception("Seleccione una fecha")
+                val horaInicio = state.horaInicio ?: throw Exception("Seleccione hora de inicio")
+                val horaFin = state.horaFin ?: throw Exception("Seleccione hora de fin")
 
                 if (horaFin.isBefore(horaInicio)) {
                     throw Exception("La hora de fin no puede ser antes de la hora de inicio")
                 }
 
-                if (_members.value.isEmpty()) {
-                    throw Exception("Debe haber al menos un integrante en la reserva")
-                }
 
                 val fechaZoned = ZonedDateTime.of(
-                    fechaLocal,
+                    fecha,
                     horaInicio,
                     ZoneId.systemDefault()
                 ).format(DateTimeFormatter.ISO_INSTANT)
 
                 val reservacionDto = ReservacionesDto(
-                    reservacionId = reservaId,
-                    codigoReserva = _reservaSeleccionada.value?.codigoReserva ?: (100000..999999).random(),
-                    tipoReserva = 3, // 3 = Laboratorio
+                    reservacionId = state.reservaId,
+                    codigoReserva = state.codigoReserva ?: (100000..999999).random(),
+                    tipoReserva = 3,
                     fecha = fechaZoned,
                     horaInicio = horaInicio.toString(),
                     horaFin = horaFin.toString(),
                     estado = 1,
-                    matricula = matricula,
-                    cantidadEstudiantes = _members.value.size
+                    matricula = state.matricula,
+                    cantidadEstudiantes = state.miembros.size
                 )
 
-                val response = reservaApi.update(reservaId, reservacionDto)
+                val response = reservaApi.update(state.reservaId, reservacionDto)
                 if (!response.isSuccessful) {
-                    throw Exception("Error al actualizar reserva: ${response.code()}")
+                    throw Exception("Error ${response.code()} al actualizar reserva")
                 }
+
+                onSuccess()
             } catch (e: Exception) {
-                _errorMessage.value = "Error al modificar reserva: ${e.message}"
-                throw e
+                onError("Error al modificar reserva: ${e.message ?: "Error desconocido"}")
+                Log.e("ReservaVM", "Error modificando reserva", e)
             } finally {
-                _isLoading.value = false
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
 
-//    @RequiresApi(Build.VERSION_CODES.O)
-//    fun modificarReservaLaboratorio(
-//        reservaId: Int,
-//        laboratorioId: Int,
-//        fechaLocal: LocalDate,
-//        horaInicio: LocalTime,
-//        horaFin: LocalTime,
-//        matricula: String,
-//        onSuccess: () -> Unit,
-//        onError: (String) -> Unit
-//    ) {
-//        viewModelScope.launch {
-//            _isLoading.value = true
-//            try {
-//                if (horaFin.isBefore(horaInicio)) {
-//                    throw Exception("La hora de fin no puede ser antes de la hora de inicio")
-//                }
-//
-//                if (members.value.isEmpty()) {
-//                    throw Exception("Debe haber al menos un integrante en la reserva")
-//                }
-//
-//                val fechaZoned = ZonedDateTime.of(
-//                    fechaLocal,
-//                    horaInicio,
-//                    ZoneId.systemDefault()
-//                ).format(DateTimeFormatter.ISO_INSTANT)
-//
-//                val reservacionDto = ReservacionesDto(
-//                    reservacionId = reservaId,
-//                    codigoReserva = reservaSeleccionada.value?.codigoReserva ?: (100000..999999).random(),
-//                    tipoReserva = 3,
-//                    fecha = fechaZoned,
-//                    horaInicio = horaInicio.toString(),
-//                    horaFin = horaFin.toString(),
-//                    estado = 1,
-//                    matricula = matricula,
-//                    cantidadEstudiantes = _members.value.size
-//                )
-//
-//                val response = reservaApi.update(reservaId, reservacionDto)
-//                if (!response.isSuccessful) {
-//                    throw Exception("Error ${response.code()} al actualizar reserva")
-//                }
-//
-//                onSuccess()
-//            } catch (e: Exception) {
-//                onError("Error al modificar reserva: ${e.message ?: "Error desconocido"}")
-//                Log.e("ReservaVM", "Error modificando reserva", e)
-//            } finally {
-//                _isLoading.value = false
-//            }
-//        }
-//    }
-
     fun initializeWithUser(usuario: UsuarioDTO) {
         Log.d("ViewModel", "Inicializando con usuario: ${usuario.nombres}")
-        val currentMembers = _members.value.toMutableList()
-        if (currentMembers.none { it.usuarioId == usuario.usuarioId }) {
-            currentMembers.add(usuario)
-            _members.value = currentMembers
+        _uiState.update { state ->
+            if (state.miembros.none { it.usuarioId == usuario.usuarioId }) {
+                state.copy(
+                    miembros = state.miembros + usuario,
+                    cantidadEstudiantes = state.miembros.size + 1
+                )
+            } else {
+                state
+            }
         }
     }
 
@@ -239,48 +234,80 @@ class ReservaLaboratorioViewModel @Inject constructor(
     fun eliminarMiembroPorMatricula(matricula: String) {
         viewModelScope.launch {
             try {
-                _isLoading.value = true
-                val usuario = _members.value.firstOrNull {
+                _uiState.update { it.copy(isLoading = true) }
+
+                val usuario = uiState.value.miembros.firstOrNull {
                     it.estudiante?.matricula == matricula
                 }
 
                 usuario?.let {
-                    _members.value = _members.value - it
+                    _uiState.update { state ->
+                        state.copy(
+                            miembros = state.miembros - it,
+                            cantidadEstudiantes = state.miembros.size - 1
+                        )
+                    }
                     Log.d("ViewModel", "Miembro eliminado: ${it.nombres}")
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error al eliminar miembro: ${e.message}"
+                _uiState.update { it.copy(error = "Error al eliminar miembro: ${e.message}") }
             } finally {
-                _isLoading.value = false
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
 
-    fun setSelectedHours(hours: String) {
-        _selectedHours.value = hours
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun setFechaSeleccionada(fecha: LocalDate) {
+        _uiState.update {
+            it.copy(
+                fecha = fecha,
+                fechaString = fecha.format(DateTimeFormatter.ISO_LOCAL_DATE)
+            )
+        }
     }
 
-    fun setFechaSeleccionada(fecha: String) {
-        _fechaSeleccionada.value = fecha
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun setHorario(horaInicio: LocalTime, horaFin: LocalTime) {
+        _uiState.update {
+            it.copy(
+                horaInicio = horaInicio,
+                horaFin = horaFin,
+                horaInicioString = horaInicio.format(DateTimeFormatter.ofPattern("HH:mm")),
+                horaFinString = horaFin.format(DateTimeFormatter.ofPattern("HH:mm"))
+            )
+        }
+    }
+
+    fun setError(message: String) {
+        _uiState.update { it.copy(error = message) }
     }
 
     fun getLaboratorioNombreById(id: Int) {
         viewModelScope.launch {
             try {
+                _uiState.update { it.copy(isLoading = true) }
                 val laboratorio = laboratorioApi.getById(id)
-                _laboratorioNombre.value = laboratorio.nombre
-                _laboratorioSeleccionado.value = laboratorio.laboratorioId
+                _uiState.update {
+                    it.copy(
+                        laboratorioId = laboratorio.laboratorioId,
+                        laboratorioNombre = laboratorio.nombre,
+                        isLoading = false
+                    )
+                }
             } catch (e: Exception) {
-                _laboratorioNombre.value = "Desconocido"
+                _uiState.update {
+                    it.copy(
+                        laboratorioNombre = "Desconocido",
+                        isLoading = false,
+                        error = "Error al cargar laboratorio: ${e.message}"
+                    )
+                }
             }
         }
     }
 
-    fun setError(message: String) {
-        _errorMessage.value = message
-    }
-
     fun clearError() {
-        _errorMessage.value = null
+        _uiState.update { it.copy(error = null) }
     }
 }
