@@ -1,14 +1,11 @@
 package edu.ucne.ureserve.presentation.login
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.ureserve.data.remote.Resource
-import edu.ucne.ureserve.data.remote.UsuarioApi
-import edu.ucne.ureserve.data.remote.dto.EstudianteDto
-import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.data.repository.AuthRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
