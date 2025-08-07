@@ -32,7 +32,6 @@ val Azul = Color(0xFF023E8A)
 
 @Composable
 fun ProfileScreen(
-
     usuario: UsuarioDTO,
     estudiante: EstudianteDto,
     onLogout: () -> Unit,
@@ -49,14 +48,12 @@ fun ProfileScreen(
                 .background(Amarillo)
         )
 
-        // Contenido principal en un Column que ocupa todo el espacio
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Fondo inferior azul con contenido
             Box(
                 modifier = Modifier
-                    .weight(1f) // Ocupa todo el espacio disponible
+                    .weight(1f)
                     .padding(top = 100.dp)
                     .clip(RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp))
                     .background(Azul)
@@ -101,7 +98,6 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(122.dp))
 
-                    // Botón cerrar sesión con notificación
                     Button(
                         onClick = {
                             // Mostrar notificación al cerrar sesión
@@ -126,7 +122,6 @@ fun ProfileScreen(
                         )
                     }
 
-                    // Espacio flexible para empujar el contenido hacia arriba
                     Spacer(modifier = Modifier.height(122.dp))
                 }
             }
@@ -157,7 +152,6 @@ fun ProfileScreen(
             }
         }
 
-        // Imagen de perfil flotante
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -252,7 +246,7 @@ fun ProfileScreenPreview() {
 
     ProfileScreen(
         usuario = usuarioPrueba,
-        estudiante = estudiantePrueba,  // Añade este parámetro
+        estudiante = estudiantePrueba,
         onLogout = {}
     )
 }
