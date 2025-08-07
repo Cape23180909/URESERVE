@@ -231,21 +231,6 @@ fun ReservaLaboratorioScreen(
                 Text("VOLVER", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
             }
 
-            @RequiresApi(Build.VERSION_CODES.O)
-            fun calcularHoras(inicio: String, fin: String): Int {
-                val formatter = java.time.format.DateTimeFormatter.ofPattern("h:mma", java.util.Locale.US)
-                val inicioTime = java.time.LocalTime.parse(inicio, formatter)
-                val finTime = java.time.LocalTime.parse(fin, formatter)
-                return java.time.Duration.between(inicioTime, finTime).toHours().toInt().coerceAtLeast(1)
-            }
-
-            @RequiresApi(Build.VERSION_CODES.O)
-            fun convertirA24Horas(hora12: String): String {
-                val formatter12 = java.time.format.DateTimeFormatter.ofPattern("h:mma", java.util.Locale.US)
-                val formatter24 = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
-                return java.time.LocalTime.parse(hora12, formatter12).format(formatter24)
-            }
-
             Button(
                 onClick = {
                     if (allMembers.isEmpty()) {
