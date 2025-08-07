@@ -25,7 +25,7 @@ class CubiculoRepository @Inject constructor(
             if (cubiculo.cubiculoId != 0) {
                 remoteDataSource.updateCubiculo(cubiculo.cubiculoId, cubiculo.toDto())
             } else {
-                remoteDataSource.createCubiculo(cubiculo.toDto()) // Cambiado insert -> create
+                remoteDataSource.createCubiculo(cubiculo.toDto())
             }
         } catch (e: Exception) {
             Log.e("CubiculoRepository", "Error sincronizando con API (save)", e)
@@ -34,9 +34,6 @@ class CubiculoRepository @Inject constructor(
         db.cubiculosDao().save(cubiculo)
     }
 
-
-
-    // Eliminar cubículo: API + local
     suspend fun delete(cubiculo: CubiculosEntity) {
         try {
             if (cubiculo.cubiculoId != 0) {
@@ -49,26 +46,21 @@ class CubiculoRepository @Inject constructor(
         db.cubiculosDao().delete(cubiculo)
     }
 
-    // Buscar cubículo local por ID
     suspend fun find(id: Int): CubiculosEntity? {
         return db.cubiculosDao().find(id)
     }
 
-    // Obtener todos los cubículos: primero local, luego remoto y sincroniza
     fun getAll(): Flow<Resource<List<CubiculosEntity>>> = flow {
         emit(Resource.Loading())
         try {
-            // Emitir datos locales primero
             val localData = db.cubiculosDao().getAll().first()
             emit(Resource.Success(localData))
 
-            // Obtener datos remotos y guardar en local
             val remoteCubiculos = remoteDataSource.getCubiculos()
             remoteCubiculos.forEach {
                 db.cubiculosDao().save(it.toEntity())
             }
 
-            // Emitir datos actualizados
             val updatedData = db.cubiculosDao().getAll().first()
             emit(Resource.Success(updatedData))
         } catch (e: Exception) {
@@ -77,14 +69,9 @@ class CubiculoRepository @Inject constructor(
         }
     }
 
-    // Obtener cubículo puntual desde API
-    suspend fun getCubiculo(id: Int) = remoteDataSource.getCubiculo(id)
-
-    // Obtener cubículos disponibles desde API (filtrar según necesites)
     suspend fun getCubiculosDisponibles(fecha: String, horaInicio: String, horaFin: String) =
         remoteDataSource.getCubiculos()
 
-    // Obtener usuario por ID desde API
     suspend fun getUsuarioById(id: Int): UsuarioDTO {
         return try {
             usuarioApi.getById(id)
@@ -93,7 +80,6 @@ class CubiculoRepository @Inject constructor(
         }
     }
 
-    // Buscar usuario por matrícula (normalizando para ignorar guiones)
     suspend fun buscarUsuarioPorMatricula(matricula: String): UsuarioDTO? {
         return try {
             val usuarios = usuarioApi.getAll()
