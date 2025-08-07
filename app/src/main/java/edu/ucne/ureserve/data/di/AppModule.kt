@@ -1,6 +1,5 @@
 package edu.ucne.ureserve.data.di
 
-
 import android.content.Context
 import androidx.room.Room
 import dagger.Module
@@ -20,7 +19,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
     @Provides
     @Singleton
     fun provideUReserveDb(@ApplicationContext context: Context): UReserveDb =
