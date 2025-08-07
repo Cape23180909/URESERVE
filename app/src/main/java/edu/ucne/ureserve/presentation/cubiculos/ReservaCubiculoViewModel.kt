@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.ureserve.data.local.entity.toDto
 import edu.ucne.ureserve.data.remote.CubiculosApi
 import edu.ucne.ureserve.data.remote.DetalleReservaCubiculosApi
+import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
@@ -18,6 +19,7 @@ import edu.ucne.ureserve.data.repository.CubiculoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -26,9 +28,6 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
-import edu.ucne.ureserve.data.remote.RemoteDataSource
-import edu.ucne.ureserve.data.remote.dto.DetalleReservaCubiculosDto
-import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class ReservaCubiculoViewModel @Inject constructor(
