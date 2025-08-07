@@ -57,7 +57,7 @@ class ReservacionRepository @Inject constructor(
         return reservas
     }
 
-    suspend fun guardarReserva(
+    fun guardarReserva(
         reservacionDto: ReservacionesDto
     ): Flow<Resource<ReservacionesDto>> = flow {
         try {
