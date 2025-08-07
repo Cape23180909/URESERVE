@@ -5,12 +5,11 @@ import com.google.firebase.auth.FirebaseAuth
 import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.local.entity.UsuarioEntity
 import edu.ucne.ureserve.data.local.entity.toEntity
-import edu.ucne.ureserve.data.local.entity.toDto
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.Resource
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 

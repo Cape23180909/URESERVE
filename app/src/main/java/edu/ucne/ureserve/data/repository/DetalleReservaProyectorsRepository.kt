@@ -4,7 +4,6 @@ import android.util.Log
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
-import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException

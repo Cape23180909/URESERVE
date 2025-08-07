@@ -1,8 +1,6 @@
 package edu.ucne.ureserve.data.repository
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.local.entity.CubiculosEntity
 import edu.ucne.ureserve.data.local.entity.toDto
@@ -10,14 +8,10 @@ import edu.ucne.ureserve.data.local.entity.toEntity
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.UsuarioApi
-import edu.ucne.ureserve.data.remote.dto.CubiculosDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class CubiculoRepository @Inject constructor(
