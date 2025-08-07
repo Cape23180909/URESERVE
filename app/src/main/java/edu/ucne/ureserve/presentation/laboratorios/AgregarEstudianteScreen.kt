@@ -54,7 +54,6 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
