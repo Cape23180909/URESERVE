@@ -115,14 +115,11 @@ class EmpleadoViewModel @Inject constructor(
     fun actualizarDisponibilidadProyectores(id: Int, disponible: Boolean) {
         viewModelScope.launch {
             try {
-                // Obtener el proyector actual
                 val proyector = _proyectores.value.find { it.proyectorId == id }
                     ?: throw IllegalArgumentException("Proyector con id $id no encontrado")
 
-                // Mostrar estado de carga
                 _isLoading.value = true
 
-                // Llamar al API (usa tu endpoint actual que retorna ProyectoresDto directamente)
                 val updatedProyector = api.update(
                     id = id,
                     proyector = ProyectoresDto(
@@ -134,15 +131,14 @@ class EmpleadoViewModel @Inject constructor(
                     )
                 )
 
-                // Actualizar localmente (la API respondió exitosamente)
                 _proyectores.value = _proyectores.value.map { item ->
                     if (item.proyectorId == id) item.copy(disponible = disponible) else item
                 }
 
             } catch (e: Exception) {
                 _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
-                // Refrescar datos desde el servidor
-                cargarProyectores() // Asegúrate que este método exista en tu ViewModel
+
+                cargarProyectores()
             } finally {
                 _isLoading.value = false
             }
@@ -152,11 +148,9 @@ class EmpleadoViewModel @Inject constructor(
     fun actualizarDisponibilidadCubiculos(id: Int, disponible: Boolean) {
         viewModelScope.launch {
             try {
-                // Obtener el proyector actual
                 val cubiculo = _cubiculos.value.find { it.cubiculoId == id }
                     ?: throw IllegalArgumentException("Cubiculo con id $id no encontrado")
 
-                // Mostrar estado de carga
                 _isLoading.value = true
 
                 val updatedCubiculo = apicubiculos.update(
@@ -168,14 +162,12 @@ class EmpleadoViewModel @Inject constructor(
                     )
                 )
 
-                // Actualizar localmente (la API respondió exitosamente)
                 _cubiculos.value = _cubiculos.value.map { item ->
                     if (item.cubiculoId == id) item.copy(disponible = disponible) else item
                 }
 
             } catch (e: Exception) {
                 _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
-                // Refrescar datos desde el servidor
                 cargarCubiculos()
             } finally {
                 _isLoading.value = false
@@ -186,14 +178,11 @@ class EmpleadoViewModel @Inject constructor(
     fun actualizarDisponibilidadLaboratorio(id: Int, disponible: Boolean) {
         viewModelScope.launch {
             try {
-                // Obtener los laboratirios actuales
                 val proyector = _laboratorios.value.find { it.laboratorioId == id }
                     ?: throw IllegalArgumentException("Laboratorio con id $id no encontrado")
 
-                // Mostrar estado de carga
                 _isLoading.value = true
 
-                // Llamar al API (usa tu endpoint actual que retorna ProyectoresDto directamente)
                 val updatedLaboratorio = apilaboratorios.update(
                     id = id,
                     laboratorio = LaboratoriosDto(
@@ -203,15 +192,13 @@ class EmpleadoViewModel @Inject constructor(
                     )
                 )
 
-                // Actualizar localmente (la API respondió exitosamente)
                 _laboratorios.value = _laboratorios.value.map { item ->
                     if (item.laboratorioId == id) item.copy(disponible = disponible) else item
                 }
 
             } catch (e: Exception) {
                 _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
-                // Refrescar datos desde el servidor
-                cargarLaboratorios() // Asegúrate que este método exista en tu ViewModel
+                cargarLaboratorios()
             } finally {
                 _isLoading.value = false
             }
@@ -223,14 +210,11 @@ class EmpleadoViewModel @Inject constructor(
             try {
                 val restauranteId = id ?: throw IllegalArgumentException("ID no puede ser nulo")
 
-                // Obtener los laboratirios actuales
                 val restaurante = _restaurantes.value.find { it.restauranteId == id }
                     ?: throw IllegalArgumentException("Laboratorio con id $id no encontrado")
 
-                // Mostrar estado de carga
                 _isLoading.value = true
 
-                // Llamar al API (usa tu endpoint actual que retorna ProyectoresDto directamente)
                 val updatedRestaurante = apiRestaurantes.update(
                     id = id,
                     restaurante = RestaurantesDto(
@@ -245,14 +229,12 @@ class EmpleadoViewModel @Inject constructor(
                     )
                 )
 
-                // Actualizar localmente (la API respondió exitosamente)
                 _laboratorios.value = _laboratorios.value.map { item ->
                     if (item.laboratorioId == id) item.copy(disponible = disponible) else item
                 }
 
             } catch (e: Exception) {
                 _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
-                // Refrescar datos desde el servidor
                 cargarRestaurantes()
             } finally {
                 _isLoading.value = false

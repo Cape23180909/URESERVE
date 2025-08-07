@@ -63,8 +63,6 @@ fun AgregarEstudianteScreen(
 
     val context = LocalContext.current
 
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -194,7 +192,6 @@ fun AgregarEstudianteScreen(
                         )
                     }
 
-                    // En la pantalla AgregarEstudianteScreen
                     Button(
                         onClick = {
                             val matriculaLimpia = matricula.replace("-", "")
@@ -257,7 +254,6 @@ fun AgregarEstudianteScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Teclado numérico
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -318,4 +314,3 @@ fun AgregarEstudianteScreen(
         }
     }
 }
-
