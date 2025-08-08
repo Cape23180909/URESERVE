@@ -70,12 +70,8 @@ fun DashboardAdminScreen(
             iconRes = R.drawable.icon_adminsettings,
             text = "Opciones de\nadministrador",
             onClick = {
-                when (usuario.correoInstitucional) {
-                    "jacksonperez@gmail.com" -> navController.navigate("empleadoproyecto")
-                    "richardbautista@gmail.com" -> navController.navigate("empleadolaboratorio")
-                    "yandelwisin@gmail.com" -> navController.navigate("empleadoCubiculo")
-                    "restauranteencargado@gmail.com" -> navController.navigate("empleadoRestaurante")
-                    else -> {}
+                if (usuario.correoInstitucional == "admin.ureserve@ucne.edu.do") {
+                    navController.navigate("OptionAdmin")
                 }
             },
             circleWidth = 130.dp,
@@ -85,6 +81,7 @@ fun DashboardAdminScreen(
             rowAlignment = Arrangement.Start,
             rowWidthFraction = 0.94f
         )
+
 
         MenuItem(
             iconRes = R.drawable.icon_reporte,
