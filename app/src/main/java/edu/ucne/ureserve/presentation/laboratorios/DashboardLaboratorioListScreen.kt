@@ -147,7 +147,7 @@ fun DashboardLaboratorioListScreen(
 
 fun formatoFecha(calendar: Calendar): String {
     val dateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
-    dateFormat.timeZone = TimeZone.getDefault() // o TimeZone.getTimeZone("UTC")
+    dateFormat.timeZone = TimeZone.getDefault()
     return dateFormat.format(calendar.time)
 }
 
@@ -164,11 +164,11 @@ fun LaboratorioCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 54.dp, vertical = 1.dp),  // Ajuste de padding para separación
+            .padding(horizontal = 54.dp, vertical = 1.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF6D87A4)
         ),
-        shape = MaterialTheme.shapes.medium  // Bordes redondeados uniformes
+        shape = MaterialTheme.shapes.medium
     ) {
         Column(
             modifier = Modifier
@@ -177,20 +177,17 @@ fun LaboratorioCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Icono centrado arriba
             Image(
                 painter = painterResource(id = R.drawable.icon_laboratorio),
                 contentDescription = "Icono Laboratorio",
                 modifier = Modifier
-                    .size(48.dp)  // Tamaño aumentado para mejor visibilidad
+                    .size(48.dp)
                     .padding(bottom = 8.dp)
             )
-
-            // Nombre del laboratorio centrado
             Text(
                 text = laboratorio.nombre,
                 style = MaterialTheme.typography.headlineMedium.copy(
-                    fontSize = 18.sp  // Tamaño de texto ajustado
+                    fontSize = 18.sp
                 ),
                 color = Color.White,
                 textAlign = TextAlign.Center
@@ -208,4 +205,3 @@ fun getLaboratorios(): List<LaboratoriosDto> {
         LaboratoriosDto(5, "Laboratorio E", true)
     )
 }
-

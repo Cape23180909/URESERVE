@@ -360,7 +360,6 @@ private fun ReservationButton(
         Text("Reservar", fontWeight = FontWeight.Bold)
     }
     Spacer(modifier = Modifier.height(32.dp))
-    // Si necesitas el BottomNavItem, asegúrate de que esté definido correctamente
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -376,4 +375,3 @@ private fun ReservationButton(
         )
     }
 }
-
