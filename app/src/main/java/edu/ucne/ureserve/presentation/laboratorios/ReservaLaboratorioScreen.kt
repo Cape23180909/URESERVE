@@ -44,13 +44,13 @@ fun ReservaLaboratorioScreen(
     estudiante: EstudianteDto,
     horaInicio: String,
     horaFin: String,
-    fecha: Long
+    fecha: Long,
+    laboratorioNombre: String
 ) {
     val context = LocalContext.current
     val notificationHandler = remember { NotificationHandler(context) }
     val hours by viewModel.selectedHours.collectAsState()
     val allMembers by viewModel.members.collectAsState()
-    val laboratorioNombre by viewModel.laboratorioNombre.collectAsState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val fechaSeleccionada = Calendar.getInstance().apply { timeInMillis = fecha }
