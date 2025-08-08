@@ -1,7 +1,6 @@
 package edu.ucne.ureserve.data.repository
 
 import android.util.Log
-import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.UsuarioApi
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import javax.inject.Inject

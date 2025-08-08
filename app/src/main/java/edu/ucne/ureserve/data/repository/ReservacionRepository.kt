@@ -45,7 +45,7 @@ class ReservacionRepository @Inject constructor(
     ): Flow<Resource<ReservacionesDto>> = flow {
         try {
             emit(Resource.Loading())
-            val response = api.insert(reservacionDto) // usa tu POST declarado
+            val response = api.insert(reservacionDto)
             if (response.isSuccessful && response.body() != null) {
                 emit(Resource.Success(response.body()!!))
             } else {
@@ -74,7 +74,6 @@ class ReservacionRepository @Inject constructor(
 
     suspend fun guardarDetalleRestaurante(detalleDto: DetalleReservaRestaurantesDto): Boolean {
         return try {
-            // Usando tu método existente en RemoteDataSource
             remoteDataSource.createDetalleReservaRestaurante(detalleDto)
             true
         } catch (e: Exception) {
