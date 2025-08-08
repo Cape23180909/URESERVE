@@ -5,7 +5,6 @@ import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import java.time.LocalDate
 import java.time.LocalTime
 
-
 data class ReservaCubiculoState(
     val reservaId: Int? = null,
     val codigoReserva: Int? = null,

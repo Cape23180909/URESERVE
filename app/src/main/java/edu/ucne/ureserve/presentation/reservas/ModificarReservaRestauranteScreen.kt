@@ -76,7 +76,6 @@ fun ModificarReservaRestauranteScreen(
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -93,18 +92,13 @@ fun ModificarReservaRestauranteScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    // Estados para fecha y hora
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var startTime by remember { mutableStateOf(LocalTime.NOON) }
     var endTime by remember { mutableStateOf(LocalTime.NOON.plusHours(1)) }
-
-    // Estados originales para comparar cambios
     var originalDate by remember { mutableStateOf<LocalDate?>(null) }
     var originalStartTime by remember { mutableStateOf<LocalTime?>(null) }
     var originalEndTime by remember { mutableStateOf<LocalTime?>(null) }
 
-    // Determinar si hay cambios
     val hasChanges = remember {
         derivedStateOf {
             selectedDate != originalDate ||
@@ -113,7 +107,6 @@ fun ModificarReservaRestauranteScreen(
         }
     }
 
-    // Cargar datos de la reserva al iniciar
     LaunchedEffect(reservaId) {
         reservaId?.let { id ->
             try {
@@ -188,7 +181,6 @@ fun ModificarReservaRestauranteScreen(
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Mostrar mensajes de error
             errorMessage?.let {
                 Text(text = it, color = Color.Red)
                 Spacer(modifier = Modifier.height(8.dp))
@@ -208,7 +200,6 @@ fun ModificarReservaRestauranteScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Tarjeta con información actual
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
@@ -225,7 +216,6 @@ fun ModificarReservaRestauranteScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botón para cambiar fecha
             Button(
                 onClick = { showDatePicker = true },
                 modifier = Modifier.fillMaxWidth(),
@@ -239,7 +229,6 @@ fun ModificarReservaRestauranteScreen(
 
             Button(
                 onClick = {
-                    // Mostrar notificación de éxito
                     notificationHandler.showNotification(
                         title = "Cambios detectados",
                         message = "Los cambios fueron guardados correctamente."
@@ -251,7 +240,6 @@ fun ModificarReservaRestauranteScreen(
                             nuevaHoraInicio = startTime,
                             nuevaHoraFin = endTime,
                             onSuccess = {
-                                // Navegar a la pantalla de lista de reservas
                                 navController?.navigate("reservaList") {
                                     popUpTo("modificar_restaurante/$id") { inclusive = true }
                                 }
@@ -276,10 +264,8 @@ fun ModificarReservaRestauranteScreen(
                 }
             }
 
-
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Botón para regresar
             Button(
                 onClick = { navController?.popBackStack() },
                 modifier = Modifier.fillMaxWidth(),
@@ -290,7 +276,6 @@ fun ModificarReservaRestauranteScreen(
             }
         }
 
-        // Selector de fecha
         if (showDatePicker) {
             val datePickerState = rememberDatePickerState(
                 initialSelectedDateMillis = selectedDate
@@ -316,7 +301,7 @@ fun ModificarReservaRestauranteScreen(
                                 .atZone(ZoneId.systemDefault())
                                 .toLocalDate()
                         }
-                        // Notificación de éxito
+
                         notificationHandler.showNotification(
                             title = "Fecha modificada",
                             message = "La nueva fecha fue seleccionada correctamente."
@@ -336,7 +321,6 @@ fun ModificarReservaRestauranteScreen(
             }
         }
 
-        // Selector de horario
         if (showTimePicker) {
             val startState = rememberTimePickerState(startTime.hour, startTime.minute)
             val endState = rememberTimePickerState(endTime.hour, endTime.minute)
@@ -357,7 +341,6 @@ fun ModificarReservaRestauranteScreen(
                     Button(onClick = {
                         startTime = LocalTime.of(startState.hour, startState.minute)
                         endTime = LocalTime.of(endState.hour, endState.minute)
-                        // Notificación de éxito
                         notificationHandler.showNotification(
                             title = "Horario actualizado",
                             message = "El nuevo horario fue seleccionado correctamente."

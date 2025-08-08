@@ -62,8 +62,6 @@ class ReservaLaboratorioViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val reserva = reservaApi.getById(reservaId)
-
-                // Parsear fecha y hora de la reserva existente
                 val fecha = LocalDate.parse(reserva.fecha.substring(0, 10))
                 val horaInicio = LocalTime.parse(reserva.horaInicio)
                 val horaFin = LocalTime.parse(reserva.horaFin)
@@ -151,7 +149,6 @@ class ReservaLaboratorioViewModel @Inject constructor(
                 if (horaFin.isBefore(horaInicio)) {
                     throw Exception("La hora de fin no puede ser antes de la hora de inicio")
                 }
-
 
                 val fechaZoned = ZonedDateTime.of(
                     fecha,

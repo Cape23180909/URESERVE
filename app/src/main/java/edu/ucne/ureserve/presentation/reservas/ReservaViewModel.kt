@@ -149,9 +149,9 @@ class ReservaViewModel @Inject constructor(
                         val todasLasReservas = result.data ?: emptyList()
 
                         val reservasFiltradas = todasLasReservas.filter {
-                            it.tipoReserva == 4 || // SalaVIP
-                                    it.tipoReserva == 5 || // SalaReuniones
-                                    it.tipoReserva == 6    // Restaurante
+                            it.tipoReserva == 4 ||
+                                    it.tipoReserva == 5 ||
+                                    it.tipoReserva == 6
                         }
 
                         _state.update { ReservaListState.Success(reservasFiltradas) }

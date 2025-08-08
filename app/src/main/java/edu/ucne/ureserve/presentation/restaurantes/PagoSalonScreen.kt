@@ -73,8 +73,6 @@ fun PagoSalonScreen(
 
     val context = LocalContext.current
 
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -99,7 +97,6 @@ fun PagoSalonScreen(
 
     LaunchedEffect(fecha) { viewModel.setFecha(fecha) }
 
-    // Navegación tras éxito
     LaunchedEffect(uiState.reservaConfirmada) {
         if (uiState.reservaConfirmada) {
             navController.navigate("ReservaExitosaSalon?numeroReserva=$codigoReserva") {
@@ -108,7 +105,6 @@ fun PagoSalonScreen(
         }
     }
 
-    // Mostrar errores
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { snackbarHostState.showSnackbar(it) }
     }
@@ -126,7 +122,7 @@ fun PagoSalonScreen(
                     .verticalScroll(scrollState)
                     .padding(16.dp)
             ) {
-                // Encabezado
+
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -139,7 +135,6 @@ fun PagoSalonScreen(
 
                 Text(text = "Fecha seleccionada: $fecha", color = Color.White, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
 
-                // Método de pago
                 Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Column(Modifier.padding(16.dp)) {
                         Text("SELECCIONE EL MÉTODO DE PAGO", fontWeight = FontWeight.Bold, color = Color(0xFF023E8A), fontSize = 14.sp)
@@ -179,7 +174,6 @@ fun PagoSalonScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Resumen
                 Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Column(Modifier.padding(16.dp)) {
                         Text("RESUMEN DE PEDIDO", fontWeight = FontWeight.Bold, color = Color(0xFF023E8A), fontSize = 14.sp)
@@ -202,7 +196,6 @@ fun PagoSalonScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Datos personales
                 if (datosPersonales.isNotEmpty()) {
                     Text(
                         text = "DATOS PERSONALES REGISTRADOS",
@@ -231,7 +224,6 @@ fun PagoSalonScreen(
 
                 Spacer(Modifier.height(24.dp))
 
-                // Botón confirmar
                 Button(
                     onClick = {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -249,9 +241,9 @@ fun PagoSalonScreen(
                                     title = "Reserva Confirmada",
                                     message = "Tu reserva en el salón se está procesando."
                                 )
-                                //  Aplicamos formato y limpieza
+
                                 val matriculaFormateada = formatearMatricula(matriculaSinFormato)
-                                val matriculaParaApi = matriculaFormateada //  Usa el formato xxxx-xxxx si tu backend lo acepta
+                                val matriculaParaApi = matriculaFormateada
 
                                 val fechaFormateada = try {
                                     val fechaRaw = uiState.fecha.ifEmpty {
@@ -271,7 +263,7 @@ fun PagoSalonScreen(
                                     Triple(uiState.horaInicio, uiState.horaFin, calcularHoras(uiState.horaInicio, uiState.horaFin))
                                 }
 
-                                //  Enviamos la matrícula con formato xxxx-xxxx
+
                                 viewModel.confirmarReservacionSalonReuniones(
                                     getLista = { DatosPersonalesSalonStore.lista },
                                     getMetodoPagoSeleccionado = { DatosPersonalesSalonStore.metodoPagoSeleccionado },
@@ -281,7 +273,7 @@ fun PagoSalonScreen(
                                     horaInicio = horaInicio,
                                     horaFin = horaFin,
                                     fecha = fechaFormateada,
-                                    matricula = matriculaParaApi, // ← ahora sí existe
+                                    matricula = matriculaParaApi,
                                     cantidadHoras = cantidadHoras,
                                     miembros = datosPersonales.map { it.matricula },
                                     tipoReserva = 5
@@ -376,7 +368,7 @@ fun formatearMatricula(matricula: String): String {
     return if (limpia.length == 8 && limpia.all { it.isDigit() }) {
         "${limpia.substring(0, 4)}-${limpia.substring(4)}"
     } else {
-        matricula // devuelve sin cambios si no es válida
+        matricula
     }
 }
 

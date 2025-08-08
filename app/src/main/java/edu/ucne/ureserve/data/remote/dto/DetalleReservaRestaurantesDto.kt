@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DetalleReservaRestaurantesDto(
     val detalleReservaRestauranteId: Int = 0,
-    // Datos personales
     val nombre: String,
     val apellidos: String,
     val cedula: String,

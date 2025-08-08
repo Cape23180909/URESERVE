@@ -111,7 +111,6 @@ class EmpleadoViewModel @Inject constructor(
         }
     }
 
-
     fun actualizarDisponibilidadProyectores(id: Int, disponible: Boolean) {
         viewModelScope.launch {
             try {

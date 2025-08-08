@@ -105,8 +105,6 @@ fun ModificarReservaLaboratorioScreen(
         state.horaFin?.let { endTime = it }
     }
 
-
-
     Scaffold(
         topBar = {
             Column {
@@ -185,12 +183,8 @@ fun ModificarReservaLaboratorioScreen(
                         "Hora: ${startTime.format(DateTimeFormatter.ofPattern("HH:mm"))} - ${endTime.format(DateTimeFormatter.ofPattern("HH:mm"))}",
                         color = Color.White
                     )
-
-
                 }
             }
-
-
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
@@ -215,7 +209,6 @@ fun ModificarReservaLaboratorioScreen(
 
             Button(
                 onClick = {
-                    // Mostrar notificación de éxito
                     notificationHandler.showNotification(
                         title = "Cambios detectados",
                         message = "Los cambios fueron guardados correctamente."
@@ -237,7 +230,6 @@ fun ModificarReservaLaboratorioScreen(
             ) {
                 Text("GUARDAR CAMBIOS", fontWeight = FontWeight.Bold)
             }
-
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -261,7 +253,6 @@ fun ModificarReservaLaboratorioScreen(
             DatePickerDialog(
                 onDismissRequest = { showDatePicker = false },
                 confirmButton = {
-                    // En DatePickerDialog confirmButton:
                     Button(onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val newDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
@@ -305,7 +296,6 @@ fun ModificarReservaLaboratorioScreen(
                     }
                 },
                 confirmButton = {
-                    // En TimePicker confirmButton:
                     Button(onClick = {
                         val newStart = LocalTime.of(startState.hour, startState.minute)
                         val newEnd = LocalTime.of(endState.hour, endState.minute)

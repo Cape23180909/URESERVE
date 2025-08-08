@@ -72,7 +72,7 @@ fun DisponibilidadAdminReservaScreen(
             ) {
                 Button(
                     onClick = {
-                        navController.navigate("empleadoproyector_En_Curso") // ← Navega a la pantalla de proyectores
+                        navController.navigate("empleadoproyector_En_Curso")
                     },
                     modifier = Modifier
                         .size(150.dp)

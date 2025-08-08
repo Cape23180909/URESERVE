@@ -73,7 +73,6 @@ fun ModificarReservaCubiculoScreen(
 ) {
 
     val context = LocalContext.current
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -202,8 +201,6 @@ fun ModificarReservaCubiculoScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
-
-                        // Mostrar notificación de éxito
                         notificationHandler.showNotification(
                             title = "Cambios detectados",
                             message = "Los cambios fueron guardados correctamente."
@@ -319,7 +316,6 @@ fun ModificarReservaCubiculoScreen(
         )
     }
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true, showSystemUi = true)

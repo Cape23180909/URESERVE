@@ -58,7 +58,6 @@ fun DashboardEmpleadoScreen(
     ) {
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Título
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -82,11 +81,10 @@ fun DashboardEmpleadoScreen(
             text = "Opciones de\nEmpleado",
             onClick = {
                 when (usuario.correoInstitucional) {
-                    "proyectores.ureserve@ucne.edu.do" -> navController.navigate("empleadoproyecto") //empleado exclusivo para el area de proyectores
-                    "laboratorio.ureserve@ucne.edu.do" -> navController.navigate("empleadolaboratorio")   //empleado exclusivo para el area de Laboratorios
-                    "cubiculos.ureserve@ucne.edu.do" -> navController.navigate("empleadoCubiculo")  //empleado exclusivo para el area de Cubiculos
-                    "restaurante.ureserve@ucne.edu.do" -> navController.navigate("empleadoRestaurante")  //empleado exclusivo para el area de Restaurantes
-                    else -> {} // Puedes mostrar un mensaje de error o ignorar
+                    "proyectores.ureserve@ucne.edu.do" -> navController.navigate("empleadoproyecto")
+                    "laboratorio.ureserve@ucne.edu.do" -> navController.navigate("empleadolaboratorio")
+                    "cubiculos.ureserve@ucne.edu.do" -> navController.navigate("empleadoCubiculo")
+                    "restaurante.ureserve@ucne.edu.do" -> navController.navigate("empleadoRestaurante")
                 }
             },
             rowAlignment = Arrangement.Start,
@@ -117,10 +115,8 @@ fun DashboardEmpleadoScreen(
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        // Botón cerrar sesión
         Button(
             onClick = {
-                // Mostrar notificación al cerrar sesión
                 notificationHandler.showNotification(
                     title = "Sesión Cerrada",
                     message = "Has cerrado sesión correctamente."

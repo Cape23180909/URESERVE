@@ -218,7 +218,7 @@ fun AgregarEstudianteScreen(
                                         if (usuarioEncontrado != null) {
                                             viewModel.addMember(usuarioEncontrado)
 
-                                            // Notificación exitosa
+
                                             notificationHandler.showNotification(
                                                 title = "Estudiante añadido",
                                                 message = "Matrícula ${matriculaLimpia} añadida correctamente."

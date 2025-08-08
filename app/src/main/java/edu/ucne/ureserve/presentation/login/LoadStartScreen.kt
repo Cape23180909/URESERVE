@@ -40,8 +40,6 @@ fun LoadStartScreen(
     onTimeout: () -> Unit = {}
 ) {
     val appBlueColor = Color(0xFF2E5C94)
-
-    // Animación de progreso
     var progress by remember { mutableStateOf(0f) }
 
     LaunchedEffect(Unit) {
@@ -76,14 +74,13 @@ fun LoadStartScreen(
                 color = Color.White
             )
 
-            // Más espacio para bajar la barra
             Spacer(modifier = Modifier.height(120.dp))
 
             GradientProgressBar(
                 progress = progress,
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
-                    .height(6.dp) // Barra más fina
+                    .height(6.dp)
             )
         }
     }
@@ -108,7 +105,7 @@ fun GradientProgressBar(progress: Float, modifier: Modifier = Modifier) {
         drawRoundRect(
             brush = gradientBrush,
             size = Size(width, size.height),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(3f, 3f) // también más redonda y fina
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(3f, 3f)
         )
     }
 }

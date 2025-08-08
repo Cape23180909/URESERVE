@@ -76,7 +76,6 @@ fun ReservaLaboratorioScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val fechaSeleccionada = Calendar.getInstance().apply { timeInMillis = fecha }
 
-
     LaunchedEffect(allMembers) {
         Log.d("ReservaLaboratorioScreen", "Miembros actualizados: ${allMembers.size}")
     }
@@ -335,7 +334,6 @@ fun ReservaLaboratorioScreen(
             ) {
                 Text("FINALIZAR", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
             }
-
         }
 
         Row(

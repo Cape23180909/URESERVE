@@ -1,6 +1,5 @@
 package edu.ucne.ureserve.data.remote.dto
 
-
 data class ReportesDto(
     val reporteId: Int = 0,
     val tipoReporte: Int = 0,

@@ -52,7 +52,6 @@ fun SalaVipReservationScreen(
 ) {
     val calendar = Calendar.getInstance()
     var selectedDate by remember { mutableStateOf<Calendar?>(null) }
-
     val isSunday = selectedDate?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
     val isDateValid = selectedDate != null && !isSunday
 
@@ -397,8 +396,6 @@ private fun ReservationButtonVip(
         }
     }
 }
-
-
 
 @Preview(showBackground = true)
 @Composable

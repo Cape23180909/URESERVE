@@ -55,12 +55,11 @@ import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 @Composable
 fun ReservaListScreen(
     navController: NavHostController? = null,
-
     onBottomNavClick: (String) -> Unit,
     viewModel: ReservaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    // Solicitud de permiso para notificaciones en Android 13+
+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -80,7 +79,6 @@ fun ReservaListScreen(
         viewModel.getReservasUsuario()
     }
 
-    // Observar cambios para refrescar
     val shouldRefresh by navController
         ?.previousBackStackEntry
         ?.savedStateHandle
@@ -90,7 +88,6 @@ fun ReservaListScreen(
     LaunchedEffect(shouldRefresh) {
         if (shouldRefresh == true) {
             viewModel.getReservasUsuario()
-            // Limpiar el estado para futuras navegaciones
             navController?.previousBackStackEntry
                 ?.savedStateHandle
                 ?.set("shouldRefresh", null)
@@ -178,7 +175,7 @@ fun ReservaListScreen(
                             reservas = reservas,
                             onReservaClick = { reserva ->
                                 val (nombreTipo, _) = getIconForTipo(reserva.tipoReserva)
-                                // Mostrar notificación al hacer clic
+
                                 notificationHandler.showNotification(
                                     title = "Reserva Seleccionada",
                                     message = "Has seleccionado una reserva de tipo $nombreTipo el ${reserva.fechaFormateada}."
@@ -250,7 +247,7 @@ fun ReservaCard(reserva: ReservacionesDto, onClick: () -> Unit) {
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = nombreTipo, // Muestra el nombre del tipo de reserva
+                    text = nombreTipo,
                     color = Color.Black,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -273,7 +270,6 @@ fun ReservaCard(reserva: ReservacionesDto, onClick: () -> Unit) {
         }
     }
 }
-
 
 fun getIconForTipo(tipo: Int): Pair<String, Int> {
     return when (tipo) {

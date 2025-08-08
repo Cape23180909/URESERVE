@@ -54,8 +54,8 @@ import kotlinx.coroutines.withContext
 @Composable
 fun GradientBackground(content: @Composable () -> Unit) {
     val colors = listOf(
-        Color(0xFFFFDF00),  // Amarillo
-        Color(0xFF0238BA)   // Azul
+        Color(0xFFFFDF00),
+        Color(0xFF0238BA)
     )
 
     Box(
@@ -81,16 +81,12 @@ fun LoginScreen(
 ) {
     val context = LocalContext.current
     val notificationHandler = remember { NotificationHandler(context) }
-
     val correo = remember { mutableStateOf("") }
     val clave = remember { mutableStateOf("") }
-
     val correoError = remember { mutableStateOf<String?>(null) }
     val claveError = remember { mutableStateOf<String?>(null) }
     val loginError = remember { mutableStateOf<String?>(null) }
-
     val isLoading = remember { mutableStateOf(false) }
-
 
     fun validateFields(): Boolean {
         var isValid = true
@@ -121,7 +117,7 @@ fun LoginScreen(
     fun login() {
         if (!validateFields()) return
 
-        isLoading.value = true // Mostrar círculo de carga
+        isLoading.value = true
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -131,10 +127,9 @@ fun LoginScreen(
                 }
 
                 withContext(Dispatchers.Main) {
-                    isLoading.value = false // Ocultar carga
+                    isLoading.value = false
                     if (usuarioValido != null) {
                         AuthManager.login(usuarioValido)
-                        // Mostrar notificación al iniciar sesión
                         notificationHandler.showNotification(
                             title = "Bienvenido",
                             message = "Hola ${usuarioValido.nombres} 👋"
@@ -152,7 +147,6 @@ fun LoginScreen(
             }
         }
     }
-
 
     GradientBackground {
         Surface(
@@ -182,7 +176,7 @@ fun LoginScreen(
                     label = { Text("Correo Institucional", color = Color.White) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(50.dp)), //  Bordes redondeados
+                        .clip(RoundedCornerShape(50.dp)),
                     singleLine = true,
                     isError = correoError.value != null,
                     leadingIcon = {
@@ -201,18 +195,12 @@ fun LoginScreen(
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-
-                        //  Fondo del campo en color 6D87A4
                         focusedContainerColor = Color(0xFF6D87A4),
                         unfocusedContainerColor = Color(0xFF6D87A4),
-
                         focusedLabelColor = Color.White,
                         unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-
-                        //  Borde del campo también en 6D87A4
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-
                         errorContainerColor = Color(0xFFFF6D6D).copy(alpha = 0.3f),
                         errorIndicatorColor = Color(0xFFFF6D6D)
                     )
@@ -281,16 +269,14 @@ fun LoginScreen(
                         containerColor = Color(0xFF6D87A4),
                         contentColor = Color.White
                     ),
-                    enabled = !isLoading.value // desactiva el botón mientras carga
+                    enabled = !isLoading.value
                 ) {
                     Text("Conectar", fontSize = 16.sp)
                 }
 
-// Imagen animada o rotatoria
                 if (isLoading.value) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Rotación simulada (si es imagen estática PNG)
                     val infiniteTransition = rememberInfiniteTransition()
                     val rotation by infiniteTransition.animateFloat(
                         initialValue = 0f,
@@ -320,7 +306,7 @@ fun LoginScreen(
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen(onLoginSuccess = {}) // Ahora cumple con la firma
+    LoginScreen(onLoginSuccess = {})
 }
 
 object AuthManager {

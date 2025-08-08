@@ -30,7 +30,7 @@ class AuthRepository @Inject constructor(
                     .find { it.correoInstitucional == firebaseUser.email }
 
                 usuarioDto?.let {
-                    db.usuarioDao().save(it.toEntity())  // guarda localmente para offline
+                    db.usuarioDao().save(it.toEntity())
                 }
             }
 
@@ -43,13 +43,10 @@ class AuthRepository @Inject constructor(
     fun getLocalUserByEmail(email: String): Flow<UsuarioEntity?> =
         db.usuarioDao().getUserByEmail(email)
 
-    // Signup con Firebase, guarda usuario en Room después de registro exitoso
     fun signUp(email: String, password: String): Flow<Resource<AuthResult>> = flow {
         try {
             emit(Resource.Loading())
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-
-            // Puedes crear el usuario en tu API aquí si quieres (no incluido)
 
             emit(Resource.Success(result))
         } catch (e: Exception) {
@@ -57,21 +54,17 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    // Obtener el usuario actualmente guardado localmente (offline)
     fun getLocalUser(): Flow<UsuarioEntity?> = flow {
         val localUser = db.usuarioDao().getAll().first().firstOrNull()
         emit(localUser)
     }
 
-    // Obtener email del usuario autenticado en Firebase
     fun getUserEmail(): String? = auth.currentUser?.email
 
-    // Cerrar sesión en Firebase
     fun logout() {
         auth.signOut()
     }
 
-    // Obtener usuario Firebase actual
     fun getCurrentUser() = auth.currentUser
 
 }

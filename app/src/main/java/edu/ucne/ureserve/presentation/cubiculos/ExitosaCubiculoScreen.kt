@@ -74,7 +74,6 @@ fun ExitosaCubiculoScreen(
                         fontWeight = FontWeight.Bold
                     )
 
-                    // Aquí va lo que querías copiar exactamente
                     Text(
                         text = "Código de reserva:",
                         color = Color.Gray,
@@ -91,7 +90,7 @@ fun ExitosaCubiculoScreen(
                     Button(
                         onClick = {
                             navController.navigate("Dashboard") {
-                                popUpTo(0)  // Limpiar el back stack
+                                popUpTo(0)
                             }
                         },
                         colors = ButtonDefaults.buttonColors(

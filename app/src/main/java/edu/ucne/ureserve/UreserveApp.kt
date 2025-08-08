@@ -1,11 +1,11 @@
 package edu.ucne.ureserve
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import com.google.firebase.FirebaseApp
+import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class UreserveApp : Application (){
@@ -23,7 +23,6 @@ class UreserveApp : Application (){
             val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
 
-            // Inicializar Firebase solo si no se ha inicializado
             if (FirebaseApp.getApps(this).isEmpty()) {
                 FirebaseApp.initializeApp(this)
             }

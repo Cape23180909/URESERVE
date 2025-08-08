@@ -151,7 +151,6 @@ fun formatoFecha(calendar: Calendar): String {
     return dateFormat.format(calendar.time)
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LaboratorioCard(

@@ -92,7 +92,6 @@ class ReservaCubiculoViewModel @Inject constructor(
         _errorMessage.value = null
     }
 
-
     fun addMember(member: UsuarioDTO) {
         addMemberIfNotExists(member)
     }
@@ -154,7 +153,6 @@ class ReservaCubiculoViewModel @Inject constructor(
         }
     }
 
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun modificarReservaCubiculo(
         onSuccess: () -> Unit,
@@ -172,8 +170,6 @@ class ReservaCubiculoViewModel @Inject constructor(
                 val horaInicio = state.horaInicio ?: throw Exception("Seleccione hora de inicio")
                 val horaFin = state.horaFin ?: throw Exception("Seleccione hora de fin")
 
-
-
                 val fechaZoned = ZonedDateTime.of(
                     fecha,
                     horaInicio,
@@ -183,7 +179,7 @@ class ReservaCubiculoViewModel @Inject constructor(
                 val reservacionDto = ReservacionesDto(
                     reservacionId = state.reservaId,
                     codigoReserva = state.codigoReserva ?: (100000..999999).random(),
-                    tipoReserva = 2, // Tipo de reserva para cubículos
+                    tipoReserva = 2,
                     fecha = fechaZoned,
                     horaInicio = horaInicio.toString(),
                     horaFin = horaFin.toString(),
@@ -280,7 +276,6 @@ class ReservaCubiculoViewModel @Inject constructor(
             }
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerFechaActual(): String {

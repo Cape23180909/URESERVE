@@ -69,9 +69,9 @@ fun CubiculoSwitchScreen(
         Column(
             modifier = Modifier
                 .verticalScroll(scrollState)
-                .padding(bottom = 16.dp) // Espacio para el botón
+                .padding(bottom = 16.dp)
         ) {
-            // Header
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -93,7 +93,6 @@ fun CubiculoSwitchScreen(
                 )
             }
 
-            // Título
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -118,7 +117,6 @@ fun CubiculoSwitchScreen(
                 }
             }
 
-            // Lista de cubículos o loader
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -161,7 +159,6 @@ fun CubiculoSwitchScreen(
                 }
             }
 
-            // Botón volver al final
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier

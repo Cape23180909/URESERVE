@@ -26,7 +26,6 @@ class DetalleReservaProyectorsRepository @Inject constructor(
             emit(Resource.Error("Error desconocido: ${e.message}"))
         }
     }
-
     suspend fun getDetalleReservaProyector(id: Int): DetalleReservaProyectorsDto =
         remoteDataSource.getDetalleReservaProyector(id)
 

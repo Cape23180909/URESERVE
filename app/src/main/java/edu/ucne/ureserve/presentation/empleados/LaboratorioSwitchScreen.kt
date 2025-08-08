@@ -152,7 +152,7 @@ fun LaboratorioSwitchScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp)) // Espacio antes del botón
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
@@ -170,7 +170,7 @@ fun LaboratorioSwitchScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp)) // Padding extra al final
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -182,12 +182,10 @@ fun LaboratorioItem(
     disponible: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    // Estado local para manejar el estado del switch mientras se espera la respuesta del servidor
     var currentState by remember(disponible) { mutableStateOf(disponible) }
     var showError by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Efecto para manejar cambios en el estado
     LaunchedEffect(disponible) {
         currentState = disponible
     }
@@ -199,7 +197,6 @@ fun LaboratorioItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Columna para el icono y el texto
         Column(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
@@ -236,13 +233,11 @@ fun LaboratorioItem(
             Switch(
                 checked = currentState,
                 onCheckedChange = { newState ->
-                    // Cambio inmediato para feedback visual
                     currentState = newState
-                    // Llamar a la función de cambio
+
                     try {
                         onCheckedChange(newState)
                     } catch (e: Exception) {
-                        // Revertir el cambio si hay error
                         currentState = !newState
                         showError = true
                     }
@@ -257,7 +252,6 @@ fun LaboratorioItem(
         }
     }
 
-    // Mostrar error si ocurre
     if (showError) {
         LaunchedEffect(showError) {
             Toast.makeText(
