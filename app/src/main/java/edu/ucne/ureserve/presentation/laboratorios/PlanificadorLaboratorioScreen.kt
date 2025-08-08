@@ -244,7 +244,7 @@ fun PlanificadorLaboratorioScreen(
                         title = "Confirmación",
                         message = "Horario confirmado: $horaInicioSeleccionada - $horaFinSeleccionada"
                     )
-                    val route = "reservaLaboratorio/$laboratorioId/$horaInicioSeleccionada/$horaFinSeleccionada/$fechaMillis"
+                    val route = "reservaLaboratorio/$laboratorioId/$horaInicioSeleccionada/$horaFinSeleccionada/$fechaMillis/$laboratorioNombre"
                     navController.navigate(route)
                 },
                 modifier = Modifier
