@@ -539,12 +539,13 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         }
 
         composable(
-            route = "reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}/{fecha}",
+            route = "reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}/{fecha}/{laboratorioNombre}",
             arguments = listOf(
                 navArgument("laboratorioId") { type = NavType.IntType },
                 navArgument("horaInicio") { type = NavType.StringType },
                 navArgument("horaFin") { type = NavType.StringType },
-                navArgument("fecha") { type = NavType.LongType }
+                navArgument("fecha") { type = NavType.LongType },
+                navArgument("laboratorioNombre") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val laboratorioId = backStackEntry.arguments?.getInt("laboratorioId")
@@ -560,6 +561,8 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                     carrera = "Ingeniería en Sistemas"
                 )
             }
+            val laboratorioNombre = backStackEntry.arguments?.getString("laboratorioNombre").orEmpty()
+
             ReservaLaboratorioScreen(
                 laboratorioId = laboratorioId,
                 navController = navController,
@@ -567,13 +570,14 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 estudiante = estudiante,
                 horaInicio = horaInicio,
                 horaFin = horaFin,
-                fecha = fecha
+                fecha = fecha,
+                laboratorioNombre = laboratorioNombre
             )
         }
 
         composable("AgregarEstudianteLaboratorio") { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}/{fecha}")
+                navController.getBackStackEntry("reservaLaboratorio/{laboratorioId}/{horaInicio}/{horaFin}/{fecha}/{laboratorioNombre}")
             }
 
             val viewModel: ReservaLaboratorioViewModel = hiltViewModel(parentEntry)
@@ -595,7 +599,6 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 }
             )
         }
-
 
         composable(
             route = "ReservaLaboratorioExitosa/{codigo}",
