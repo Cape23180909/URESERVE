@@ -74,7 +74,7 @@ fun EmpleadoproyectoScreen(
 
                     Button(
                         onClick = {
-                            navController.navigate("proyector_switch") // ← Navega a la pantalla de proyectores
+                            navController.navigate("proyector_switch")
                         },
                         modifier = Modifier
                             .fillMaxWidth()
