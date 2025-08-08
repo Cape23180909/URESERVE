@@ -187,16 +187,19 @@ class ReservaLaboratorioViewModel @Inject constructor(
     }
 
     fun initializeWithUser(usuario: UsuarioDTO) {
-        Log.d("ViewModel", "Inicializando con usuario: ${usuario.nombres}")
         _uiState.update { state ->
             if (state.miembros.none { it.usuarioId == usuario.usuarioId }) {
                 state.copy(
-                    miembros = state.miembros + usuario,
+                    miembros = listOf(usuario) + state.miembros,
                     cantidadEstudiantes = state.miembros.size + 1
                 )
             } else {
                 state
             }
+        }
+        val currentMembers = _members.value.toMutableList()
+        if (currentMembers.none { it.usuarioId == usuario.usuarioId }) {
+            _members.value = listOf(usuario) + currentMembers
         }
     }
 
