@@ -30,7 +30,7 @@ class ReservacionRepository @Inject constructor(
         }
     }
 
-    suspend fun guardarTarjeta(tarjeta: TarjetaCreditoDto) {
+    suspend fun aceptarTarjeta(tarjeta: TarjetaCreditoDto) {
         apiTarjeta.insert(tarjeta)
     }
 
