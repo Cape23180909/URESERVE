@@ -25,6 +25,9 @@ import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.presentation.admin.DashboardAdminScreen
+import edu.ucne.ureserve.presentation.admin.DisponibilidadAdminReservaScreen
+import edu.ucne.ureserve.presentation.admin.DisponibilidadAdminScreen
+import edu.ucne.ureserve.presentation.admin.OptionAdminScreen
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
@@ -1454,6 +1457,24 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
 
         composable("restaurante_switch") {
             RestauranteSwitchScreen(
+                navController = navController
+            )
+        }
+
+        composable("OptionAdmin") {
+            OptionAdminScreen(
+               navController = navController
+            )
+        }
+
+        composable("DisponibilidadAdmin") {
+            DisponibilidadAdminScreen(
+                navController = navController
+            )
+        }
+
+        composable("Reserva_en_curso"){
+            DisponibilidadAdminReservaScreen(
                 navController = navController
             )
         }
