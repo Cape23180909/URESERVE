@@ -430,7 +430,7 @@ class RestaurantesViewModel @Inject constructor(
                     val tarjeta = getTarjetaCredito()
                     if (tarjeta != null) {
                         try {
-                            reservacionRepository.guardarTarjeta(tarjeta)
+                            reservacionRepository.aceptarTarjeta(tarjeta)
                             Log.d("Reserva", "Tarjeta guardada")
                         } catch (e: Exception) {
                             Log.e("Reserva", "Error al guardar tarjeta: ${e.message}")
@@ -583,7 +583,7 @@ class RestaurantesViewModel @Inject constructor(
                     val tarjeta = getTarjetaCredito()
                     if (tarjeta != null) {
                         try {
-                            reservacionRepository.guardarTarjeta(tarjeta)
+                            reservacionRepository.aceptarTarjeta(tarjeta)
                             Log.d("Reserva", "Tarjeta guardada")
                         } catch (e: Exception) {
                             Log.e("Reserva", "Error al guardar tarjeta: ${e.message}")
@@ -736,7 +736,7 @@ class RestaurantesViewModel @Inject constructor(
                     val tarjeta = getTarjetaCredito()
                     if (tarjeta != null) {
                         try {
-                            reservacionRepository.guardarTarjeta(tarjeta)
+                            reservacionRepository.aceptarTarjeta(tarjeta)
                             Log.d("Reserva", "Tarjeta guardada")
                         } catch (e: Exception) {
                             Log.e("Reserva", "Error al guardar tarjeta: ${e.message}")
