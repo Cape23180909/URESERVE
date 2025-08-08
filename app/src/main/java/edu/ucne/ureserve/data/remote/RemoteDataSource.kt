@@ -5,7 +5,6 @@ import edu.ucne.ureserve.data.remote.dto.DetalleReservaCubiculosDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaLaboratoriosDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaProyectorsDto
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaRestaurantesDto
-import edu.ucne.ureserve.data.remote.dto.LaboratoriosDto
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
 import edu.ucne.ureserve.data.remote.dto.ReportesDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
@@ -18,7 +17,6 @@ import javax.inject.Inject
 class RemoteDataSource @Inject constructor(
     private val api: UsuarioApi,
     private val apicubiculo: CubiculosApi,
-    private val apilaboratorio: LaboratoriosApi,
     private val apiReportes: ReportesApi,
     private val apiReservaciones: ReservacionesApi,
     private val apiRestaurantes: RestaurantesApi,
@@ -33,20 +31,10 @@ class RemoteDataSource @Inject constructor(
 
     suspend fun getCubiculos(): List<CubiculosDto> = apicubiculo.getAll()
     suspend fun createCubiculo(cubiculo: CubiculosDto): CubiculosDto = apicubiculo.insert(cubiculo)
-    suspend fun getCubiculo(id: Int): CubiculosDto = apicubiculo.getById(id)
     suspend fun updateCubiculo(id: Int, cubiculo: CubiculosDto): CubiculosDto =
         apicubiculo.update(id, cubiculo)
 
     suspend fun deleteCubiculo(id: Int) = apicubiculo.delete(id)
-
-    suspend fun getLaboratorios(): List<LaboratoriosDto> = apilaboratorio.getAll()
-    suspend fun createLaboratorio(laboratorio: LaboratoriosDto): LaboratoriosDto =
-        apilaboratorio.insert(laboratorio)
-    suspend fun getLaboratorio(id: Int): LaboratoriosDto = apilaboratorio.getById(id)
-    suspend fun updateLaboratorio(id: Int, laboratorio: LaboratoriosDto): LaboratoriosDto =
-        apilaboratorio.update(id, laboratorio)
-
-    suspend fun deleteLaboratorio(id: Int) = apilaboratorio.delete(id)
 
     suspend fun getProyectores(): List<ProyectoresDto> = apiproyector.getAll()
     suspend fun createProyector(proyector: ProyectoresDto): ProyectoresDto =
@@ -81,8 +69,6 @@ class RemoteDataSource @Inject constructor(
 
     suspend fun updateReservacion(id: Int, reservacion: ReservacionesDto): Response<ReservacionesDto> =
         apiReservaciones.update(id, reservacion)
-
-    suspend fun deleteReservacion(id: Int) = apiReservaciones.delete(id)
 
     suspend fun getRestaurantes(): List<RestaurantesDto> = apiRestaurantes.getAll()
     suspend fun createRestaurante(restaurante: RestaurantesDto): RestaurantesDto =
