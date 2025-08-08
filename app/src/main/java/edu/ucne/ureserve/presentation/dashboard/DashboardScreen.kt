@@ -28,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -84,7 +83,7 @@ fun DashboardScreen(
                         .size(50.dp)
                         .clip(CircleShape)
                         .clickable {
-                            onProfileIconClick() // Nueva prop que añadiremos
+                            onProfileIconClick()
                         },
                     contentScale = ContentScale.Crop
                 )
@@ -146,9 +145,8 @@ fun DashboardScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp)) // Espacio antes de "Mis Reservas"
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // Sección "Mis Reservas"
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -180,9 +178,8 @@ fun DashboardScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(92.dp)) // Distribuye el espacio restante aquí
+        Spacer(modifier = Modifier.height(92.dp))
 
-        // Barra de navegación inferior
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -193,7 +190,7 @@ fun DashboardScreen(
             BottomNavItem(
                 iconRes = R.drawable.icon_tutorial,
                 label = "Tutorial",
-                onClick = { onBottomNavClick("Tutorial") } // Esto lo conecta
+                onClick = { onBottomNavClick("Tutorial") }
             )
 
             BottomNavItem(
@@ -279,7 +276,6 @@ fun BottomNavItem(
 fun DashboardScreenPreview() {
     MaterialTheme {
 
-        // Datos falsos (dummy data) para el preview
         val dummyUsuario = UsuarioDTO(nombres = "Juan", apellidos = "Pérez")
         val dummyEstudiante = EstudianteDto(matricula = "2020-0001")
 

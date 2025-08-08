@@ -82,7 +82,7 @@ fun EmpleadoRestauranteScreen(
 
                     Button(
                         onClick = {
-                            navController.navigate("restaurante_switch") // ← Navega a la pantalla de proyectores
+                            navController.navigate("restaurante_switch")
                         },
                         modifier = Modifier
                             .fillMaxWidth()

@@ -1,12 +1,23 @@
 package edu.ucne.ureserve.presentation.login
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -29,8 +40,6 @@ fun LoadStartScreen(
     onTimeout: () -> Unit = {}
 ) {
     val appBlueColor = Color(0xFF2E5C94)
-
-    // Animación de progreso
     var progress by remember { mutableStateOf(0f) }
 
     LaunchedEffect(Unit) {
@@ -65,14 +74,13 @@ fun LoadStartScreen(
                 color = Color.White
             )
 
-            // Más espacio para bajar la barra
             Spacer(modifier = Modifier.height(120.dp))
 
             GradientProgressBar(
                 progress = progress,
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
-                    .height(6.dp) // Barra más fina
+                    .height(6.dp)
             )
         }
     }
@@ -97,7 +105,7 @@ fun GradientProgressBar(progress: Float, modifier: Modifier = Modifier) {
         drawRoundRect(
             brush = gradientBrush,
             size = Size(width, size.height),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(3f, 3f) // también más redonda y fina
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(3f, 3f)
         )
     }
 }

@@ -5,12 +5,47 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.Text
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,7 +63,10 @@ import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
-import java.time.*
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -40,7 +78,6 @@ fun ModificarReservaSalonScreen(
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -57,18 +94,13 @@ fun ModificarReservaSalonScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    // Estados para fecha y hora
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var startTime by remember { mutableStateOf(LocalTime.NOON) }
     var endTime by remember { mutableStateOf(LocalTime.NOON.plusHours(1)) }
-
-    // Estados originales para comparar cambios
     var originalDate by remember { mutableStateOf<LocalDate?>(null) }
     var originalStartTime by remember { mutableStateOf<LocalTime?>(null) }
     var originalEndTime by remember { mutableStateOf<LocalTime?>(null) }
 
-    // Determinar si hay cambios
     val hasChanges = remember {
         derivedStateOf {
             selectedDate != originalDate ||
@@ -77,7 +109,6 @@ fun ModificarReservaSalonScreen(
         }
     }
 
-    // Cargar datos de la reserva al iniciar
     LaunchedEffect(reservaId) {
         reservaId?.let { id ->
             try {
@@ -170,7 +201,6 @@ fun ModificarReservaSalonScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // Tarjeta con información actual
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
@@ -187,7 +217,6 @@ fun ModificarReservaSalonScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botón para cambiar fecha
             Button(
                 onClick = { showDatePicker = true },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
@@ -201,10 +230,8 @@ fun ModificarReservaSalonScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Botón para guardar cambios
             Button(
                 onClick = {
-                    // Mostrar notificación de éxito
                     notificationHandler.showNotification(
                         title = "Cambios detectados",
                         message = "Los cambios fueron guardados correctamente."
@@ -216,7 +243,7 @@ fun ModificarReservaSalonScreen(
                             nuevaHoraInicio = startTime,
                             nuevaHoraFin = endTime,
                             onSuccess = {
-                                // Navegar a la lista de reservas y limpiar el backstack
+
                                 navController?.navigate("reservaList") {
                                     popUpTo("modificar_salon/$id") { inclusive = true }
                                 }
@@ -245,7 +272,6 @@ fun ModificarReservaSalonScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Botón para regresar
             Button(
                 onClick = { navController?.popBackStack() },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94)),
@@ -258,7 +284,6 @@ fun ModificarReservaSalonScreen(
             }
         }
 
-        // Selector de fecha
         if (showDatePicker) {
             val datePickerState = rememberDatePickerState(
                 initialSelectedDateMillis = selectedDate
@@ -284,7 +309,7 @@ fun ModificarReservaSalonScreen(
                                 .atZone(ZoneId.systemDefault())
                                 .toLocalDate()
                         }
-                        // Notificación de éxito
+
                         notificationHandler.showNotification(
                             title = "Fecha modificada",
                             message = "La nueva fecha fue seleccionada correctamente."
@@ -313,7 +338,6 @@ fun ModificarReservaSalonScreen(
             }
         }
 
-        // Selector de horario
         if (showTimePicker) {
             val startState = rememberTimePickerState(startTime.hour, startTime.minute)
             val endState = rememberTimePickerState(endTime.hour, endTime.minute)
@@ -334,7 +358,7 @@ fun ModificarReservaSalonScreen(
                     Button(onClick = {
                         startTime = LocalTime.of(startState.hour, startState.minute)
                         endTime = LocalTime.of(endState.hour, endState.minute)
-                        // Notificación de éxito
+
                         notificationHandler.showNotification(
                             title = "Horario actualizado",
                             message = "El nuevo horario fue seleccionado correctamente."

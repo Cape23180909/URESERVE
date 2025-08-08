@@ -3,12 +3,24 @@ package edu.ucne.ureserve.presentation.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,7 +44,6 @@ val Azul = Color(0xFF023E8A)
 
 @Composable
 fun ProfileScreen(
-
     usuario: UsuarioDTO,
     estudiante: EstudianteDto,
     onLogout: () -> Unit,
@@ -41,7 +52,6 @@ fun ProfileScreen(
     val notificationHandler = remember { NotificationHandler(context) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Fondo superior amarillo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -49,14 +59,12 @@ fun ProfileScreen(
                 .background(Amarillo)
         )
 
-        // Contenido principal en un Column que ocupa todo el espacio
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Fondo inferior azul con contenido
             Box(
                 modifier = Modifier
-                    .weight(1f) // Ocupa todo el espacio disponible
+                    .weight(1f)
                     .padding(top = 100.dp)
                     .clip(RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp))
                     .background(Azul)
@@ -67,7 +75,6 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .padding(top = 60.dp, start = 16.dp, end = 16.dp)
                 ) {
-                    // Nombre
                     Text(
                         text = "${usuario.nombres}",
                         fontSize = 18.sp,
@@ -82,7 +89,6 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Información del usuario
                     UserInfoRow(
                         icon = painterResource(id = R.drawable.icon_mensaje),
                         label = "Correo Electrónico",
@@ -101,10 +107,8 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(122.dp))
 
-                    // Botón cerrar sesión con notificación
                     Button(
                         onClick = {
-                            // Mostrar notificación al cerrar sesión
                             notificationHandler.showNotification(
                                 title = "Sesión Cerrada",
                                 message = "Has cerrado sesión correctamente."
@@ -126,7 +130,6 @@ fun ProfileScreen(
                         )
                     }
 
-                    // Espacio flexible para empujar el contenido hacia arriba
                     Spacer(modifier = Modifier.height(122.dp))
                 }
             }
@@ -157,7 +160,6 @@ fun ProfileScreen(
             }
         }
 
-        // Imagen de perfil flotante
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -252,7 +254,7 @@ fun ProfileScreenPreview() {
 
     ProfileScreen(
         usuario = usuarioPrueba,
-        estudiante = estudiantePrueba,  // Añade este parámetro
+        estudiante = estudiantePrueba,
         onLogout = {}
     )
 }

@@ -7,7 +7,19 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import edu.ucne.ureserve.data.remote.*
+import edu.ucne.ureserve.data.remote.CubiculosApi
+import edu.ucne.ureserve.data.remote.DetalleReservaCubiculosApi
+import edu.ucne.ureserve.data.remote.DetalleReservaLaboratoriosApi
+import edu.ucne.ureserve.data.remote.DetalleReservaProyectorsApi
+import edu.ucne.ureserve.data.remote.DetalleReservaRestaurantesApi
+import edu.ucne.ureserve.data.remote.LaboratoriosApi
+import edu.ucne.ureserve.data.remote.ProyectoresApi
+import edu.ucne.ureserve.data.remote.ReportesApi
+import edu.ucne.ureserve.data.remote.ReservacionesApi
+import edu.ucne.ureserve.data.remote.RestaurantesApi
+import edu.ucne.ureserve.data.remote.TarjetaCreditoApi
+import edu.ucne.ureserve.data.remote.TipoCargoesApi
+import edu.ucne.ureserve.data.remote.UsuarioApi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -21,7 +33,6 @@ object ApiModule {
 
     private const val BASE_URL = "https://ureserve-hghra5gdhzgzdghk.eastus2-01.azurewebsites.net/"
 
-    // Instancia estática accesible como ApiModule.api
     val api: UsuarioApi by lazy {
         val moshi = Moshi.Builder()
             .add(KotlinJsonAdapterFactory())

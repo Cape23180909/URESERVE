@@ -5,14 +5,31 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,7 +46,8 @@ import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -52,7 +70,6 @@ fun ReservasenCursoProyectorScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -206,7 +223,7 @@ fun ProyectorReservationItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() } // Hacer que el Row sea clickeable
+            .clickable { onClick() }
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -252,8 +269,8 @@ fun ProyectorReservationItem(
 
 private fun parsearFechaHoraSeguro(fecha: String, hora: String): Date? {
     return try {
-        val fechaLimpia = fecha.take(10) // Asegura formato yyyy-MM-dd
-        val horaLimpia = hora.take(5) // Asegura formato HH:mm
+        val fechaLimpia = fecha.take(10)
+        val horaLimpia = hora.take(5)
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
         sdf.parse("$fechaLimpia $horaLimpia")
     } catch (e: Exception) {
@@ -270,7 +287,6 @@ private fun formatearTiempoRestante(diferencia: Long): String {
     val segundosRestantes = segundos % 60
     return String.format("%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)

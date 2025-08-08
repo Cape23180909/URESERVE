@@ -4,14 +4,32 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,7 +47,8 @@ import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -52,7 +71,6 @@ fun ReservasenCursoRestauranteScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Barra gris superior
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -74,7 +92,6 @@ fun ReservasenCursoRestauranteScreen(
                 )
             }
 
-            // Título
             Text(
                 text = "Reservas de restaurantes en Curso",
                 fontSize = 23.sp,
@@ -86,7 +103,6 @@ fun ReservasenCursoRestauranteScreen(
                     .padding(16.dp)
             )
 
-            // Contenido principal
             when (state) {
                 is ReservaViewModel.ReservaListState.Loading -> {
                     Text(
@@ -128,9 +144,9 @@ fun ReservasenCursoRestauranteScreen(
                             ReservationRestauranteItem(
                                 reserva = reserva,
                                 color = when (reserva.tipoReserva) {
-                                    4 -> Color(0xFFFFA500)  // Naranja SalaVIP
-                                    5 -> Color(0xFFADD8E6)  // Azul SalaReuniones
-                                    else -> Color(0xFF6EE610)  // Verde Restaurante
+                                    4 -> Color(0xFFFFA500)
+                                    5 -> Color(0xFFADD8E6)
+                                    else -> Color(0xFF6EE610)
                                 },
                                 onClick = {
                                     val encodedMatricula = Uri.encode(reserva.matricula)
@@ -186,8 +202,8 @@ fun ReservationRestauranteItem(
 
     fun parsearFechaHoraSeguro(fecha: String, hora: String): Date? {
         return try {
-            val fechaLimpia = fecha.take(10) // yyyy-MM-dd
-            val horaLimpia = hora.take(8) // HH:mm:ss
+            val fechaLimpia = fecha.take(10)
+            val horaLimpia = hora.take(8)
             val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
             sdf.parse("$fechaLimpia $horaLimpia")
         } catch (e: Exception) {
@@ -206,7 +222,7 @@ fun ReservationRestauranteItem(
     }
 
     LaunchedEffect(reserva.fecha, reserva.horaFin) {
-        val fechaHoraFin = parsearFechaHoraSeguro(reserva.fecha, "23:59:59") // Fin del día
+        val fechaHoraFin = parsearFechaHoraSeguro(reserva.fecha, "23:59:59")
         if (fechaHoraFin == null) {
             error = true
             tiempoRestante = "--:--"
@@ -227,9 +243,9 @@ fun ReservationRestauranteItem(
 
     val isActive = tiempoRestante != "Finalizado" && !error
     val iconRes = when (reserva.tipoReserva) {
-        4 -> R.drawable.sala // Sala VIP
-        5 -> R.drawable.salon // Salón de reuniones
-        else -> R.drawable.icon_restaurante // Restaurante
+        4 -> R.drawable.sala
+        5 -> R.drawable.salon
+        else -> R.drawable.icon_restaurante
     }
 
     val tipoReservaText = when (reserva.tipoReserva) {
@@ -291,7 +307,7 @@ fun ReservationRestauranteItem(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "00:00 a 23:59", // Hora de inicio y fin para un día completo
+                        text = "00:00 a 23:59",
                         fontSize = 12.sp,
                         color = if (isActive) Color.Black else Color.Gray,
                         fontWeight = FontWeight.Bold

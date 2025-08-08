@@ -1,5 +1,8 @@
 package edu.ucne.ureserve.data.remote.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class TarjetaCreditoDto (
     val tarjetaCreditoId: Int? = 0,
     val numeroTarjeta: String,

@@ -1,7 +1,6 @@
 package edu.ucne.ureserve.data.remote
 
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
-import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET

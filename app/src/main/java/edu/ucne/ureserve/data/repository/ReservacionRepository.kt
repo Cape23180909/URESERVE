@@ -9,13 +9,11 @@ import edu.ucne.ureserve.data.remote.TarjetaCreditoApi
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaRestaurantesDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.TarjetaCreditoDto
-import edu.ucne.ureserve.presentation.login.AuthManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
 import retrofit2.Response
 import javax.inject.Inject
-
 
 class ReservacionRepository @Inject constructor(
     private val remoteDataSource: RemoteDataSource,
@@ -23,20 +21,6 @@ class ReservacionRepository @Inject constructor(
     private val apiTarjeta: TarjetaCreditoApi,
     private val detalleReservaRestaurantesApi: DetalleReservaRestaurantesApi
 ) {
-    fun getReservaciones(): Flow<Resource<List<ReservacionesDto>>> = flow {
-        try {
-            emit(Resource.Loading())
-            val reservaciones = remoteDataSource.getReservaciones()
-            emit(Resource.Success(reservaciones))
-        } catch (e: HttpException) {
-            Log.e("Retrofit Error", "Error de conexión ${e.message}", e)
-            emit(Resource.Error("Error de internet: ${e.message}"))
-        } catch (e: Exception) {
-            Log.e("Error", "Error desconocido: ${e.message}", e)
-            emit(Resource.Error("Error desconocido: ${e.message}"))
-        }
-    }
-
     suspend fun getDetalleReserva(reservacionId: Int): DetalleReservaRestaurantesDto? {
         return try {
             detalleReservaRestaurantesApi.getById(reservacionId)
@@ -45,7 +29,6 @@ class ReservacionRepository @Inject constructor(
             null
         }
     }
-
 
     suspend fun guardarTarjeta(tarjeta: TarjetaCreditoDto) {
         apiTarjeta.insert(tarjeta)
@@ -57,12 +40,12 @@ class ReservacionRepository @Inject constructor(
         return reservas
     }
 
-    suspend fun guardarReserva(
+    fun guardarReserva(
         reservacionDto: ReservacionesDto
     ): Flow<Resource<ReservacionesDto>> = flow {
         try {
             emit(Resource.Loading())
-            val response = api.insert(reservacionDto) // usa tu POST declarado
+            val response = api.insert(reservacionDto)
             if (response.isSuccessful && response.body() != null) {
                 emit(Resource.Success(response.body()!!))
             } else {
@@ -75,7 +58,6 @@ class ReservacionRepository @Inject constructor(
         }
     }
 
-    //metodo Exclusivo para ver todas las reservas de los usuarios o estudiantes
     fun getReservas(): Flow<Resource<List<ReservacionesDto>>> = flow {
         try {
             emit(Resource.Loading())
@@ -90,11 +72,8 @@ class ReservacionRepository @Inject constructor(
         }
     }
 
-
-
     suspend fun guardarDetalleRestaurante(detalleDto: DetalleReservaRestaurantesDto): Boolean {
         return try {
-            // Usando tu método existente en RemoteDataSource
             remoteDataSource.createDetalleReservaRestaurante(detalleDto)
             true
         } catch (e: Exception) {
@@ -110,6 +89,4 @@ class ReservacionRepository @Inject constructor(
 
     suspend fun updateReservacion(reservacion: ReservacionesDto): Response<ReservacionesDto> =
         remoteDataSource.updateReservacion(reservacion.reservacionId, reservacion)
-
-    suspend fun deleteReservacion(id: Int) = remoteDataSource.deleteReservacion(id)
 }

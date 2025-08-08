@@ -1,13 +1,26 @@
 package edu.ucne.ureserve.presentation.restaurantes
 
-
 import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -41,16 +54,12 @@ fun SalonReunionesScreen(
     terminosAceptados: Boolean = false
 ) {
     val context = LocalContext.current
-
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
         } else null
 
     val notificationHandler = remember { NotificationHandler(context) }
-
     LaunchedEffect(true) {
         if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
             postNotificationPermission.launchPermissionRequest()
@@ -61,7 +70,6 @@ fun SalonReunionesScreen(
             .fillMaxSize()
             .background(Color(0xFF023E8A))
     ) {
-        // Encabezado
         TopAppBar(
             title = {
                 Row(
@@ -109,7 +117,6 @@ fun SalonReunionesScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Imagen del salón de reuniones
         Image(
             painter = painterResource(id = R.drawable.reuniones),
             contentDescription = "Imagen Salón de Reuniones",
@@ -120,7 +127,6 @@ fun SalonReunionesScreen(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        // Texto e ícono centrados juntos
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -154,7 +160,6 @@ fun SalonReunionesScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Botones
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -192,7 +197,6 @@ fun SalonReunionesScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Barra de navegación inferior
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -240,7 +244,6 @@ fun SalonReunionesScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSalonReunionesScreen() {
-    // Necesitarás un NavController mock para la vista previa
     val navController = rememberNavController()
     SalonReunionesScreen(
         navController = navController,

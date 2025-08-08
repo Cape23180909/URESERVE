@@ -5,8 +5,22 @@ import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -41,8 +55,6 @@ fun RestauranteScreen(
 ) {
     val context = LocalContext.current
 
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -60,7 +72,6 @@ fun RestauranteScreen(
             .fillMaxSize()
             .background(Color(0xFF023E8A))
     ) {
-        // Encabezado
         TopAppBar(
             title = {
                 Row(
@@ -107,7 +118,6 @@ fun RestauranteScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Imagen del restaurante
         Image(
             painter = painterResource(id = R.drawable.cafeteria),
             contentDescription = "Imagen Restaurante",
@@ -153,7 +163,6 @@ fun RestauranteScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Botones
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -172,7 +181,6 @@ fun RestauranteScreen(
             ) {
                 Text(text = "CANCELAR", color = Color.White)
             }
-
 
             Button(
                 onClick = {
@@ -196,7 +204,6 @@ fun RestauranteScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Barra de navegación inferior
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -254,11 +261,9 @@ fun BottomNavItem(iconRes: Int, label: String, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewRestauranteScreen() {
-    // Necesitarás un NavController mock para la vista previa
     val navController = rememberNavController()
     RestauranteScreen(
         navController = navController,
         onBottomNavClick = {}
     )
-
 }

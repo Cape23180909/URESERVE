@@ -7,7 +7,7 @@ import java.time.LocalTime
 data class ReservaLaboratorioUiState(
     val reservaId: Int? = null,
     val codigoReserva: Int? = null,
-    val tipoReserva: Int = 3, // 3 = Laboratorio
+    val tipoReserva: Int = 3,
     val cantidadEstudiantes: Int = 0,
     val fecha: LocalDate? = null,
     val horaInicio: LocalTime? = null,

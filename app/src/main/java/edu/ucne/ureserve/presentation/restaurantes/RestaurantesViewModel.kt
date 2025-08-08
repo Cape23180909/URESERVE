@@ -35,7 +35,6 @@ class RestaurantesViewModel @Inject constructor(
     private val remoteDataSource: RemoteDataSource
 ) : ViewModel() {
 
-
     private val _reservaConfirmada = MutableStateFlow(false)
     val reservaConfirmada = _reservaConfirmada.asStateFlow()
 
@@ -73,24 +72,18 @@ class RestaurantesViewModel @Inject constructor(
         viewModelScope.launch {
             _disponibilidad.value = DisponibilidadState.Loading
             try {
-                // Convertir fechas y horas al formato correcto
                 val fechaFormatted = LocalDate.parse(fecha).toString()
                 val horaInicioParsed = LocalTime.parse(horaInicio)
                 val horaFinParsed = LocalTime.parse(horaFin)
 
-                // Verificar que la hora de fin sea despuÃ©s de la hora de inicio
                 if (horaFinParsed.isBefore(horaInicioParsed)) {
                     _disponibilidad.value = DisponibilidadState.Error("La hora de fin no puede ser antes de la hora de inicio")
                     return@launch
                 }
 
-                // Obtener todos los restaurantes
                 val restaurantes = _restaurantes.value
 
-                // Filtrar restaurantes disponibles
                 val restaurantesDisponibles = restaurantes.filter { restaurante ->
-                    // AquÃ­ deberÃ­as implementar la lÃ³gica real de verificaciÃ³n de disponibilidad
-                    // Por ahora asumimos que todos estÃ¡n disponibles
                     true
                 }
 
@@ -115,20 +108,17 @@ class RestaurantesViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // Obtener la reserva principal
+
                 val reserva = reservacionRepository.getReservacion(reservaId)
                 _reservaSeleccionada.value = reserva
 
-                // Obtener el detalle de la reserva
                 val detalle = reservacionRepository.getDetalleReserva(reservaId)
                 _detalleReservaSeleccionada.value = detalle
 
-                // Parsear fecha y hora
                 val fechaReserva = LocalDate.parse(reserva.fecha.substring(0, 10))
                 val horaInicio = LocalTime.parse(reserva.horaInicio)
                 val horaFin = LocalTime.parse(reserva.horaFin)
 
-                // Actualizar el estado con los datos de la reserva
                 _uiState.update {
                     it.copy(
                         restauranteId = detalle?.let { d -> d.detalleReservaRestauranteId },
@@ -146,7 +136,6 @@ class RestaurantesViewModel @Inject constructor(
                     )
                 }
 
-                // Verificar disponibilidad
                 verificarDisponibilidad(
                     fechaReserva.toString(),
                     horaInicio.toString(),
@@ -200,8 +189,6 @@ class RestaurantesViewModel @Inject constructor(
         }
     }
 
-    // Agregar estas funciones al ViewModel
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun modificarReservaRestauranteCompleta(
         reservaId: Int,
@@ -217,26 +204,21 @@ class RestaurantesViewModel @Inject constructor(
             try {
                 val reservaActual = _reservaSeleccionada.value ?: throw Exception("No hay reserva seleccionada")
 
-                // Validar que la hora de fin sea después de la de inicio
                 if (nuevaHoraFin.isBefore(nuevaHoraInicio)) {
                     throw Exception("La hora de fin no puede ser antes de la hora de inicio")
                 }
-
-                // Formatear fecha con hora para el servidor
                 val fechaZoned = ZonedDateTime.of(
                     nuevaFecha,
                     nuevaHoraInicio,
                     ZoneId.systemDefault()
                 ).format(DateTimeFormatter.ISO_INSTANT)
 
-                // Actualizar reserva
                 val reservaActualizada = reservaActual.copy(
                     fecha = fechaZoned,
                     horaInicio = nuevaHoraInicio.toString(),
                     horaFin = nuevaHoraFin.toString()
                 )
 
-                // Actualizar en el repositorio
                 val response = reservacionRepository.updateReservacion(reservaActualizada)
 
                 if (response.isSuccessful) {
@@ -304,7 +286,6 @@ class RestaurantesViewModel @Inject constructor(
             }
         }
     }
-
 
     fun crearReservacionDesdeRestaurante(
         fecha: String,
@@ -382,7 +363,6 @@ class RestaurantesViewModel @Inject constructor(
                         .format(DateTimeFormatter.ISO_INSTANT)
                 }
 
-                // RESERVACIÃ“N BASE
                 val reservacionDto = ReservacionesDto(
                     reservacionId = 0,
                     codigoReserva = codigoReserva,
@@ -424,7 +404,6 @@ class RestaurantesViewModel @Inject constructor(
                     else -> throw IllegalArgumentException("Tipo de dato no soportado: ${datosPersonales::class.java.simpleName}")
                 }
 
-                // GUARDAR RESERVA
                 val resultadoReserva = try {
                     reservacionRepository.guardarReserva(reservacionDto).collect { resource ->
                         when (resource) {
@@ -439,7 +418,6 @@ class RestaurantesViewModel @Inject constructor(
                     false
                 }
 
-                // GUARDAR DETALLE
                 val resultadoDetalle = try {
                     reservacionRepository.guardarDetalleRestaurante(detalleDto)
                     true
@@ -448,7 +426,6 @@ class RestaurantesViewModel @Inject constructor(
                     false
                 }
 
-                // GUARDAR TARJETA (SI APLICA)
                 if (getMetodoPagoSeleccionado() == "Tarjeta de crÃ©dito") {
                     val tarjeta = getTarjetaCredito()
                     if (tarjeta != null) {
@@ -468,7 +445,6 @@ class RestaurantesViewModel @Inject constructor(
                     }
                 }
 
-                // ACTUALIZAR UI STATE FINAL
                 _uiState.update {
                     when {
                         !resultadoReserva -> it.copy(
@@ -538,10 +514,8 @@ class RestaurantesViewModel @Inject constructor(
                         .format(DateTimeFormatter.ISO_INSTANT)
                 }
 
-                // âœ… APLICAMOS EL FORMATO A LA MATRÃCULA ANTES DE CREAR EL DTO
                 val matriculaFormateada = formatearMatricula(matricula)
 
-                // RESERVACIÃ“N BASE
                 val reservacionDto = ReservacionesDto(
                     reservacionId = 0,
                     codigoReserva = codigoReserva,
@@ -551,7 +525,7 @@ class RestaurantesViewModel @Inject constructor(
                     horaInicio = horaInicio,
                     horaFin = horaFin,
                     estado = 1,
-                    matricula = matriculaFormateada // âœ… Ahora con formato xxxx-xxxx
+                    matricula = matriculaFormateada
                 )
 
                 val datosPersonales = getDatosPersonales()
@@ -583,7 +557,6 @@ class RestaurantesViewModel @Inject constructor(
                     else -> throw IllegalArgumentException("Tipo de dato no soportado: ${datosPersonales::class.java.simpleName}")
                 }
 
-                // GUARDAR RESERVA
                 val resultadoReserva = try {
                     reservacionRepository.guardarReserva(reservacionDto).collect { resource ->
                         when (resource) {
@@ -598,7 +571,6 @@ class RestaurantesViewModel @Inject constructor(
                     false
                 }
 
-                // GUARDAR DETALLE
                 val resultadoDetalle = try {
                     reservacionRepository.guardarDetalleRestaurante(detalleDto)
                     true
@@ -607,7 +579,6 @@ class RestaurantesViewModel @Inject constructor(
                     false
                 }
 
-                // GUARDAR TARJETA (SI APLICA)
                 if (getMetodoPagoSeleccionado() == "Tarjeta de crÃ©dito") {
                     val tarjeta = getTarjetaCredito()
                     if (tarjeta != null) {
@@ -627,7 +598,6 @@ class RestaurantesViewModel @Inject constructor(
                     }
                 }
 
-                // ACTUALIZAR UI STATE FINAL
                 _uiState.update {
                     when {
                         !resultadoReserva -> it.copy(
@@ -699,7 +669,6 @@ class RestaurantesViewModel @Inject constructor(
 
                 val matriculaFormateada = formatearMatricula(matricula)
 
-                // RESERVACIÃ“N BASE
                 val reservacionDto = ReservacionesDto(
                     reservacionId = 0,
                     codigoReserva = codigoReserva,
@@ -822,31 +791,25 @@ class RestaurantesViewModel @Inject constructor(
         }
     }
 
-
-
-    // FunciÃ³n auxiliar para crear el DTO
     private fun crearReservacionDto(persona: DatosPersonalesSalaVip): ReservacionesDto {
         return ReservacionesDto(
             codigoReserva = (100000..999999).random(),
-            tipoReserva = 4,  // Tipo para Sala VIP
+            tipoReserva = 4,
             cantidadEstudiantes = persona.capacidad,
             fecha = "${persona.fecha}T12:00:00",
             horaInicio = persona.horaInicio,
             horaFin = persona.horaFin,
-            estado = 1,       // 1 = Activa
+            estado = 1,
             matricula = persona.matricula,
-            // AsegÃºrate de incluir todos los campos requeridos
-            reservacionId = 0 // Temporal, serÃ¡ asignado por el servidor
+            reservacionId = 0
         )
     }
 
-    // FunciÃ³n auxiliar para limpiar datos
     private fun limpiarDatosAlmacenados() {
         DatosPersonalesSalaVipStore.lista.clear()
         DatosPersonalesSalaVipStore.metodoPagoSeleccionado = null
     }
 
-    // SETTERS
     fun setNombres(value: String) = _uiState.update { it.copy(nombres = value) }
     fun setApellidos(value: String) = _uiState.update { it.copy(apellidos = value) }
     fun setCedula(value: String) = _uiState.update { it.copy(cedula = value) }
@@ -884,6 +847,3 @@ class RestaurantesViewModel @Inject constructor(
         _detalleReservaSeleccionada.value = null
     }
 }
-
-
-

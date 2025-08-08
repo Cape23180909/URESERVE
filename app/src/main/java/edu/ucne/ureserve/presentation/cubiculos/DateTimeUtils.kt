@@ -1,16 +1,18 @@
 package edu.ucne.ureserve.presentation.cubiculos
 
-
 import android.os.Build
 import androidx.annotation.RequiresApi
-import java.time.*
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.util.*
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 object DateTimeUtils {
-    // 1. Funciones originales (se mantienen igual para compatibilidad)
     fun parseHora(horaStr: String): LocalTime {
         val horaNormalizada = horaStr
             .trim()
@@ -48,24 +50,22 @@ object DateTimeUtils {
         return LocalDate.parse(fechaStr, formatter)
     }
 
-    // 2. Nuevas funciones específicas para el flujo de reservas (solución al error OffsetSeconds)
     fun toBackendDateTimeFormat(fecha: LocalDate, hora: LocalTime): String {
-        // Combina fecha y hora con la zona horaria del sistema
+
         val zonedDateTime = ZonedDateTime.of(
             fecha,
             hora,
             ZoneId.systemDefault()
         )
-        // Formato ISO-8601 completo con offset: "2025-06-26T14:30:00-04:00"
+
         return zonedDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
     }
 
     fun fromBackendDateTimeFormat(backendDate: String): LocalDateTime {
-        // Parsea el formato ISO-8601 del backend
+
         return ZonedDateTime.parse(backendDate).toLocalDateTime()
     }
 
-    // Función adicional para generar el string de horario (ej: "14:00-16:00")
     fun createHorarioString(horaInicio: LocalTime, duracionHoras: Long): String {
         val horaFin = horaInicio.plusHours(duracionHoras)
         return "${formatHora(horaInicio)}-${formatHora(horaFin)}"

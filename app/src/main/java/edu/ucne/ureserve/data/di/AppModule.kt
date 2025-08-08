@@ -1,6 +1,5 @@
 package edu.ucne.ureserve.data.di
 
-
 import android.content.Context
 import androidx.room.Room
 import dagger.Module
@@ -12,7 +11,6 @@ import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.remote.CubiculosApi
 import edu.ucne.ureserve.data.remote.LaboratoriosApi
 import edu.ucne.ureserve.data.remote.ProyectoresApi
-import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.RestaurantesApi
 import edu.ucne.ureserve.presentation.empleados.EmpleadoViewModel
 import edu.ucne.ureserve.presentation.login.AuthManager
@@ -21,7 +19,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
     @Provides
     @Singleton
     fun provideUReserveDb(@ApplicationContext context: Context): UReserveDb =

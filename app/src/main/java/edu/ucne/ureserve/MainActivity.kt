@@ -12,7 +12,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
-import com.google.firebase.FirebaseApp
 import dagger.hilt.android.AndroidEntryPoint
 import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.presentation.navigation.UreserveNavHost
@@ -23,11 +22,6 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Inicializar Firebase solo si no se ha inicializado
-        if (FirebaseApp.getApps(this).isEmpty()) {
-            FirebaseApp.initializeApp(this)
-        }
 
         enableEdgeToEdge()
         setContent {

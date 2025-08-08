@@ -2,11 +2,29 @@ package edu.ucne.ureserve.presentation.restaurantes
 
 import android.Manifest
 import android.os.Build
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,9 +48,6 @@ fun SalaVipTransferenciaScreen(
     onConfirmarClick: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
-
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -63,7 +78,7 @@ fun SalaVipTransferenciaScreen(
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    // Título
+
                     Text(
                         text = "Pago Sala VIP - Transferencia",
                         fontSize = 20.sp,
@@ -82,7 +97,6 @@ fun SalaVipTransferenciaScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Botón 1
                     Button(
                         onClick = {
                             bancoSeleccionado = "Banco DED Lobo - 979-291390283"
@@ -100,7 +114,6 @@ fun SalaVipTransferenciaScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Botón 2
                     Button(
                         onClick = {
                             bancoSeleccionado = "Banco DED Lobo - 999-100529-2"
@@ -118,7 +131,6 @@ fun SalaVipTransferenciaScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Botón 3
                     Button(
                         onClick = {
                             bancoSeleccionado = "Banco Popular - 71936351-5"
@@ -136,7 +148,6 @@ fun SalaVipTransferenciaScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Nota
                     Text(
                         text = "Colocar materiales al momento de efectuar el pago, enviar comprobante al correo electrónico:",
                         fontSize = 14.sp,
@@ -147,12 +158,10 @@ fun SalaVipTransferenciaScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Botones lado a lado
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Confirmar
                         Button(
                             onClick = {
                                 onConfirmarClick(fecha)
@@ -168,7 +177,6 @@ fun SalaVipTransferenciaScreen(
                             Text(text = "CONFIRMAR", fontSize = 16.sp)
                         }
 
-                        // Cancelar
                         OutlinedButton(
                             onClick = {
                                 onCancelarClick()

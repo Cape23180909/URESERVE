@@ -4,11 +4,29 @@ import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,8 +53,6 @@ fun ReservaSalaVipScreen(
 ) {
     val context = LocalContext.current
 
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -144,7 +160,7 @@ fun ReservaSalaVipScreen(
 
             OutlinedTextField(
                 value = buildString {
-                    append(matricula.take(8)) // Tomar máximo 8 dígitos
+                    append(matricula.take(8))
                     if (length > 4) insert(4, "-")
                 },
                 onValueChange = { newValue ->
@@ -158,7 +174,7 @@ fun ReservaSalaVipScreen(
 
             OutlinedTextField(
                 value = cedula.run {
-                    // Formatear automáticamente mientras se escribe
+
                     when {
                         length <= 3 -> this
                         length <= 10 -> "${substring(0, 3)}-${substring(3)}"
@@ -166,9 +182,7 @@ fun ReservaSalaVipScreen(
                     }
                 },
                 onValueChange = { newValue ->
-                    // Eliminar guiones existentes para el procesamiento
                     val cleanValue = newValue.filter { it.isDigit() }
-                    // Limitar a 11 dígitos (3 + 7 + 1)
                     cedula = cleanValue.take(11)
                 },
                 label = { Text("Cédula *") },

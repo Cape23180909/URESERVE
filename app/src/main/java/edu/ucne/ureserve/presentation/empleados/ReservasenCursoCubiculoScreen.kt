@@ -69,7 +69,6 @@ fun ReservasenCursoCubiculoScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -240,7 +239,7 @@ fun CubiculoReservationItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() } // Hacer que el Row sea clickeable
+            .clickable { onClick() }
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -286,8 +285,8 @@ fun CubiculoReservationItem(
 
 private fun parsearFechaHoraSeguro(fecha: String, hora: String): Date? {
     return try {
-        val fechaLimpia = fecha.take(10) // Asegura formato yyyy-MM-dd
-        val horaLimpia = hora.take(5)    // Asegura formato HH:mm
+        val fechaLimpia = fecha.take(10)
+        val horaLimpia = hora.take(5)
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
         sdf.parse("$fechaLimpia $horaLimpia")
     } catch (e: Exception) {

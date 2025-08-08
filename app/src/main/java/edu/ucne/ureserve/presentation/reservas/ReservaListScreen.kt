@@ -5,12 +5,33 @@ import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,18 +50,16 @@ import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
-import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ReservaListScreen(
     navController: NavHostController? = null,
-
     onBottomNavClick: (String) -> Unit,
     viewModel: ReservaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    // Solicitud de permiso para notificaciones en Android 13+
+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -60,7 +79,6 @@ fun ReservaListScreen(
         viewModel.getReservasUsuario()
     }
 
-    // Observar cambios para refrescar
     val shouldRefresh by navController
         ?.previousBackStackEntry
         ?.savedStateHandle
@@ -70,7 +88,6 @@ fun ReservaListScreen(
     LaunchedEffect(shouldRefresh) {
         if (shouldRefresh == true) {
             viewModel.getReservasUsuario()
-            // Limpiar el estado para futuras navegaciones
             navController?.previousBackStackEntry
                 ?.savedStateHandle
                 ?.set("shouldRefresh", null)
@@ -158,7 +175,7 @@ fun ReservaListScreen(
                             reservas = reservas,
                             onReservaClick = { reserva ->
                                 val (nombreTipo, _) = getIconForTipo(reserva.tipoReserva)
-                                // Mostrar notificación al hacer clic
+
                                 notificationHandler.showNotification(
                                     title = "Reserva Seleccionada",
                                     message = "Has seleccionado una reserva de tipo $nombreTipo el ${reserva.fechaFormateada}."
@@ -230,7 +247,7 @@ fun ReservaCard(reserva: ReservacionesDto, onClick: () -> Unit) {
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = nombreTipo, // Muestra el nombre del tipo de reserva
+                    text = nombreTipo,
                     color = Color.Black,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -253,7 +270,6 @@ fun ReservaCard(reserva: ReservacionesDto, onClick: () -> Unit) {
         }
     }
 }
-
 
 fun getIconForTipo(tipo: Int): Pair<String, Int> {
     return when (tipo) {

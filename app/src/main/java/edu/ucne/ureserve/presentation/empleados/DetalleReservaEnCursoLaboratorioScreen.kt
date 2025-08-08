@@ -2,8 +2,18 @@ package edu.ucne.ureserve.presentation.empleados
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,7 +49,6 @@ fun DetalleReservaEnCursoLaboratorioScreen(
                 .fillMaxSize()
                 .padding(2.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -63,7 +72,6 @@ fun DetalleReservaEnCursoLaboratorioScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Main Content
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -77,7 +85,6 @@ fun DetalleReservaEnCursoLaboratorioScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Title with Laboratory Icon
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth(),
@@ -88,7 +95,7 @@ fun DetalleReservaEnCursoLaboratorioScreen(
                             modifier = Modifier.offset(x = 2.dp)
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.icon_laboratorio), // Asegúrate de tener este recurso
+                                painter = painterResource(id = R.drawable.icon_laboratorio),
                                 contentDescription = "Laboratorio",
                                 modifier = Modifier.size(50.dp)
                             )
@@ -105,7 +112,6 @@ fun DetalleReservaEnCursoLaboratorioScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Reservation Details
                     ReservationDetailBlock(label = "NO. RESERVA", value = reserva.codigoReserva.toString())
                     ReservationDetailBlock(label = "FECHA", value = reserva.fechaFormateada)
                     ReservationDetailBlock(label = "HORARIO", value = "${reserva.horaInicio} a ${reserva.horaFin}")
@@ -113,9 +119,8 @@ fun DetalleReservaEnCursoLaboratorioScreen(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Terminate Button
                     Button(
-                        onClick = { /* Handle terminate action */ },
+                        onClick = { },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -134,7 +139,6 @@ fun DetalleReservaEnCursoLaboratorioScreen(
 
             Spacer(modifier = Modifier.height(46.dp))
 
-            // Bottom Button
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
@@ -154,8 +158,6 @@ fun DetalleReservaEnCursoLaboratorioScreen(
         }
     }
 }
-
-
 
 @Preview(showBackground = true)
 @Composable

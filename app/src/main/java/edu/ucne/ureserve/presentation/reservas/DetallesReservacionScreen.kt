@@ -4,12 +4,31 @@ import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -24,14 +43,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import edu.ucne.ureserve.R
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import coil.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
+import edu.ucne.ureserve.R
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -46,7 +65,6 @@ fun DetallesReservacionScreen(
     navController: NavHostController? = null
 ) {
     val context = LocalContext.current
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -69,7 +87,6 @@ fun DetallesReservacionScreen(
         else -> Pair("RESERVA", R.drawable.icon_reserva)
     }
 
-    // Construimos la data para el QR en formato JSON para mejor legibilidad
     val qrDataRaw = """
         {
             "fecha": "$fecha",
@@ -80,7 +97,6 @@ fun DetallesReservacionScreen(
         }
     """.trimIndent()
 
-    // Codificamos la data para URL
     val qrDataEncoded = URLEncoder.encode(qrDataRaw, StandardCharsets.UTF_8.toString())
     val qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=$qrDataEncoded"
 
@@ -159,7 +175,6 @@ fun DetallesReservacionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Sección del QR con mejor presentación
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -197,7 +212,6 @@ fun DetallesReservacionScreen(
                 }
             }
 
-            // Diálogo para mostrar el QR ampliado
             if (showDialog.value) {
                 AlertDialog(
                     onDismissRequest = { showDialog.value = false },
@@ -241,8 +255,6 @@ fun DetallesReservacionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-
-            // Sección de botones de acción
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
@@ -294,7 +306,6 @@ fun DetallesReservacionScreen(
 
                     Button(
                         onClick = {
-                            // Mostrar notificación antes de redirigir
                             notificationHandler.showNotification(
                                 title = "Modificando reserva",
                                 message = "Estás a punto de modificar una reserva de tipo $tipoReserva."
@@ -319,8 +330,6 @@ fun DetallesReservacionScreen(
                     }
                 }
             }
-
-
 
         }
     }
@@ -350,7 +359,7 @@ fun InfoRow(label: String, value: String) {
 @Composable
 fun PreviewDetallesReservacionScreen() {
     DetallesReservacionScreen(
-        reservaId = 1, // ejemplo
+        reservaId = 1,
         fecha = "2025-08-01",
         horaInicio = "10:00",
         horaFin = "12:00",

@@ -2,9 +2,20 @@ package edu.ucne.ureserve.presentation.welcome
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,7 +51,6 @@ fun WelcomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo
             Image(
                 painter = painterResource(id = R.drawable.logo_reserve),
                 contentDescription = "Logo",
@@ -85,12 +95,10 @@ fun WelcomeScreen(
 
                     Button(
                         onClick = {
-                            // Mostrar notificación
                             notificationHandler.showNotification(
                                 title = "UReserve",
                                 message = "¡Gracias por continuar en la aplicación!"
                             )
-                            // Llamar acción de continuar
                             onContinue()
                         },
                         colors = ButtonDefaults.buttonColors(

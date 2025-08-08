@@ -11,7 +11,6 @@ import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import edu.ucne.ureserve.data.repository.LaboratorioRepository
-import edu.ucne.ureserve.presentation.login.AuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -63,8 +62,6 @@ class ReservaLaboratorioViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val reserva = reservaApi.getById(reservaId)
-
-                // Parsear fecha y hora de la reserva existente
                 val fecha = LocalDate.parse(reserva.fecha.substring(0, 10))
                 val horaInicio = LocalTime.parse(reserva.horaInicio)
                 val horaFin = LocalTime.parse(reserva.horaFin)
@@ -153,7 +150,6 @@ class ReservaLaboratorioViewModel @Inject constructor(
                     throw Exception("La hora de fin no puede ser antes de la hora de inicio")
                 }
 
-
                 val fechaZoned = ZonedDateTime.of(
                     fecha,
                     horaInicio,
@@ -188,16 +184,19 @@ class ReservaLaboratorioViewModel @Inject constructor(
     }
 
     fun initializeWithUser(usuario: UsuarioDTO) {
-        Log.d("ViewModel", "Inicializando con usuario: ${usuario.nombres}")
         _uiState.update { state ->
             if (state.miembros.none { it.usuarioId == usuario.usuarioId }) {
                 state.copy(
-                    miembros = state.miembros + usuario,
+                    miembros = listOf(usuario) + state.miembros,
                     cantidadEstudiantes = state.miembros.size + 1
                 )
             } else {
                 state
             }
+        }
+        val currentMembers = _members.value.toMutableList()
+        if (currentMembers.none { it.usuarioId == usuario.usuarioId }) {
+            _members.value = listOf(usuario) + currentMembers
         }
     }
 

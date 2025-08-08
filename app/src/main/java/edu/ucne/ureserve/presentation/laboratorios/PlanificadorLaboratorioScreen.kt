@@ -6,12 +6,32 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,8 +70,7 @@ fun PlanificadorLaboratorioScreen(
         "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM",
         "01:00 PM", "02:00 PM", "03:00 PM",
         "04:00 PM", "04:30 PM", "05:00 PM", "05:30 PM",
-        "06:00 PM", "06:30 PM", "07:00 PM", "08:00 PM", "08:30 PM", "09:00 PM", "09:30 PM", "10:00 PM", "10:30 PM",
-        "11:00 PM", "11:30 PM", "12:00 AM",
+        "06:00 PM", "06:30 PM", "07:00 PM", "08:00 PM", "08:30 PM", "09:00 PM", "09:30 PM", "10:00 PM"
     )
     var horaInicioSeleccionada by remember { mutableStateOf("") }
     var horaFinSeleccionada by remember { mutableStateOf("") }
@@ -245,7 +264,7 @@ fun PlanificadorLaboratorioScreen(
                         title = "Confirmación",
                         message = "Horario confirmado: $horaInicioSeleccionada - $horaFinSeleccionada"
                     )
-                    val route = "reservaLaboratorio/$laboratorioId/$horaInicioSeleccionada/$horaFinSeleccionada/$fechaMillis"
+                    val route = "reservaLaboratorio/$laboratorioId/$horaInicioSeleccionada/$horaFinSeleccionada/$fechaMillis/$laboratorioNombre"
                     navController.navigate(route)
                 },
                 modifier = Modifier
@@ -262,4 +281,3 @@ fun PlanificadorLaboratorioScreen(
         }
     }
 }
-

@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.ureserve.data.local.entity.toDto
 import edu.ucne.ureserve.data.remote.CubiculosApi
 import edu.ucne.ureserve.data.remote.DetalleReservaCubiculosApi
+import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.dto.CubiculosDto
@@ -18,6 +19,7 @@ import edu.ucne.ureserve.data.repository.CubiculoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -26,9 +28,6 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
-import edu.ucne.ureserve.data.remote.RemoteDataSource
-import edu.ucne.ureserve.data.remote.dto.DetalleReservaCubiculosDto
-import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class ReservaCubiculoViewModel @Inject constructor(
@@ -93,7 +92,6 @@ class ReservaCubiculoViewModel @Inject constructor(
         _errorMessage.value = null
     }
 
-
     fun addMember(member: UsuarioDTO) {
         addMemberIfNotExists(member)
     }
@@ -155,7 +153,6 @@ class ReservaCubiculoViewModel @Inject constructor(
         }
     }
 
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun modificarReservaCubiculo(
         onSuccess: () -> Unit,
@@ -173,8 +170,6 @@ class ReservaCubiculoViewModel @Inject constructor(
                 val horaInicio = state.horaInicio ?: throw Exception("Seleccione hora de inicio")
                 val horaFin = state.horaFin ?: throw Exception("Seleccione hora de fin")
 
-
-
                 val fechaZoned = ZonedDateTime.of(
                     fecha,
                     horaInicio,
@@ -184,7 +179,7 @@ class ReservaCubiculoViewModel @Inject constructor(
                 val reservacionDto = ReservacionesDto(
                     reservacionId = state.reservaId,
                     codigoReserva = state.codigoReserva ?: (100000..999999).random(),
-                    tipoReserva = 2, // Tipo de reserva para cubículos
+                    tipoReserva = 2,
                     fecha = fechaZoned,
                     horaInicio = horaInicio.toString(),
                     horaFin = horaFin.toString(),
@@ -281,7 +276,6 @@ class ReservaCubiculoViewModel @Inject constructor(
             }
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerFechaActual(): String {
