@@ -97,9 +97,9 @@ fun DashboardEmpleadoScreen(
             onClick = {
                 when (usuario.correoInstitucional) {
                     "proyectores.ureserve@ucne.edu.do" -> navController.navigate("Reportes_Proyectores")
-                    "laboratorio.ureserve@ucne.edu.do" -> navController.navigate("")
-                    "cubiculos.ureserve@ucne.edu.do" -> navController.navigate("")
-                    "restaurante.ureserve@ucne.edu.do" -> navController.navigate("")
+                    "laboratorio.ureserve@ucne.edu.do" -> navController.navigate("Reporte_laboratorio")
+                    "cubiculos.ureserve@ucne.edu.do" -> navController.navigate("Reporte_Cubiculos")
+                    "restaurante.ureserve@ucne.edu.do" -> navController.navigate("Reporte_restaurante/0")
                 }
             },
             circleWidth = 132.dp,
