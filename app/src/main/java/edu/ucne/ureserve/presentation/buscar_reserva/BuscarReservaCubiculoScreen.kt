@@ -3,18 +3,7 @@ package edu.ucne.ureserve.presentation.buscar_reserva
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,17 +11,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,16 +28,18 @@ import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.empleados.isReservaFinalizada
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun BuscarReservaCubiculoScreen(
     navController: NavController,
     viewModel: ReservaViewModel = hiltViewModel()
 ) {
+    var codigoReserva by remember { mutableStateOf("") }
+    var codigoQR by remember { mutableStateOf("") }
     val state by viewModel.state.collectAsState()
     val reservaciones by viewModel.reservaciones.collectAsState()
-    var codigoQR by remember { mutableStateOf("") }
-    var codigoReserva by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.getCubiculoReservas()
@@ -93,11 +75,9 @@ fun BuscarReservaCubiculoScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(
-                text = "Reservas de Cubiculos en Curso",
+                text = "Reservas de Cubículos en Curso",
                 fontSize = 23.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
@@ -133,11 +113,9 @@ fun BuscarReservaCubiculoScreen(
                             value = codigoReserva,
                             onValueChange = { codigoReserva = it },
                             modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             decorationBox = { innerTextField ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (codigoReserva.isEmpty()) {
                                         Text("CODIGO RESERVA", color = Color.Gray)
                                     }
@@ -157,9 +135,7 @@ fun BuscarReservaCubiculoScreen(
                             modifier = Modifier.weight(1f),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                             decorationBox = { innerTextField ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (codigoQR.isEmpty()) {
                                         Text("CODIGO QR", color = Color.Gray)
                                     }
@@ -175,58 +151,78 @@ fun BuscarReservaCubiculoScreen(
 
             when (val currentState = state) {
                 is ReservaViewModel.ReservaListState.Loading -> {
-                    Text(
-                        text = "Cargando reservas...",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = Color.White)
+                    }
                 }
-
                 is ReservaViewModel.ReservaListState.Success -> {
-                    LazyColumn {
-                        item {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(Color(0xFF2E5C94))
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("Tiempo Restante", color = Color.White)
-                                Text("Reservas", color = Color.White)
-                            }
+                    val reservasFiltradas = reservaciones
+                        .filterNot { isReservaFinalizada(it.fecha, it.horaFin) }
+                        .filter {
+                            codigoReserva.isBlank() ||
+                                    it.codigoReserva.toString().contains(codigoReserva, ignoreCase = true)
                         }
 
-                        items(reservaciones.filterNot { isReservaFinalizada(it.fecha, it.horaFin) }) { reserva ->
-                            CubiculoReservationItemBuscar(
-                                horaInicio = reserva.horaInicio,
-                                horaFin = reserva.horaFin,
-                                fecha = reserva.fecha,
-                                color = Color(0xFF6EE610),
-                                onClick = {
-                                    navController.navigate(
-                                        "detalleReservaCubiculo/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
-                                    )
-                                }
+                    if (reservasFiltradas.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No hay reservas activas",
+                                color = Color.White,
+                                fontSize = 18.sp
                             )
+                        }
+                    } else {
+                        LazyColumn {
+                            item {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(Color(0xFF2E5C94))
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("Tiempo Restante", color = Color.White)
+                                    Text("Reservas", color = Color.White)
+                                }
+                            }
+                            items(reservasFiltradas) { reserva ->
+                                CubiculoReservationItemBuscar(
+                                    horaInicio = reserva.horaInicio,
+                                    horaFin = reserva.horaFin,
+                                    fecha = reserva.fecha,
+                                    color = Color(0xFF6EE610),
+                                    onClick = {
+                                        navController.navigate(
+                                            "detalleReservaCubiculo/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
-
                 is ReservaViewModel.ReservaListState.Error -> {
-                    Text(
-                        text = currentState.message,
-                        color = Color.Red,
-                        fontSize = 18.sp,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = currentState.message,
+                            color = Color.Red,
+                            fontSize = 18.sp
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
@@ -252,6 +248,27 @@ fun CubiculoReservationItemBuscar(
 ) {
     var tiempoRestante by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf(false) }
+
+    fun parsearFechaHoraSeguro(fecha: String, hora: String): Date? {
+        return try {
+            val fechaLimpia = fecha.take(10)
+            val horaLimpia = hora.take(5)
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+            sdf.parse("$fechaLimpia $horaLimpia")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    fun formatearTiempoRestante(diferencia: Long): String {
+        val segundos = diferencia / 1000
+        val minutos = segundos / 60
+        val horas = minutos / 60
+        val minutosRestantes = minutos % 60
+        val segundosRestantes = segundos % 60
+        return String.format("%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
+    }
 
     LaunchedEffect(fecha, horaFin) {
         val fechaHoraFin = parsearFechaHoraSeguro(fecha, horaFin)

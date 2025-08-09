@@ -41,7 +41,6 @@ fun BuscarReservaProyectorScreen(
     viewModel: ReservaViewModel = hiltViewModel()
 ) {
     var codigoReserva by remember { mutableStateOf("") }
-    var codigoQR by remember { mutableStateOf("") }
     val state by viewModel.state.collectAsState()
     val reservaciones by viewModel.reservaciones.collectAsState()
 
@@ -49,10 +48,9 @@ fun BuscarReservaProyectorScreen(
         viewModel.getReservas()
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0F3278))
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color(0xFF0F3278)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -77,6 +75,7 @@ fun BuscarReservaProyectorScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
+
             Text(
                 text = "Reservas de proyectores en Curso",
                 fontSize = 23.sp,
@@ -104,7 +103,9 @@ fun BuscarReservaProyectorScreen(
                             .fillMaxWidth()
                             .wrapContentWidth(Alignment.CenterHorizontally)
                     )
+
                     Spacer(modifier = Modifier.height(16.dp))
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -117,11 +118,9 @@ fun BuscarReservaProyectorScreen(
                             value = codigoReserva,
                             onValueChange = { codigoReserva = it },
                             modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             decorationBox = { innerTextField ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (codigoReserva.isEmpty()) {
                                         Text("CODIGO RESERVA", color = Color.Gray)
                                     }
@@ -129,27 +128,12 @@ fun BuscarReservaProyectorScreen(
                                 }
                             }
                         )
+
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Buscar",
                             tint = Color.Black,
                             modifier = Modifier.size(24.dp)
-                        )
-                        BasicTextField(
-                            value = codigoQR,
-                            onValueChange = { codigoQR = it },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                            decorationBox = { innerTextField ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    if (codigoQR.isEmpty()) {
-                                        Text("CODIGO QR", color = Color.Gray)
-                                    }
-                                    innerTextField()
-                                }
-                            }
                         )
                     }
                 }
@@ -157,82 +141,115 @@ fun BuscarReservaProyectorScreen(
 
             when (state) {
                 is ReservaViewModel.ReservaListState.Loading -> {
-                    Text(
-                        text = "Cargando reservas...",
-                        fontSize = 18.sp,
-                        color = Color.White,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentWidth(Alignment.CenterHorizontally)
-                            .padding(16.dp)
-                    )
-                }
-                is ReservaViewModel.ReservaListState.Success -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(Color(0xFF2E5C94))
-                                    .padding(16.dp)
-                            ) {
-                                Row(
+                        CircularProgressIndicator(color = Color.White)
+                    }
+                }
+
+                is ReservaViewModel.ReservaListState.Success -> {
+                    val reservasFiltradas = reservaciones
+                        .filterNot { isReservaFinalizada(it.fecha, it.horaFin) }
+                        .filter {
+                            codigoReserva.isBlank() ||
+                                    it.codigoReserva.toString().contains(codigoReserva, ignoreCase = true)
+                        }
+
+                    if (reservasFiltradas.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No hay reservas activas",
+                                color = Color.White,
+                                fontSize = 18.sp
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            item {
+                                Box(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(Color(0xFF2E5C94))
+                                        .padding(16.dp)
                                 ) {
-                                    Text(text = "Tiempo Restante", color = Color.White)
-                                    Text(text = "Reservas", color = Color.White)
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(8.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(text = "Tiempo Restante", color = Color.White)
+                                        Text(text = "Reservas", color = Color.White)
+                                    }
                                 }
                             }
-                        }
-                        items(reservaciones.filterNot { isReservaFinalizada(it.fecha, it.horaFin) }) { reserva ->
-                            ProyectorReservationItemBuscar(
-                                horaInicio = reserva.horaInicio,
-                                horaFin = reserva.horaFin,
-                                fecha = reserva.fecha,
-                                color = Color(0xFF6EE610),
-                                onClick = {
-                                    navController.navigate(
-                                        "detalleReservaProyector/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
-                                    )
-                                }
-                            )
+
+                            items(
+                                items = reservasFiltradas,
+                                key = { it.codigoReserva }
+                            ) { reserva ->
+                                ProyectorReservationItemBuscar(
+                                    horaInicio = reserva.horaInicio,
+                                    horaFin = reserva.horaFin,
+                                    fecha = reserva.fecha,
+                                    color = Color(0xFF6EE610),
+                                    onClick = {
+                                        navController.navigate(
+                                            "detalleReservaProyector/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
+
                 is ReservaViewModel.ReservaListState.Error -> {
-                    Text(
-                        text = (state as ReservaViewModel.ReservaListState.Error).message,
-                        fontSize = 18.sp,
-                        color = Color.Red,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentWidth(Alignment.CenterHorizontally)
-                            .padding(16.dp)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = (state as ReservaViewModel.ReservaListState.Error).message,
+                            fontSize = 18.sp,
+                            color = Color.Red
+                        )
+                    }
                 }
             }
+
             Spacer(modifier = Modifier.height(15.dp))
-            Button(
-                onClick = { navController.popBackStack() },
+
+            Box(
                 modifier = Modifier
-                    .width(150.dp)
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(25.dp)),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Volver",
-                    fontSize = 18.sp,
-                    color = Color.White
-                )
+                Button(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier
+                        .width(150.dp)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(25.dp)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
+                ) {
+                    Text(
+                        text = "Volver",
+                        fontSize = 18.sp,
+                        color = Color.White
+                    )
+                }
             }
         }
     }
