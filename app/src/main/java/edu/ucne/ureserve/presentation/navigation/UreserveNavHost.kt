@@ -69,7 +69,7 @@ import edu.ucne.ureserve.presentation.proyectores.PrevisualizacionProyectorScree
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
-import edu.ucne.ureserve.presentation.reportes.ReporteProyectoresListScreen
+import edu.ucne.ureserve.presentation.reportes.ReporteProyectoresScreen
 import edu.ucne.ureserve.presentation.reservas.DetallesReservacionScreen
 import edu.ucne.ureserve.presentation.reservas.ModificarReservaProyectorScreen
 import edu.ucne.ureserve.presentation.reservas.ReservaListScreen
@@ -1447,7 +1447,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         }
 
         composable("Reportes_Proyectores") {
-            ReporteProyectoresListScreen(navController)
+            ReporteProyectoresScreen(navController = navController)
         }
 
         composable("empleadoproyector_En_Curso_Filtro") {
