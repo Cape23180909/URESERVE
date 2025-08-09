@@ -29,7 +29,7 @@ import edu.ucne.ureserve.presentation.admin.DisponibilidadAdminReservaScreen
 import edu.ucne.ureserve.presentation.admin.DisponibilidadAdminScreen
 import edu.ucne.ureserve.presentation.admin.OptionAdminScreen
 import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaCubiculoScreen
-import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaLaboratoratorioScreen
+import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaLaboratorioScreen
 import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaProyectorScreen
 import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
@@ -1463,7 +1463,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         }
 
         composable("empleadolaboratorio_En_Curso_Filtro") {
-            BuscarReservaLaboratoratorioScreen(
+            BuscarReservaLaboratorioScreen(
                 navController = navController
             )
         }
