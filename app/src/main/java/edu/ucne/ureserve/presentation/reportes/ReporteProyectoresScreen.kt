@@ -22,6 +22,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +42,9 @@ fun ReporteProyectoresScreen(
     viewModel: ReporteViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsState().value
-
+    LaunchedEffect(Unit) {
+        viewModel.loadReservasPorTipo(1)
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -51,7 +54,6 @@ fun ReporteProyectoresScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Header con logo e icono
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -75,7 +77,6 @@ fun ReporteProyectoresScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Caja principal
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -88,7 +89,6 @@ fun ReporteProyectoresScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // TÃ­tulo con icono
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth(),
@@ -144,7 +144,6 @@ fun ReporteProyectoresScreen(
                             }
                         }
                         else -> {
-                            // Lista de reservas
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -176,7 +175,6 @@ fun ReporteProyectoresScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botones de acciÃ³n
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -186,8 +184,6 @@ fun ReporteProyectoresScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            // BotÃ³n VOLVER
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
@@ -205,51 +201,5 @@ fun ReporteProyectoresScreen(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun ReservationDetailBlock(label: String, value: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color(0xFF133986), RoundedCornerShape(4.dp))
-                .padding(vertical = 9.dp, horizontal = 0.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = label,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = value,
-                color = Color.White
-            )
-        }
-    }
-}
-
-@Composable
-fun ActionButton(text: String, color: Color, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .width(130.dp)
-            .height(45.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = color),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Text(
-            text = text,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-            color = Color.White
-        )
     }
 }
