@@ -94,7 +94,14 @@ fun DashboardEmpleadoScreen(
         MenuItem(
             iconRes = R.drawable.icon_reporte,
             text = "Reportes",
-            onClick = onReportes,
+            onClick = {
+                when (usuario.correoInstitucional) {
+                    "proyectores.ureserve@ucne.edu.do" -> navController.navigate("Reportes_Proyectores")
+                    "laboratorio.ureserve@ucne.edu.do" -> navController.navigate("")
+                    "cubiculos.ureserve@ucne.edu.do" -> navController.navigate("")
+                    "restaurante.ureserve@ucne.edu.do" -> navController.navigate("")
+                }
+            },
             circleWidth = 132.dp,
             circleHeight = 124.dp,
             iconWidth = 90.dp,
@@ -104,7 +111,14 @@ fun DashboardEmpleadoScreen(
         MenuItem(
             iconRes = R.drawable.icon_search,
             text = "Buscar\nReservas",
-            onClick = onBuscarReservas,
+            onClick = {
+                when (usuario.correoInstitucional) {
+                    "proyectores.ureserve@ucne.edu.do" -> navController.navigate("empleadoproyector_En_Curso_Filtro")
+                    "laboratorio.ureserve@ucne.edu.do" -> navController.navigate("empleadolaboratorio_En_Curso_Filtro")
+                    "cubiculos.ureserve@ucne.edu.do" -> navController.navigate("empleadocubiculo_En_Curso_Filtro")
+                    "restaurante.ureserve@ucne.edu.do" -> navController.navigate("empleadorestaurante_En_Curso_Filtro")
+                }
+            },
             circleWidth = 132.dp,
             circleHeight = 124.dp,
             iconWidth = 90.dp,
@@ -193,4 +207,3 @@ fun MenuItem(
         }
     }
 }
-
