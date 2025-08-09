@@ -28,6 +28,10 @@ import edu.ucne.ureserve.presentation.admin.DashboardAdminScreen
 import edu.ucne.ureserve.presentation.admin.DisponibilidadAdminReservaScreen
 import edu.ucne.ureserve.presentation.admin.DisponibilidadAdminScreen
 import edu.ucne.ureserve.presentation.admin.OptionAdminScreen
+import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaCubiculoScreen
+import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaLaboratoratorioScreen
+import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaProyectorScreen
+import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
@@ -65,6 +69,7 @@ import edu.ucne.ureserve.presentation.proyectores.PrevisualizacionProyectorScree
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
+import edu.ucne.ureserve.presentation.reportes.ReporteProyectoresListScreen
 import edu.ucne.ureserve.presentation.reservas.DetallesReservacionScreen
 import edu.ucne.ureserve.presentation.reservas.ModificarReservaProyectorScreen
 import edu.ucne.ureserve.presentation.reservas.ReservaListScreen
@@ -1440,5 +1445,34 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 navController = navController
             )
         }
+
+        composable("Reportes_Proyectores") {
+            ReporteProyectoresListScreen(navController)
+        }
+
+        composable("empleadoproyector_En_Curso_Filtro") {
+            BuscarReservaProyectorScreen(
+                navController = navController
+            )
+        }
+
+        composable("empleadocubiculo_En_Curso_Filtro") {
+            BuscarReservaCubiculoScreen(
+                navController = navController
+            )
+        }
+
+        composable("empleadolaboratorio_En_Curso_Filtro") {
+            BuscarReservaLaboratoratorioScreen(
+                navController = navController
+            )
+        }
+
+        composable("empleadorestaurante_En_Curso_Filtro") {
+            BuscarReservaRestauranteScreen(
+                navController = navController
+            )
+        }
+
     }
 }
