@@ -2,7 +2,6 @@ package edu.ucne.ureserve.presentation.restaurantes
 
 import edu.ucne.ureserve.data.remote.dto.RestaurantesDto
 
-
 data class RestaurantesUiState(
     val restauranteId: Int? = null,
     val correo: String = "",

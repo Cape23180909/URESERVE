@@ -111,7 +111,7 @@ fun RestauranteSwitchScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp) // solo padding horizontal
+                    .padding(horizontal = 16.dp)
                     .background(Color(0xFF004BBB), shape = RoundedCornerShape(8.dp))
             ) {
                 if (isLoading) {
@@ -137,7 +137,6 @@ fun RestauranteSwitchScreen(
                                 descripcion = restaurante.descripcion,
                                 disponible = restaurante.disponible,
                             ) {
-                                // Cambio en el Switch
                                 viewModel.actualizarDisponibilidadRestaurantes(restaurante.restauranteId, it)
                             }
                         }
@@ -147,7 +146,7 @@ fun RestauranteSwitchScreen(
 
             Button(
                 onClick = {
-                    navController.popBackStack() // ← Regresa a la pantalla anterior
+                    navController.popBackStack()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,19 +175,16 @@ fun RestauranteItem(
     disponible: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    // Estado local para manejar el estado del switch
     var currentState by remember(disponible) { mutableStateOf(disponible) }
     var showError by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Determinar el icono según el tipo de restaurante
     val iconRes = when (nombre) {
-        "SalaVIP" -> R.drawable.sala  // Asegúrate de tener este recurso
-        "SalaReuniones" -> R.drawable.salon  // Asegúrate de tener este recurso
-        else -> R.drawable.comer  // Icono por defecto
+        "SalaVIP" -> R.drawable.sala
+        "SalaReuniones" -> R.drawable.salon
+        else -> R.drawable.comer
     }
 
-    // Color de fondo del icono según el tipo
     val iconBackgroundColor = when (nombre) {
         "SalaVIP" -> Color(0xFFFFD500)
         "SalaReuniones" -> Color(0xFFFFD500)
@@ -206,7 +202,6 @@ fun RestauranteItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Columna para el icono y el texto
         Column(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start

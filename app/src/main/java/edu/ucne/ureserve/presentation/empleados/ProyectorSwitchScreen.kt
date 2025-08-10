@@ -107,7 +107,7 @@ fun ProyectorSwitchScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp) // solo padding horizontal
+                    .padding(horizontal = 16.dp)
                     .background(Color(0xFF004BBB), shape = RoundedCornerShape(8.dp))
             ) {
                 if (isLoading) {
@@ -128,7 +128,6 @@ fun ProyectorSwitchScreen(
                                 disponible = proyector.disponible,
                                 proyectorId = proyector.proyectorId,
                             ) {
-                                // Cambio en el Switch
                                 viewModel.actualizarDisponibilidadProyectores(proyector.proyectorId, it)
                             }
                         }
@@ -138,7 +137,7 @@ fun ProyectorSwitchScreen(
 
             Button(
                 onClick = {
-                    navController.popBackStack() // ← Regresa a la pantalla anterior
+                    navController.popBackStack()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -162,12 +161,10 @@ fun ProyectorItem(
     disponible: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    // Estado local para manejar el estado del switch mientras se espera la respuesta del servidor
     var currentState by remember(disponible) { mutableStateOf(disponible) }
     var showError by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Efecto para manejar cambios en el estado
     LaunchedEffect(disponible) {
         currentState = disponible
     }
@@ -179,7 +176,6 @@ fun ProyectorItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Columna para el icono y el texto
         Column(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
@@ -216,13 +212,10 @@ fun ProyectorItem(
             Switch(
                 checked = currentState,
                 onCheckedChange = { newState ->
-                    // Cambio inmediato para feedback visual
                     currentState = newState
-                    // Llamar a la función de cambio
                     try {
                         onCheckedChange(newState)
                     } catch (e: Exception) {
-                        // Revertir el cambio si hay error
                         currentState = !newState
                         showError = true
                     }
@@ -237,7 +230,6 @@ fun ProyectorItem(
         }
     }
 
-    // Mostrar error si ocurre
     if (showError) {
         LaunchedEffect(showError) {
             Toast.makeText(

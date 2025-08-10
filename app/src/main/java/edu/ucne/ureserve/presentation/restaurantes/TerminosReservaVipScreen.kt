@@ -50,7 +50,6 @@ import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun TerminosReservaVipScreen(
@@ -60,8 +59,6 @@ fun TerminosReservaVipScreen(
 ) {
     val context = LocalContext.current
 
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -74,7 +71,7 @@ fun TerminosReservaVipScreen(
             postNotificationPermission.launchPermissionRequest()
         }
     }
-    var aceptado by remember { mutableStateOf(false) } // Empieza en false para obligar a marcar checkbox
+    var aceptado by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {

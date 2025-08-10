@@ -5,8 +5,23 @@ import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -34,8 +49,6 @@ fun ReservaRestauranteScreen(
 ) {
     val context = LocalContext.current
 
-
-    // Solicitud de permiso para notificaciones en Android 13+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -53,7 +66,7 @@ fun ReservaRestauranteScreen(
             .fillMaxSize()
             .background(Color(0xFF023E8A))
     ) {
-        // Encabezado
+
         TopAppBar(
             title = {
                 Row(
@@ -90,7 +103,6 @@ fun ReservaRestauranteScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Botones de opciones
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -138,7 +150,6 @@ fun ReservaRestauranteScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Navegación inferior
         Row(
             modifier = Modifier
                 .fillMaxWidth()

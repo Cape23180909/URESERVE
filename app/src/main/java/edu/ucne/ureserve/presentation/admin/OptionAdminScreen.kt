@@ -1,4 +1,4 @@
-package edu.ucne.ureserve.presentation.empleados
+package edu.ucne.ureserve.presentation.admin
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,7 +32,7 @@ import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 
 @Composable
-fun EmpleadoproyectoScreen(
+fun OptionAdminScreen(
     navController: NavController
 ) {
     Box(
@@ -40,7 +40,6 @@ fun EmpleadoproyectoScreen(
             .fillMaxSize()
             .background(Color(0xFF0F3278))
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -57,11 +56,10 @@ fun EmpleadoproyectoScreen(
             )
             Image(
                 painter = painterResource(id = R.drawable.icon_adminsettings),
-                contentDescription = "Configuración Empleado",
+                contentDescription = "Configuración Admin",
                 modifier = Modifier.size(50.dp)
             )
         }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -81,10 +79,9 @@ fun EmpleadoproyectoScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
-
                     Button(
                         onClick = {
-                            navController.navigate("proyector_switch")
+                            navController.navigate("DisponibilidadAdmin")
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -98,25 +95,52 @@ fun EmpleadoproyectoScreen(
                             modifier = Modifier.padding(start = 16.dp)
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.icon_proyector),
-                                contentDescription = "Modificar disponibilidad proyectores",
+                                painter = painterResource(id = R.drawable.icon_modify),
+                                contentDescription = "Modificar disponibilidad",
                                 modifier = Modifier.size(30.dp)
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = "Modificar disponibilidad proyectores",
+                                text = "Modificar disponibilidad",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.Black
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(26.dp))
-
                     Button(
                         onClick = {
-                            navController.navigate("empleadoproyector_En_Curso")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .clip(RoundedCornerShape(16.dp)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD600))
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.padding(start = 16.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.icon_empleados),
+                                contentDescription = "Gestión de empleados",
+                                modifier = Modifier.size(30.dp)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = "Gestión de empleados",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(26.dp))
+                    Button(
+                        onClick = {
+                            navController.navigate("Reserva_en_curso")
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -145,9 +169,7 @@ fun EmpleadoproyectoScreen(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(160.dp))
-
+            Spacer(modifier = Modifier.height(100.dp))
             Button(
                 onClick = {
                     navController.popBackStack()
@@ -164,16 +186,14 @@ fun EmpleadoproyectoScreen(
                     color = Color.White
                 )
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewEmpleadoproyectoScreen() {
-    EmpleadoproyectoScreen(
+fun PreviewOptionAdminScreen() {
+    OptionAdminScreen(
         navController = NavController(LocalContext.current)
     )
 }

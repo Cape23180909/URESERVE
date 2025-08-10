@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,8 +26,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
-import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorViewModel
 
 @Composable
 fun ExitosaCubiculoScreen(
@@ -77,7 +74,6 @@ fun ExitosaCubiculoScreen(
                         fontWeight = FontWeight.Bold
                     )
 
-                    // Aquí va lo que querías copiar exactamente
                     Text(
                         text = "Código de reserva:",
                         color = Color.Gray,
@@ -94,7 +90,7 @@ fun ExitosaCubiculoScreen(
                     Button(
                         onClick = {
                             navController.navigate("Dashboard") {
-                                popUpTo(0)  // Limpiar el back stack
+                                popUpTo(0)
                             }
                         },
                         colors = ButtonDefaults.buttonColors(

@@ -22,13 +22,10 @@ class ProyectorRepository @Inject constructor(
         horaInicio: String,
         horaFin: String
     ): List<ProyectoresDto> {
-        // Implementar lógica para obtener proyectores disponibles
-        // Esto puede variar según tu API real
         val todosProyectores = remoteDataSource.getProyectores()
         return todosProyectores
     }
 
-    // Métodos para DetalleReservaProyector
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun createDetalleReservaProyector(
         detalle: DetalleReservaProyectorsDto
@@ -65,7 +62,6 @@ class ProyectorRepository @Inject constructor(
         remoteDataSource.deleteDetalleReservaProyector(id)
     }
 
-    // Métodos para Proyectores (existente)
     fun getProyectores(): Flow<Resource<List<ProyectoresDto>>> = flow {
         try {
             emit(Resource.Loading())

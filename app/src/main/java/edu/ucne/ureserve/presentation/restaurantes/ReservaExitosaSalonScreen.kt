@@ -2,8 +2,17 @@ package edu.ucne.ureserve.presentation.restaurantes
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +38,7 @@ fun ReservaExitosaSalonScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.existo), // Requiere drawable
+            painter = painterResource(id = R.drawable.existo),
             contentDescription = "Reserva exitosa",
             modifier = Modifier.size(100.dp)
         )
@@ -52,13 +61,12 @@ fun ReservaExitosaSalonScreen(
             fontWeight = FontWeight.Medium
         )
 
-
         Spacer(modifier = Modifier.height(40.dp))
 
         Button(
             onClick = {
                 navController.navigate("Dashboard") {
-                    popUpTo(0) // Limpia la pila de navegación
+                    popUpTo(0)
                 }
             },
             modifier = Modifier
