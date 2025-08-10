@@ -56,6 +56,28 @@ class ReservaViewModel @Inject constructor(
         }
     }
 
+    fun getAllReservations() {
+        viewModelScope.launch {
+            repository.getReservas().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val todasLasReservas = result.data ?: emptyList()
+                        _reservaciones.value = todasLasReservas
+                        _state.update { ReservaListState.Success(todasLasReservas) }
+                    }
+                    is Resource.Error -> {
+                        _state.update {
+                            ReservaListState.Error(result.message ?: "Error al obtener Todas las reservas")
+                        }
+                    }
+                    is Resource.Loading -> {
+                        _state.update { ReservaListState.Loading }
+                    }
+                }
+            }
+        }
+    }
+
     fun getReservas() {
         viewModelScope.launch {
             repository.getReservas().collect { result ->
