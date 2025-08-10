@@ -24,6 +24,8 @@ import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import edu.ucne.ureserve.presentation.admin.BuscarReservaGeneralesScreen
+import edu.ucne.ureserve.presentation.admin.DashboardAdminReportScreen
 import edu.ucne.ureserve.presentation.admin.DashboardAdminScreen
 import edu.ucne.ureserve.presentation.admin.DisponibilidadAdminReservaScreen
 import edu.ucne.ureserve.presentation.admin.DisponibilidadAdminScreen
@@ -1487,5 +1489,15 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             )
         }
 
+        composable("admin_curso_filtro") {
+            BuscarReservaGeneralesScreen(
+                navController = navController
+            )
+        }
+        composable("DashboardAdminReportScreen") {
+            DashboardAdminReportScreen(
+                navController = navController
+            )
+        }
     }
 }
