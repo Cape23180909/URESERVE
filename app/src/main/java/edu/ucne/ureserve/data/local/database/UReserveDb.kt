@@ -3,8 +3,34 @@ package edu.ucne.ureserve.data.local.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import edu.ucne.ureserve.data.local.dao.*
-import edu.ucne.ureserve.data.local.entity.*
+import edu.ucne.ureserve.data.local.dao.CubiculosDao
+import edu.ucne.ureserve.data.local.dao.DetalleReservaCubiculosDao
+import edu.ucne.ureserve.data.local.dao.DetalleReservaLaboratoriosDao
+import edu.ucne.ureserve.data.local.dao.DetalleReservaProyectoresDao
+import edu.ucne.ureserve.data.local.dao.DetalleReservaRestaurantesDao
+import edu.ucne.ureserve.data.local.dao.EstudianteDao
+import edu.ucne.ureserve.data.local.dao.LaboratorioDao
+import edu.ucne.ureserve.data.local.dao.ProyectorDao
+import edu.ucne.ureserve.data.local.dao.ReporteDao
+import edu.ucne.ureserve.data.local.dao.ReservacionDao
+import edu.ucne.ureserve.data.local.dao.RestauranteDao
+import edu.ucne.ureserve.data.local.dao.TarjetaCreditoDao
+import edu.ucne.ureserve.data.local.dao.TipoCargoDao
+import edu.ucne.ureserve.data.local.dao.UsuarioDao
+import edu.ucne.ureserve.data.local.entity.CubiculosEntity
+import edu.ucne.ureserve.data.local.entity.DetalleReservaCubiculosEntity
+import edu.ucne.ureserve.data.local.entity.DetalleReservaLaboratoriosEntity
+import edu.ucne.ureserve.data.local.entity.DetalleReservaProyectoresEntity
+import edu.ucne.ureserve.data.local.entity.DetalleReservaRestaurantesEntity
+import edu.ucne.ureserve.data.local.entity.EstudianteEntity
+import edu.ucne.ureserve.data.local.entity.LaboratorioEntity
+import edu.ucne.ureserve.data.local.entity.ProyectorEntity
+import edu.ucne.ureserve.data.local.entity.ReporteEntity
+import edu.ucne.ureserve.data.local.entity.ReservacionEntity
+import edu.ucne.ureserve.data.local.entity.RestauranteEntity
+import edu.ucne.ureserve.data.local.entity.TarjetaCreditoEntity
+import edu.ucne.ureserve.data.local.entity.TipoCargoEntity
+import edu.ucne.ureserve.data.local.entity.UsuarioEntity
 
 @Database(
     entities = [

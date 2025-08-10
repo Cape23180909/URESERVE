@@ -32,7 +32,7 @@ class NotificationHandler(private val context: Context) {
 
     fun showNotification(title: String, message: String) {
         val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_notification) // Asegúrate de tenerlo en res/drawable
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

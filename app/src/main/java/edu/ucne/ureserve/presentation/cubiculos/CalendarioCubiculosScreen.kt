@@ -59,7 +59,6 @@ fun CubiculoReservationScreen(
     val isDateValid = selectedDate != null && !isSunday
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // TopAppBar con borde inferior
         Column {
             TopAppBar(
                 title = {
@@ -81,20 +80,18 @@ fun CubiculoReservationScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF6D87A4) // Color de fondo de la barra superior
+                    containerColor = Color(0xFF6D87A4)
                 )
             )
 
-            // Línea separadora (borde inferior)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
-                    .background(Color(0xFF023E8A)) // Color del borde
+                    .background(Color(0xFF023E8A))
             )
         }
 
-        // Contenido principal
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()

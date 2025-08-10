@@ -1,4 +1,3 @@
-import android.R.attr.label
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -40,7 +38,6 @@ fun DetalleReservaEnCursoProyectorScreen(
     navController: NavController,
     reserva: ReservacionesDto
 ) {
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -51,7 +48,6 @@ fun DetalleReservaEnCursoProyectorScreen(
                 .fillMaxSize()
                 .padding(2.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -75,7 +71,6 @@ fun DetalleReservaEnCursoProyectorScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Main Content
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -89,7 +84,6 @@ fun DetalleReservaEnCursoProyectorScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Title with Projector Icon
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth(),
@@ -117,7 +111,6 @@ fun DetalleReservaEnCursoProyectorScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Reservation Details
                     ReservationDetailBlock(label = "NO. RESERVA", value = reserva.codigoReserva.toString())
                     ReservationDetailBlock(label = "FECHA", value = reserva.fechaFormateada)
                     ReservationDetailBlock(label = "HORARIO", value = "${reserva.horaInicio} a ${reserva.horaFin}")
@@ -125,9 +118,8 @@ fun DetalleReservaEnCursoProyectorScreen(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Terminate Button
                     Button(
-                        onClick = { /* Handle terminate action */ },
+                        onClick = {  },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -201,7 +193,7 @@ fun PreviewDetalleReservaEnCursoProyectorScreen() {
     val navController = rememberNavController()
     val reserva = ReservacionesDto(
         codigoReserva = 789521456,
-        fecha = "2023-04-08", // Fecha en formato yyyy-MM-dd
+        fecha = "2023-04-08",
         horaInicio = "08:00",
         horaFin = "10:00",
         matricula = "2025-7896",

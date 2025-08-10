@@ -1,67 +1,13 @@
 package edu.ucne.ureserve.data.repository
 
 import android.util.Log
-import edu.ucne.ureserve.data.remote.RemoteDataSource
-import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.UsuarioApi
-import edu.ucne.ureserve.data.remote.dto.LaboratoriosDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import retrofit2.HttpException
 import javax.inject.Inject
 
 class LaboratorioRepository @Inject constructor(
-    private val remoteDataSource: RemoteDataSource,
     private val usuarioApi: UsuarioApi
 ) {
-    fun getLaboratorios(): Flow<Resource<List<LaboratoriosDto>>> = flow {
-        try {
-            emit(Resource.Loading())
-            val laboratorios = remoteDataSource.getLaboratorios()
-            emit(Resource.Success(laboratorios))
-        } catch (e: HttpException) {
-            Log.e("Retrofit No connection", "Error de conexión ${e.message}", e)
-            emit(Resource.Error("Error de internet: ${e.message}"))
-        } catch (e: Exception) {
-            Log.e("Retrofit Unknown", "Error desconocido ${e.message}", e)
-            emit(Resource.Error("Error desconocido: ${e.message}"))
-        }
-    }
-
-    // En LaboratorioRepository.kt
-    suspend fun getLaboratoriosDisponibles(
-        fecha: String,
-        horaInicio: String,
-        horaFin: String
-    ): List<LaboratoriosDto> {
-        return try {
-            // Primero obtenemos todos los laboratorios
-            val todosLaboratorios = remoteDataSource.getLaboratorios()
-
-            // Luego obtenemos los laboratorios ocupados en ese horario
-            val reservaciones = remoteDataSource.getReservaciones().filter { reserva ->
-                reserva.fecha == fecha &&
-                        reserva.tipoReserva == 3 && // 3 = Laboratorio
-                        !(horaFin <= reserva.horaInicio || horaInicio >= reserva.horaFin)
-            }
-
-            // Obtenemos los IDs de laboratorios ocupados
-            val idsOcupados = remoteDataSource.getDetalleReservaLaboratorios()
-                .filter { detalle ->
-                    reservaciones.any { it.codigoReserva == detalle.codigoReserva }
-                }
-                .map { it.idLaboratorio }
-
-            // Filtramos los laboratorios disponibles
-            todosLaboratorios.filter { laboratorio ->
-                laboratorio.disponible && !idsOcupados.contains(laboratorio.laboratorioId)
-            }
-        } catch (e: Exception) {
-            Log.e("Repository", "Error al obtener laboratorios disponibles", e)
-            emptyList()
-        }
-    }
     suspend fun buscarUsuarioPorMatricula(matricula: String): UsuarioDTO? {
         return try {
             val usuarios = usuarioApi.getAll()
@@ -82,16 +28,4 @@ class LaboratorioRepository @Inject constructor(
             null
         }
     }
-
-    suspend fun getLaboratorio(id: Int): LaboratoriosDto =
-        remoteDataSource.getLaboratorio(id)
-
-    suspend fun createLaboratorio(laboratorio: LaboratoriosDto): LaboratoriosDto =
-        remoteDataSource.createLaboratorio(laboratorio)
-
-    suspend fun updateLaboratorio(laboratorio: LaboratoriosDto): LaboratoriosDto =
-        remoteDataSource.updateLaboratorio(laboratorio.laboratorioId, laboratorio)
-
-    suspend fun deleteLaboratorio(id: Int) =
-        remoteDataSource.deleteLaboratorio(id)
 }

@@ -240,7 +240,6 @@ fun PrevisualizacionProyectorScreen(
                             .padding(16.dp)
                     )
 
-
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -375,10 +374,9 @@ fun isWithinReservation(horario: String, horaInicio: String, horaFin: String): B
         val horarioTime = LocalTime.parse(horario, timeFormatter)
         val inicioTime = LocalTime.parse(horaInicio, timeFormatter)
         val finTime = LocalTime.parse(horaFin, timeFormatter)
-        // Incluir al horario de inicio y al horario de fin en la selección
         horarioTime >= inicioTime && horarioTime <= finTime
     } catch (e: Exception) {
-        false // En caso de error en el formato, devolvemos false
+        false
     }
 }
 

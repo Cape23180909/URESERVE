@@ -16,19 +16,17 @@ data class ReservacionesDto(
     val estado: Int = 0,
     val matricula: String
 ){
-    // Propiedad computada para el formato de fecha
     val fechaFormateada: String
         get() = fecha.formatDate()
 
-    // Función de extensión para formatear la fecha
     private fun String.formatDate(): String {
         return try {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val outputFormat = SimpleDateFormat("d MMMM", Locale.getDefault()) // Formato: "19 julio"
+            val outputFormat = SimpleDateFormat("d MMMM", Locale.getDefault())
             val date = inputFormat.parse(this) ?: return this
             outputFormat.format(date)
         } catch (e: Exception) {
-            this // Si falla, devuelve la fecha original
+            this
         }
     }
 }

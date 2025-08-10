@@ -1,4 +1,4 @@
-package edu.ucne.ureserve.data.di
+package edu.ucne.ureserve.data.remote.adapters
 
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson

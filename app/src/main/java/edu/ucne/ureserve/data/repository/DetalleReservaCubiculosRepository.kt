@@ -1,7 +1,6 @@
 package edu.ucne.ureserve.data.repository
 
 import android.util.Log
-import edu.ucne.ureserve.data.remote.DetalleReservaCubiculosApi
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.Resource
 import edu.ucne.ureserve.data.remote.dto.DetalleReservaCubiculosDto
