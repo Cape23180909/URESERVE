@@ -29,5 +29,6 @@ interface ReservacionesApi {
     ): Response<ReservacionesDto>
 
     @DELETE("api/Reservaciones/{id}")
-    suspend fun delete(@Path("id") id: Int)
+    suspend fun delete(@Path("id") id: Int): Response<Unit>
+
 }

@@ -23,6 +23,7 @@ import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import edu.ucne.ureserve.data.repository.ReservacionRepository
 import edu.ucne.ureserve.presentation.admin.BuscarReservaGeneralesScreen
 import edu.ucne.ureserve.presentation.admin.DashboardAdminReportScreen
 import edu.ucne.ureserve.presentation.admin.DashboardAdminScreen
@@ -1292,10 +1293,12 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 matricula = matricula,
                 tipoReserva = 1
             )
+//            val reservacionRepository: ReservacionRepository = hiltViewModel()
 
             DetalleReservaEnCursoProyectorScreen(
                 navController = navController,
-                reserva = reserva
+                reserva = reserva,
+//                reservacionRepository = reservacionRepository
             )
         }
 

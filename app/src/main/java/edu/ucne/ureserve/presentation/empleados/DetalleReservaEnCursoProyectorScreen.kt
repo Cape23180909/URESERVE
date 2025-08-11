@@ -1,3 +1,4 @@
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,16 +30,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
+import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 
 @Composable
 fun DetalleReservaEnCursoProyectorScreen(
     navController: NavController,
-    reserva: ReservacionesDto
+    reserva: ReservacionesDto,
+    reservaViewModel: ReservaViewModel = hiltViewModel()
 ) {
+    LaunchedEffect(Unit) {
+        reservaViewModel.navigateBack.collect {
+            navController.popBackStack()
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -119,7 +130,10 @@ fun DetalleReservaEnCursoProyectorScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Button(
-                        onClick = {  },
+                        onClick = {
+                            Log.d("BotonTerminar", "Click en terminar con id=${reserva.reservacionId}")
+                            reservaViewModel.terminarReserva(reserva.reservacionId)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -187,20 +201,20 @@ fun ReservationDetailBlock(label: String, value: String) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewDetalleReservaEnCursoProyectorScreen() {
-    val navController = rememberNavController()
-    val reserva = ReservacionesDto(
-        codigoReserva = 789521456,
-        fecha = "2023-04-08",
-        horaInicio = "08:00",
-        horaFin = "10:00",
-        matricula = "2025-7896",
-        tipoReserva = 1,
-    )
-    DetalleReservaEnCursoProyectorScreen(
-        navController = navController,
-        reserva = reserva
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewDetalleReservaEnCursoProyectorScreen() {
+//    val navController = rememberNavController()
+//    val reserva = ReservacionesDto(
+//        codigoReserva = 789521456,
+//        fecha = "2023-04-08",
+//        horaInicio = "08:00",
+//        horaFin = "10:00",
+//        matricula = "2025-7896",
+//        tipoReserva = 1,
+//    )
+//    DetalleReservaEnCursoProyectorScreen(
+//        navController = navController,
+//        reserva = reserva
+//    )
+//}

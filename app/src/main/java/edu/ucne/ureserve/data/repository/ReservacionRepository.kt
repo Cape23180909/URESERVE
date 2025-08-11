@@ -19,7 +19,7 @@ class ReservacionRepository @Inject constructor(
     private val remoteDataSource: RemoteDataSource,
     private val api: ReservacionesApi,
     private val apiTarjeta: TarjetaCreditoApi,
-    private val detalleReservaRestaurantesApi: DetalleReservaRestaurantesApi
+    private val detalleReservaRestaurantesApi: DetalleReservaRestaurantesApi,
 ) {
     suspend fun getDetalleReserva(reservacionId: Int): DetalleReservaRestaurantesDto? {
         return try {
@@ -89,4 +89,24 @@ class ReservacionRepository @Inject constructor(
 
     suspend fun updateReservacion(reservacion: ReservacionesDto): Response<ReservacionesDto> =
         remoteDataSource.updateReservacion(reservacion.reservacionId, reservacion)
+
+    suspend fun deleteReservacion(reservacionid: Int): Boolean {
+        return try {
+            Log.d("Repository", "Intentando eliminar reservación con ID $reservacionid")
+            val response = api.delete(reservacionid)
+            if (response.isSuccessful) {
+                Log.d("Repository", "Reservación eliminada con éxito")
+                true
+            } else {
+                Log.e(
+                    "Repository",
+                    "Error al eliminar. Código: ${response.code()} - ${response.message()}"
+                )
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("Repository", "Excepción al eliminar reservación con id $reservacionid", e)
+            false
+        }
+    }
 }
