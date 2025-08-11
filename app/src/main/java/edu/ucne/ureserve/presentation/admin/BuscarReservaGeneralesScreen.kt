@@ -47,13 +47,14 @@ fun BuscarReservaGeneralesScreen(
         viewModel.getAllReservations()
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color(0xFF0F3278)
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0F3278))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -74,6 +75,9 @@ fun BuscarReservaGeneralesScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
+        }
+
+        item {
             Text(
                 text = "Reservas en Curso",
                 fontSize = 23.sp,
@@ -82,8 +86,10 @@ fun BuscarReservaGeneralesScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentWidth(Alignment.CenterHorizontally)
-                    .padding(16.dp)
             )
+        }
+
+        item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -132,9 +138,11 @@ fun BuscarReservaGeneralesScreen(
                     }
                 }
             }
+        }
 
-            when (state) {
-                is ReservaViewModel.ReservaListState.Loading -> {
+        when (state) {
+            is ReservaViewModel.ReservaListState.Loading -> {
+                item {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -142,15 +150,17 @@ fun BuscarReservaGeneralesScreen(
                         CircularProgressIndicator(color = Color.White)
                     }
                 }
-                is ReservaViewModel.ReservaListState.Success -> {
-                    val reservasFiltradas = reservaciones
-                        .filterNot { isReservaFinalizada(it.fecha, it.horaFin) }
-                        .filter {
-                            codigoReserva.isBlank() ||
-                                    it.codigoReserva.toString().contains(codigoReserva, ignoreCase = true)
-                        }
+            }
+            is ReservaViewModel.ReservaListState.Success -> {
+                val reservasFiltradas = reservaciones
+                    .filterNot { isReservaFinalizada(it.fecha, it.horaFin) }
+                    .filter {
+                        codigoReserva.isBlank() ||
+                                it.codigoReserva.toString().contains(codigoReserva, ignoreCase = true)
+                    }
 
-                    if (reservasFiltradas.isEmpty()) {
+                if (reservasFiltradas.isEmpty()) {
+                    item {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
@@ -161,53 +171,48 @@ fun BuscarReservaGeneralesScreen(
                                 fontSize = 18.sp
                             )
                         }
-                    } else {
-                        LazyColumn(
+                    }
+                } else {
+                    item {
+                        Box(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0xFF2E5C94))
+                                .padding(16.dp)
                         ) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(Color(0xFF2E5C94))
-                                        .padding(16.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(8.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(text = "Tiempo Restante", color = Color.White)
-                                        Text(text = "Reservas", color = Color.White)
-                                    }
-                                }
-                            }
-                            items(reservasFiltradas) { reserva ->
-                                val iconRes = when (reserva.tipoReserva) {
-                                    1 -> R.drawable.icon_proyector
-                                    2 -> R.drawable.icon_cubiculo
-                                    3 -> R.drawable.icon_laboratorio
-                                    4 -> R.drawable.sala
-                                    5 -> R.drawable.salon
-                                    else -> R.drawable.icon_restaurante
-                                }
-
-                                GeneralReservationItemBuscar(
-                                    horaInicio = reserva.horaInicio,
-                                    horaFin = reserva.horaFin,
-                                    fecha = reserva.fecha,
-                                    iconRes = iconRes,
-                                    color = Color(0xFF6EE610)
-                                )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(text = "Tiempo Restante", color = Color.White)
+                                Text(text = "Reservas", color = Color.White)
                             }
                         }
                     }
+
+                    items(reservasFiltradas) { reserva ->
+                        val iconRes = when (reserva.tipoReserva) {
+                            1 -> R.drawable.icon_proyector
+                            2 -> R.drawable.icon_cubiculo
+                            3 -> R.drawable.icon_laboratorio
+                            4 -> R.drawable.sala
+                            5 -> R.drawable.salon
+                            else -> R.drawable.icon_restaurante
+                        }
+                        GeneralReservationItemBuscar(
+                            horaInicio = reserva.horaInicio,
+                            horaFin = reserva.horaFin,
+                            fecha = reserva.fecha,
+                            iconRes = iconRes,
+                            color = Color(0xFF6EE610)
+                        )
+                    }
                 }
-                is ReservaViewModel.ReservaListState.Error -> {
+            }
+            is ReservaViewModel.ReservaListState.Error -> {
+                item {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -220,7 +225,9 @@ fun BuscarReservaGeneralesScreen(
                     }
                 }
             }
+        }
 
+        item {
             Spacer(modifier = Modifier.height(15.dp))
             Box(
                 modifier = Modifier
