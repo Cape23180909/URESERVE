@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.reportes
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,7 +35,7 @@ fun ReporteRestauranteScreen(
     viewModel: ReporteViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsState().value
-
+    val context = LocalContext.current
 
     LaunchedEffect(tipo) {
         if (tipo == 0) {
@@ -42,7 +44,6 @@ fun ReporteRestauranteScreen(
             viewModel.loadReservasPorTipo(tipo)
         }
     }
-
 
     Box(
         modifier = Modifier
@@ -53,7 +54,6 @@ fun ReporteRestauranteScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Encabezado
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -182,13 +182,38 @@ fun ReporteRestauranteScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ActionButton("DESCARGAR", Color(0xFF007ACC)) { /* Acción descargar */ }
-                ActionButton("IMPRIMIR", Color(0xFF00B4D8)) { /* Acción imprimir */ }
+                ActionButton("DESCARGAR", Color(0xFF007ACC)) {
+                    if (state.reservas.isNotEmpty()) {
+                        val pdfFile = generarPdfReservasRestaurantes(context, state.reservas)
+                        Toast.makeText(
+                            context,
+                            "PDF guardado en: ${pdfFile.absolutePath}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No hay reservas para generar PDF",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                ActionButton("IMPRIMIR", Color(0xFF00B4D8)) {
+                    if (state.reservas.isNotEmpty()) {
+                        imprimirPdfRestaurantes(context, state.reservas)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No hay reservas para imprimir",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
