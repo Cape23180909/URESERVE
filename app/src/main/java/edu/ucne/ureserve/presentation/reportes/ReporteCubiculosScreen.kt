@@ -1,23 +1,14 @@
 package edu.ucne.ureserve.presentation.reportes
 
+import ReservationDetailBlock
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,6 +40,8 @@ fun ReporteCubiculosScreen(
         viewModel.loadReservasPorTipo(2)
     }
 
+    val scrollState = rememberScrollState()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -56,9 +49,10 @@ fun ReporteCubiculosScreen(
             .padding(8.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -75,7 +69,7 @@ fun ReporteCubiculosScreen(
                 )
                 Image(
                     painter = painterResource(id = R.drawable.icon_adminsettings),
-                    contentDescription = "ConfiguraciÃ³n Empleado",
+                    contentDescription = "Configuración Empleado",
                     modifier = Modifier.size(50.dp)
                 )
             }
@@ -88,7 +82,6 @@ fun ReporteCubiculosScreen(
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color(0xFF2E5C94))
                     .padding(16.dp)
-                    .weight(1f)
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -101,11 +94,11 @@ fun ReporteCubiculosScreen(
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.icon_cubiculo),
-                            contentDescription = "CubÃ­culo",
+                            contentDescription = "Cubiculos",
                             modifier = Modifier.size(50.dp)
                         )
                         Text(
-                            text = "REPORTE DE CUBÃCULOS",
+                            text = "REPORTE DE CUBICULOS",
                             color = Color.White,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
@@ -117,44 +110,27 @@ fun ReporteCubiculosScreen(
 
                     when {
                         state.isLoading -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(color = Color.White)
-                            }
+                            CircularProgressIndicator(color = Color.White)
                         }
                         state.error != null -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = state.error,
-                                    color = Color.Red,
-                                    fontSize = 16.sp
-                                )
-                            }
+                            Text(
+                                text = state.error,
+                                color = Color.Red,
+                                fontSize = 16.sp
+                            )
                         }
                         state.reservas.isEmpty() -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No hay reservas de cubÃ­culos",
-                                    color = Color.White,
-                                    fontSize = 16.sp
-                                )
-                            }
+                            Text(
+                                text = "No hay reservas de cubiculos",
+                                color = Color.White,
+                                fontSize = 16.sp
+                            )
                         }
                         else -> {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                items(state.reservas) { reserva ->
+                                state.reservas.forEach { reserva ->
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -167,10 +143,8 @@ fun ReporteCubiculosScreen(
                                         ReservationDetailBlock("FECHA", reserva.fechaFormateada)
                                         ReservationDetailBlock("HORARIO", "${reserva.horaInicio} a ${reserva.horaFin}")
                                         ReservationDetailBlock("MATRÍCULA", reserva.matricula)
-
                                         Spacer(modifier = Modifier.height(8.dp))
                                     }
-                                    Spacer(modifier = Modifier.height(8.dp))
                                 }
                             }
                         }

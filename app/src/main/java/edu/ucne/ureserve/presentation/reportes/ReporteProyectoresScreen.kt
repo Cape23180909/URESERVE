@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.reportes
 
+import ReservationDetailBlock
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,9 +16,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,6 +50,7 @@ fun ReporteProyectoresScreen(
     }
 
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
@@ -57,7 +59,9 @@ fun ReporteProyectoresScreen(
             .padding(8.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             Row(
                 modifier = Modifier
@@ -75,7 +79,7 @@ fun ReporteProyectoresScreen(
                 )
                 Image(
                     painter = painterResource(id = R.drawable.icon_adminsettings),
-                    contentDescription = "ConfiguraciÃ³n Empleado",
+                    contentDescription = "Configuración Empleado",
                     modifier = Modifier.size(50.dp)
                 )
             }
@@ -88,7 +92,6 @@ fun ReporteProyectoresScreen(
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color(0xFF2E5C94))
                     .padding(16.dp)
-                    .weight(1f)
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -117,44 +120,27 @@ fun ReporteProyectoresScreen(
 
                     when {
                         state.isLoading -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(color = Color.White)
-                            }
+                            CircularProgressIndicator(color = Color.White)
                         }
                         state.error != null -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = state.error,
-                                    color = Color.Red,
-                                    fontSize = 16.sp
-                                )
-                            }
+                            Text(
+                                text = state.error,
+                                color = Color.Red,
+                                fontSize = 16.sp
+                            )
                         }
                         state.reservas.isEmpty() -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No hay reservas de proyectores",
-                                    color = Color.White,
-                                    fontSize = 16.sp
-                                )
-                            }
+                            Text(
+                                text = "No hay reservas de proyectores",
+                                color = Color.White,
+                                fontSize = 16.sp
+                            )
                         }
                         else -> {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                items(state.reservas) { reserva ->
+                                state.reservas.forEach { reserva ->
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -167,10 +153,8 @@ fun ReporteProyectoresScreen(
                                         ReservationDetailBlock("FECHA", reserva.fechaFormateada)
                                         ReservationDetailBlock("HORARIO", "${reserva.horaInicio} a ${reserva.horaFin}")
                                         ReservationDetailBlock("MATRÍCULA", reserva.matricula)
-
                                         Spacer(modifier = Modifier.height(8.dp))
                                     }
-                                    Spacer(modifier = Modifier.height(8.dp))
                                 }
                             }
                         }
@@ -187,17 +171,9 @@ fun ReporteProyectoresScreen(
                 ActionButton("DESCARGAR", Color(0xFF007ACC)) {
                     if (state.reservas.isNotEmpty()) {
                         val pdfFile = generarPdfReservasProyectores(context, state.reservas)
-                        Toast.makeText(
-                            context,
-                            "PDF guardado en: ${pdfFile.absolutePath}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        Toast.makeText(context, "PDF guardado en: ${pdfFile.absolutePath}", Toast.LENGTH_LONG).show()
                     } else {
-                        Toast.makeText(
-                            context,
-                            "No hay reservas para generar PDF",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(context, "No hay reservas para generar PDF", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -205,16 +181,13 @@ fun ReporteProyectoresScreen(
                     if (state.reservas.isNotEmpty()) {
                         imprimirPdfProyectores(context, state.reservas)
                     } else {
-                        Toast.makeText(
-                            context,
-                            "No hay reservas para imprimir",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(context, "No hay reservas para imprimir", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier

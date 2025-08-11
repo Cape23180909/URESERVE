@@ -1,14 +1,18 @@
 package edu.ucne.ureserve.presentation.reportes
 
+import ReservationDetailBlock
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -26,7 +30,7 @@ import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 
 @Composable
-fun ReporteLaboratorioScreen(
+fun ReporteLaboratoriosScreen(
     navController: NavController,
     viewModel: ReporteViewModel = hiltViewModel()
 ) {
@@ -35,6 +39,9 @@ fun ReporteLaboratorioScreen(
     LaunchedEffect(Unit) {
         viewModel.loadReservasPorTipo(3)
     }
+
+    val scrollState = rememberScrollState()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -42,7 +49,9 @@ fun ReporteLaboratorioScreen(
             .padding(8.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             Row(
                 modifier = Modifier
@@ -73,13 +82,11 @@ fun ReporteLaboratorioScreen(
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color(0xFF2E5C94))
                     .padding(16.dp)
-                    .weight(1f)
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth(),
@@ -87,7 +94,7 @@ fun ReporteLaboratorioScreen(
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.icon_laboratorio),
-                            contentDescription = "Laboratorio",
+                            contentDescription = "Laboratorios",
                             modifier = Modifier.size(50.dp)
                         )
                         Text(
@@ -103,44 +110,27 @@ fun ReporteLaboratorioScreen(
 
                     when {
                         state.isLoading -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(color = Color.White)
-                            }
+                            CircularProgressIndicator(color = Color.White)
                         }
                         state.error != null -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = state.error,
-                                    color = Color.Red,
-                                    fontSize = 16.sp
-                                )
-                            }
+                            Text(
+                                text = state.error,
+                                color = Color.Red,
+                                fontSize = 16.sp
+                            )
                         }
                         state.reservas.isEmpty() -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No hay reservas de laboratorios",
-                                    color = Color.White,
-                                    fontSize = 16.sp
-                                )
-                            }
+                            Text(
+                                text = "No hay reservas de laboratorios",
+                                color = Color.White,
+                                fontSize = 16.sp
+                            )
                         }
                         else -> {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                items(state.reservas) { reserva ->
+                                state.reservas.forEach { reserva ->
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -155,7 +145,6 @@ fun ReporteLaboratorioScreen(
                                         ReservationDetailBlock("MATRÍCULA", reserva.matricula)
                                         Spacer(modifier = Modifier.height(8.dp))
                                     }
-                                    Spacer(modifier = Modifier.height(8.dp))
                                 }
                             }
                         }
@@ -218,26 +207,6 @@ fun ReporteLaboratorioScreen(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun ReservationDetailBlock(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = value,
-            color = Color.White
-        )
     }
 }
 

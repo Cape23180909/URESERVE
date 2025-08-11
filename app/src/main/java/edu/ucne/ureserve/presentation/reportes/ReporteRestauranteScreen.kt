@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.reportes
 
+import ReservationDetailBlock
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,15 +46,14 @@ fun ReporteRestauranteScreen(
         }
     }
 
-    Box(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0F3278))
-            .padding(8.dp)
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -74,16 +74,15 @@ fun ReporteRestauranteScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
+        item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color(0xFF2E5C94))
                     .padding(16.dp)
-                    .weight(1f)
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -112,81 +111,76 @@ fun ReporteRestauranteScreen(
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    when {
-                        state.isLoading -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(color = Color.White)
-                            }
-                        }
-                        state.error != null -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = state.error,
-                                    color = Color.Red,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
-                        state.reservas.isEmpty() -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = when (tipo) {
-                                        6-> "No hay reservas para el restaurante"
-                                        4 -> "No hay reservas para la sala VIP"
-                                        5 -> "No hay reservas para el salón de reuniones"
-                                        else -> "No hay reservas"
-                                    },
-                                    color = Color.White,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
-                        else -> {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                            ) {
-                                items(state.reservas) { reserva ->
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 8.dp)
-                                            .border(1.dp, Color(0xFF133986), RoundedCornerShape(4.dp))
-                                            .padding(8.dp)
-                                            .background(Color(0xFF2E5C94))
-                                    ) {
-                                        ReservationDetailBlock("NO. RESERVA", reserva.codigoReserva.toString())
-                                        ReservationDetailBlock("FECHA", reserva.fechaFormateada)
-                                        ReservationDetailBlock("HORARIO", "${reserva.horaInicio} a ${reserva.horaFin}")
-                                        ReservationDetailBlock("MATRÍCULA", reserva.matricula)
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                }
-                            }
-                        }
-                    }
                 }
             }
+        }
 
+        if (state.isLoading) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White)
+                }
+            }
+        } else if (state.error != null) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = state.error,
+                        color = Color.Red,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        } else if (state.reservas.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = when (tipo) {
+                            6 -> "No hay reservas para el restaurante"
+                            4 -> "No hay reservas para la sala VIP"
+                            5 -> "No hay reservas para el salón de reuniones"
+                            else -> "No hay reservas"
+                        },
+                        color = Color.White,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        } else {
+            items(state.reservas) { reserva ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .border(1.dp, Color(0xFF133986), RoundedCornerShape(4.dp))
+                        .padding(8.dp)
+                        .background(Color(0xFF2E5C94))
+                ) {
+                    ReservationDetailBlock("NO. RESERVA", reserva.codigoReserva.toString())
+                    ReservationDetailBlock("FECHA", reserva.fechaFormateada)
+                    ReservationDetailBlock("HORARIO", "${reserva.horaInicio} a ${reserva.horaFin}")
+                    ReservationDetailBlock("MATRÍCULA", reserva.matricula)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
+
+        item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ActionButton("DESCARGAR", Color(0xFF007ACC)) {
+                ActionButtonRestaurant("DESCARGAR", Color(0xFF007ACC)) {
                     if (state.reservas.isNotEmpty()) {
                         val pdfFile = generarPdfReservasRestaurantes(context, state.reservas)
                         Toast.makeText(
@@ -202,8 +196,7 @@ fun ReporteRestauranteScreen(
                         ).show()
                     }
                 }
-
-                ActionButton("IMPRIMIR", Color(0xFF00B4D8)) {
+                ActionButtonRestaurant("IMPRIMIR", Color(0xFF00B4D8)) {
                     if (state.reservas.isNotEmpty()) {
                         imprimirPdfRestaurantes(context, state.reservas)
                     } else {
@@ -215,15 +208,15 @@ fun ReporteRestauranteScreen(
                     }
                 }
             }
+        }
 
+        item {
             Spacer(modifier = Modifier.height(16.dp))
-
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
                     .width(150.dp)
-                    .height(50.dp)
-                    .align(Alignment.CenterHorizontally),
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94)),
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -235,5 +228,24 @@ fun ReporteRestauranteScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun ActionButtonRestaurant(text: String, color: Color, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .width(150.dp)
+            .height(50.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = color),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            text = text,
+            color = Color.White,
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 16.sp
+        )
     }
 }

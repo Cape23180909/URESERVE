@@ -1,20 +1,11 @@
 package edu.ucne.ureserve.presentation.reportes
 
+import ReservationDetailBlock
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,23 +33,22 @@ import edu.ucne.ureserve.R
 fun ReporteGeneralListScreen(
     navController: NavController,
     viewModel: ReporteViewModel = hiltViewModel()
-){
+) {
     val context = LocalContext.current
     val state = viewModel.uiState.collectAsState().value
+
     LaunchedEffect(Unit) {
         viewModel.loadReservas()
     }
 
-    Box(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0F3278))
-            .padding(8.dp)
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-
+        item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -79,16 +69,15 @@ fun ReporteGeneralListScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
+        item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color(0xFF2E5C94))
                     .padding(16.dp)
-                    .weight(1f)
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -112,74 +101,66 @@ fun ReporteGeneralListScreen(
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    when {
-                        state.isLoading -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(color = Color.White)
-                            }
-                        }
-                        state.error != null -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = state.error,
-                                    color = Color.Red,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
-                        state.reservas.isEmpty() -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No hay reservas",
-                                    color = Color.White,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
-                        else -> {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                            ) {
-                                items(state.reservas) { reserva ->
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 8.dp)
-                                            .border(1.dp, Color(0xFF133986), RoundedCornerShape(4.dp))
-                                            .padding(8.dp)
-                                            .background(Color(0xFF2E5C94))
-                                    ) {
-                                        ReservationDetailBlock("NO. RESERVA", reserva.codigoReserva.toString())
-                                        ReservationDetailBlock("FECHA", reserva.fechaFormateada)
-                                        ReservationDetailBlock("HORARIO", "${reserva.horaInicio} a ${reserva.horaFin}")
-                                        ReservationDetailBlock("MATRÍCULA", reserva.matricula)
-
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                }
-                            }
-                        }
-                    }
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        if (state.isLoading) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White)
+                }
+            }
+        } else if (state.error != null) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = state.error,
+                        color = Color.Red,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        } else if (state.reservas.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No hay reservas",
+                        color = Color.White,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        } else {
+            items(state.reservas) { reserva ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .border(1.dp, Color(0xFF133986), RoundedCornerShape(4.dp))
+                        .padding(8.dp)
+                        .background(Color(0xFF2E5C94))
+                ) {
+                    ReservationDetailBlock("NO. RESERVA", reserva.codigoReserva.toString())
+                    ReservationDetailBlock("FECHA", reserva.fechaFormateada)
+                    ReservationDetailBlock("HORARIO", "${reserva.horaInicio} a ${reserva.horaFin}")
+                    ReservationDetailBlock("MATRÍCULA", reserva.matricula)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
 
+        item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -200,7 +181,6 @@ fun ReporteGeneralListScreen(
                         ).show()
                     }
                 }
-
                 ActionButton("IMPRIMIR", Color(0xFF00B4D8)) {
                     if (state.reservas.isNotEmpty()) {
                         imprimirPdfGeneral(context, state.reservas)
@@ -213,15 +193,15 @@ fun ReporteGeneralListScreen(
                     }
                 }
             }
+        }
 
+        item {
             Spacer(modifier = Modifier.height(16.dp))
-
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
                     .width(150.dp)
-                    .height(50.dp)
-                    .align(Alignment.CenterHorizontally),
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94)),
                 shape = RoundedCornerShape(8.dp)
             ) {
