@@ -111,35 +111,6 @@ fun OptionAdminScreen(
                     Spacer(modifier = Modifier.height(26.dp))
                     Button(
                         onClick = {
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(80.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD600))
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start,
-                            modifier = Modifier.padding(start = 16.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.icon_empleados),
-                                contentDescription = "Gestión de empleados",
-                                modifier = Modifier.size(30.dp)
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                text = "Gestión de empleados",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(26.dp))
-                    Button(
-                        onClick = {
                             navController.navigate("Reserva_en_curso")
                         },
                         modifier = Modifier
