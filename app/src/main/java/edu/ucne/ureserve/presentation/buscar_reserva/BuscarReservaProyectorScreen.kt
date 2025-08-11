@@ -6,8 +6,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -34,6 +32,8 @@ import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun BuscarReservaProyectorScreen(
@@ -43,6 +43,7 @@ fun BuscarReservaProyectorScreen(
     var codigoReserva by remember { mutableStateOf("") }
     val state by viewModel.state.collectAsState()
     val reservaciones by viewModel.reservaciones.collectAsState()
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         viewModel.getReservas()
@@ -53,7 +54,9 @@ fun BuscarReservaProyectorScreen(
         color = Color(0xFF0F3278)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             Row(
                 modifier = Modifier
@@ -142,7 +145,7 @@ fun BuscarReservaProyectorScreen(
             when (state) {
                 is ReservaViewModel.ReservaListState.Loading -> {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(color = Color.White)
@@ -159,7 +162,7 @@ fun BuscarReservaProyectorScreen(
 
                     if (reservasFiltradas.isEmpty()) {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -169,35 +172,30 @@ fun BuscarReservaProyectorScreen(
                             )
                         }
                     } else {
-                        LazyColumn(
+                        Column(
                             modifier = Modifier
-                                .fillMaxSize()
+                                .fillMaxWidth()
                                 .padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            item {
-                                Box(
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color(0xFF2E5C94))
+                                    .padding(16.dp)
+                            ) {
+                                Row(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(Color(0xFF2E5C94))
-                                        .padding(16.dp)
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(8.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(text = "Tiempo Restante", color = Color.White)
-                                        Text(text = "Reservas", color = Color.White)
-                                    }
+                                    Text(text = "Tiempo Restante", color = Color.White)
+                                    Text(text = "Reservas", color = Color.White)
                                 }
                             }
 
-                            items(
-                                items = reservasFiltradas,
-                                key = { it.codigoReserva }
-                            ) { reserva ->
+                            reservasFiltradas.forEach { reserva ->
                                 ProyectorReservationItemBuscar(
                                     horaInicio = reserva.horaInicio,
                                     horaFin = reserva.horaFin,
@@ -216,7 +214,7 @@ fun BuscarReservaProyectorScreen(
 
                 is ReservaViewModel.ReservaListState.Error -> {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(

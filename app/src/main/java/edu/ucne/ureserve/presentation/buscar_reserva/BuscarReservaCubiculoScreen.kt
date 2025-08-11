@@ -4,11 +4,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -41,6 +41,8 @@ fun BuscarReservaCubiculoScreen(
     val state by viewModel.state.collectAsState()
     val reservaciones by viewModel.reservaciones.collectAsState()
 
+    val scrollState = rememberScrollState()
+
     LaunchedEffect(Unit) {
         viewModel.getCubiculoReservas()
     }
@@ -53,8 +55,10 @@ fun BuscarReservaCubiculoScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -75,7 +79,9 @@ fun BuscarReservaCubiculoScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
+
             Spacer(modifier = Modifier.height(16.dp))
+
             Text(
                 text = "Reservas de Cubículos en Curso",
                 fontSize = 23.sp,
@@ -84,6 +90,7 @@ fun BuscarReservaCubiculoScreen(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
+            // Search box
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -100,7 +107,9 @@ fun BuscarReservaCubiculoScreen(
                             .fillMaxWidth()
                             .wrapContentWidth(Alignment.CenterHorizontally)
                     )
+
                     Spacer(modifier = Modifier.height(16.dp))
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -149,15 +158,17 @@ fun BuscarReservaCubiculoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Reservas
             when (val currentState = state) {
                 is ReservaViewModel.ReservaListState.Loading -> {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(color = Color.White)
                     }
                 }
+
                 is ReservaViewModel.ReservaListState.Success -> {
                     val reservasFiltradas = reservaciones
                         .filterNot { isReservaFinalizada(it.fecha, it.horaFin) }
@@ -168,7 +179,7 @@ fun BuscarReservaCubiculoScreen(
 
                     if (reservasFiltradas.isEmpty()) {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -178,21 +189,20 @@ fun BuscarReservaCubiculoScreen(
                             )
                         }
                     } else {
-                        LazyColumn {
-                            item {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(Color(0xFF2E5C94))
-                                        .padding(16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text("Tiempo Restante", color = Color.White)
-                                    Text("Reservas", color = Color.White)
-                                }
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color(0xFF2E5C94))
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Tiempo Restante", color = Color.White)
+                                Text("Reservas", color = Color.White)
                             }
-                            items(reservasFiltradas) { reserva ->
+
+                            reservasFiltradas.forEach { reserva ->
                                 CubiculoReservationItemBuscar(
                                     horaInicio = reserva.horaInicio,
                                     horaFin = reserva.horaFin,
@@ -208,9 +218,10 @@ fun BuscarReservaCubiculoScreen(
                         }
                     }
                 }
+
                 is ReservaViewModel.ReservaListState.Error -> {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -223,6 +234,8 @@ fun BuscarReservaCubiculoScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            // Botón volver
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier

@@ -8,9 +8,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -68,112 +70,105 @@ fun BuscarReservaLaboratorioScreen(
             .fillMaxSize()
             .background(Color(0xFF0F3278))
     ) {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .background(Color(0xFFA7A7A7))
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo_reserve),
-                    contentDescription = "Logo",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.icon_reserva),
-                    contentDescription = "Reservas en Curso",
-                    modifier = Modifier.size(50.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Reservas de laboratorios en Curso",
-                fontSize = 23.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF2E5C94))
-                    .padding(16.dp)
-            ) {
+            item {
                 Column {
-                    Text(
-                        text = "BUSCAR RESERVA",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentWidth(Alignment.CenterHorizontally)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color.White)
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .height(100.dp)
+                            .background(Color(0xFFA7A7A7))
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        BasicTextField(
-                            value = codigoReserva,
-                            onValueChange = { codigoReserva = it },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            decorationBox = { innerTextField ->
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (codigoReserva.isEmpty()) {
-                                        Text("CODIGO RESERVA", color = Color.Gray)
-                                    }
-                                    innerTextField()
-                                }
-                            }
+                        Image(
+                            painter = painterResource(id = R.drawable.logo_reserve),
+                            contentDescription = "Logo",
+                            modifier = Modifier.size(50.dp)
                         )
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Buscar",
-                            tint = Color.Black,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        BasicTextField(
-                            value = codigoQR,
-                            onValueChange = { codigoQR = it },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                            decorationBox = { innerTextField ->
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (codigoQR.isEmpty()) {
-                                        Text("CODIGO QR", color = Color.Gray)
-                                    }
-                                    innerTextField()
-                                }
-                            }
+                        Image(
+                            painter = painterResource(id = R.drawable.icon_reserva),
+                            contentDescription = "Reservas en Curso",
+                            modifier = Modifier.size(50.dp)
                         )
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Reservas de laboratorios en Curso",
+                        fontSize = 23.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF2E5C94))
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "BUSCAR RESERVA",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentWidth(Alignment.CenterHorizontally)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.White)
+                                .padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            BasicTextField(
+                                value = codigoReserva,
+                                onValueChange = { codigoReserva = it },
+                                modifier = Modifier.weight(1f),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                decorationBox = { innerTextField ->
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (codigoReserva.isEmpty()) {
+                                            Text("CODIGO RESERVA", color = Color.Gray)
+                                        }
+                                        innerTextField()
+                                    }
+                                }
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Buscar",
+                                tint = Color.Black,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             when (val currentState = state) {
                 is ReservaViewModel.ReservaListState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = Color.White)
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color.White)
+                        }
                     }
                 }
                 is ReservaViewModel.ReservaListState.Success -> {
@@ -185,72 +180,81 @@ fun BuscarReservaLaboratorioScreen(
                         }
 
                     if (reservasFiltradas.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No hay reservas activas",
-                                color = Color.White,
-                                fontSize = 18.sp
-                            )
-                        }
-                    } else {
-                        LazyColumn {
-                            item {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(Color(0xFF2E5C94))
-                                        .padding(16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text("Tiempo Restante", color = Color.White)
-                                    Text("Reservas", color = Color.White)
-                                }
-                            }
-                            items(reservasFiltradas) { reserva ->
-                                LaboratorioReservationItemBuscar(
-                                    horaInicio = reserva.horaInicio,
-                                    horaFin = reserva.horaFin,
-                                    fecha = reserva.fecha,
-                                    color = Color(0xFF6EE610),
-                                    onClick = {
-                                        navController.navigate(
-                                            "detalleReservaLaboratorio/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
-                                        )
-                                    }
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No hay reservas activas",
+                                    color = Color.White,
+                                    fontSize = 18.sp
                                 )
                             }
+                        }
+                    } else {
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color(0xFF2E5C94))
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Tiempo Restante", color = Color.White)
+                                Text("Reservas", color = Color.White)
+                            }
+                        }
+
+                        items(reservasFiltradas) { reserva ->
+                            LaboratorioReservationItemBuscar(
+                                horaInicio = reserva.horaInicio,
+                                horaFin = reserva.horaFin,
+                                fecha = reserva.fecha,
+                                color = Color(0xFF6EE610),
+                                onClick = {
+                                    navController.navigate(
+                                        "detalleReservaLaboratorio/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
+                                    )
+                                }
+                            )
                         }
                     }
                 }
                 is ReservaViewModel.ReservaListState.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = currentState.message,
-                            color = Color.Red,
-                            fontSize = 18.sp
-                        )
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = currentState.message,
+                                color = Color.Red,
+                                fontSize = 18.sp
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-            Button(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .width(150.dp)
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(25.dp)),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
-            ) {
-                Text("Volver", color = Color.White, fontSize = 18.sp)
+            item {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Button(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier
+                            .width(150.dp)
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(25.dp)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
+                    ) {
+                        Text("Volver", color = Color.White, fontSize = 18.sp)
+                    }
+                }
             }
         }
     }
