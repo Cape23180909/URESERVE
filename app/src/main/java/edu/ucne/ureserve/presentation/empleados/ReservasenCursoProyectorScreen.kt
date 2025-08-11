@@ -90,7 +90,6 @@ fun ReservasenCursoProyectorScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
-
             Text(
                 text = "Reservas de proyectores en Curso",
                 fontSize = 23.sp,
@@ -274,6 +273,11 @@ private fun parsearFechaHoraSeguro(fecha: String, hora: String): Date? {
         e.printStackTrace()
         null
     }
+}
+
+fun isReservaFinalizada(fecha: String, horaFin: String): Boolean {
+    val fechaHora = parsearFechaHoraSeguro(fecha, horaFin)
+    return fechaHora?.time ?: 0 < System.currentTimeMillis()
 }
 
 private fun formatearTiempoRestante(diferencia: Long): String {

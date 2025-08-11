@@ -5,30 +5,14 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,7 +35,7 @@ import java.util.Locale
 fun ReservasenCursoCubiculoScreen(
     navController: NavController,
     viewModel: ReservaViewModel = hiltViewModel()
-){
+) {
     val state by viewModel.state.collectAsState()
     val reservaciones by viewModel.reservaciones.collectAsState()
 
@@ -59,16 +43,14 @@ fun ReservasenCursoCubiculoScreen(
         viewModel.getCubiculoReservas()
     }
 
-    Box(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0F3278))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
+        item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -89,78 +71,80 @@ fun ReservasenCursoCubiculoScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
+        }
 
+        item {
             Text(
-                text = "Reservas de Cubiculos en Curso",
+                text = "Reservas de Cubículos en Curso",
                 fontSize = 23.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.fillMaxWidth()
             )
-
             Spacer(modifier = Modifier.height(16.dp))
+        }
 
-            when (val currentState = state) {
-                is ReservaViewModel.ReservaListState.Loading -> {
+        when (val currentState = state) {
+            is ReservaViewModel.ReservaListState.Loading -> {
+                item {
                     Text(
                         text = "Cargando reservas...",
                         color = Color.White,
                         fontSize = 18.sp,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                }
-
-                is ReservaViewModel.ReservaListState.Success -> {
-                    LazyColumn {
-                        item {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(Color(0xFF2E5C94))
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("Tiempo Restante", color = Color.White)
-                                Text("Reservas", color = Color.White)
-                            }
-                        }
-
-                        items(reservaciones.filterNot { isReservaFinalizada(it.fecha, it.horaFin) }) { reserva ->
-                            CubiculoReservationItem(
-                                horaInicio = reserva.horaInicio,
-                                horaFin = reserva.horaFin,
-                                fecha = reserva.fecha,
-                                color = Color(0xFF6EE610),
-                                onClick = {
-                                    navController.navigate(
-                                        "detalleReservaCubiculo/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
-
-                is ReservaViewModel.ReservaListState.Error -> {
-                    Text(
-                        text = currentState.message,
-                        color = Color.Red,
-                        fontSize = 18.sp,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            is ReservaViewModel.ReservaListState.Success -> {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0xFF2E5C94))
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Tiempo Restante", color = Color.White)
+                        Text("Reservas", color = Color.White)
+                    }
+                }
 
+                items(reservaciones.filterNot { isReservaFinalizadaCubiculo(it.fecha, it.horaFin) }) { reserva ->
+                    CubiculoReservationItem(
+                        horaInicio = reserva.horaInicio,
+                        horaFin = reserva.horaFin,
+                        fecha = reserva.fecha,
+                        color = Color(0xFF6EE610),
+                        onClick = {
+                            navController.navigate(
+                                "detalleReservaCubiculo/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
+                            )
+                        }
+                    )
+                }
+            }
+
+            is ReservaViewModel.ReservaListState.Error -> {
+                item {
+                    Text(
+                        text = currentState.message,
+                        color = Color.Red,
+                        fontSize = 18.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .width(150.dp)
+                    .fillMaxWidth()
                     .height(50.dp)
                     .clip(RoundedCornerShape(25.dp)),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
@@ -171,33 +155,7 @@ fun ReservasenCursoCubiculoScreen(
     }
 }
 
-fun calcularTiempoRestante(horaFin: String): Pair<String, Boolean> {
-    return try {
-        val formato = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-        val horaFinal = formato.parse(horaFin)
-        val ahora = System.currentTimeMillis()
-
-        if (horaFinal != null && horaFinal.time > ahora) {
-            val diferencia = horaFinal.time - ahora
-            val minutos = diferencia / (60 * 1000)
-            val horas = minutos / 60
-            val minutosRestantes = minutos % 60
-
-            val tiempoRestante = when {
-                horas > 0 -> "${horas}h ${minutosRestantes}min"
-                else -> "${minutosRestantes}min"
-            }
-
-            Pair(tiempoRestante, true)
-        } else {
-            Pair("Finalizado", false)
-        }
-    } catch (e: Exception) {
-        Pair("--:--", false)
-    }
-}
-
-fun isReservaFinalizada(fecha: String, horaFin: String): Boolean {
+fun isReservaFinalizadaCubiculo(fecha: String, horaFin: String): Boolean {
     val fechaHora = parsearFechaHoraSeguro(fecha, horaFin)
     return fechaHora?.time ?: 0 < System.currentTimeMillis()
 }
