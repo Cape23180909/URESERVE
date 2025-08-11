@@ -77,11 +77,17 @@ fun DashboardAdminReportScreen(
                     ReportButton(
                         icon = painterResource(id = R.drawable.icon_proyector),
                         text = "Reportes de Proyectores",
+                        onClick = {
+                            navController.navigate("Reportes_Proyectores")
+                        },
                         modifier = Modifier.weight(1f)
                     )
                     ReportButton(
                         icon = painterResource(id = R.drawable.cubiculo_admin),
                         text = "Reportes de Cubículos",
+                        onClick = {
+                            navController.navigate("Reporte_Cubiculos")
+                        },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -93,11 +99,17 @@ fun DashboardAdminReportScreen(
                     ReportButton(
                         icon = painterResource(id = R.drawable.icon_laboratorio),
                         text = "Reporte de Laboratorios",
+                        onClick = {
+                            navController.navigate("Reporte_laboratorio")
+                        },
                         modifier = Modifier.weight(1f)
                     )
                     ReportButton(
                         icon = painterResource(id = R.drawable.icon_restaurante),
                         text = "Reportes de Restaurante",
+                        onClick = {
+                            navController.navigate("Reporte_restaurante/{tipo}")
+                        },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -105,6 +117,9 @@ fun DashboardAdminReportScreen(
                 ReportButton(
                     icon = painterResource(id = R.drawable.icon_table),
                     text = "REPORTES GENERALES",
+                    onClick = {
+                        navController.navigate("Reporte_General")
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -131,9 +146,14 @@ fun DashboardAdminReportScreen(
 }
 
 @Composable
-fun ReportButton(icon: Painter, text: String, modifier: Modifier = Modifier) {
+fun ReportButton(
+    icon: Painter,
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Button(
-        onClick = { },
+        onClick = onClick,
         modifier = modifier
             .height(120.dp)
             .background(Color(0xFFFFD600), shape = RoundedCornerShape(8.dp)),
