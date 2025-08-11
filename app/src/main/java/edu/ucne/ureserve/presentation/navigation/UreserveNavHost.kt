@@ -72,6 +72,7 @@ import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
 import edu.ucne.ureserve.presentation.reportes.ReporteCubiculosScreen
+import edu.ucne.ureserve.presentation.reportes.ReporteGeneralListScreen
 import edu.ucne.ureserve.presentation.reportes.ReporteLaboratorioScreen
 import edu.ucne.ureserve.presentation.reportes.ReporteProyectoresScreen
 import edu.ucne.ureserve.presentation.reportes.ReporteRestauranteScreen
@@ -1463,6 +1464,10 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
         composable("Reporte_restaurante/{tipo}") { backStackEntry ->
             val tipo = backStackEntry.arguments?.getString("tipo")?.toIntOrNull() ?: 0
             ReporteRestauranteScreen(navController = navController, tipo = tipo)
+        }
+
+        composable("Reporte_General") {
+        ReporteGeneralListScreen(navController = navController)
         }
 
         composable("empleadoproyector_En_Curso_Filtro") {
