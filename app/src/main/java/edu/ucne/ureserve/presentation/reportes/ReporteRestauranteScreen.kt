@@ -103,7 +103,7 @@ fun ReporteRestauranteScreen(
                                 6 -> "REPORTE RESTAURANTE"
                                 4 -> "REPORTE SALA VIP"
                                 5 -> "REPORTE SALÓN REUNIONES"
-                                else -> "REPORTE"
+                                else -> "REPORTE RESTAURANTE"
                             },
                             color = Color.White,
                             fontSize = 20.sp,
