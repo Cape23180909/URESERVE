@@ -59,6 +59,53 @@ class ReporteViewModel @Inject constructor(
             }
         }
     }
+
+    fun loadReservas(tipo: Int? = null) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null,
+                isEmpty = false,
+                tipoActual = tipo
+            )
+
+            try {
+                reservacionRepository.getReservas().collect { resource ->
+                    when (resource) {
+                        is Resource.Loading -> {
+                            _uiState.value = _uiState.value.copy(isLoading = true)
+                        }
+                        is Resource.Success -> {
+                            val reservasFiltradas = if (tipo != null) {
+                                resource.data?.filter { it.tipoReserva == tipo } ?: emptyList()
+                            } else {
+                                resource.data ?: emptyList()
+                            }
+
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                reservas = reservasFiltradas,
+                                isEmpty = reservasFiltradas.isEmpty(),
+                                tipoActual = tipo
+                            )
+                        }
+                        is Resource.Error -> {
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                error = resource.message ?: "Error desconocido al cargar reservas"
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Error inesperado al cargar reservas"
+                )
+            }
+        }
+    }
+
     fun loadReservasPorTipoRestaurantes() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
