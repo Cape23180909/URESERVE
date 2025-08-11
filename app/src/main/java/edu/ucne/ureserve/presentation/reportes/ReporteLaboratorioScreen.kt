@@ -1,5 +1,6 @@
 package edu.ucne.ureserve.presentation.reportes
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,6 +30,7 @@ fun ReporteLaboratorioScreen(
     navController: NavController,
     viewModel: ReporteViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val state = viewModel.uiState.collectAsState().value
     LaunchedEffect(Unit) {
         viewModel.loadReservasPorTipo(3)
@@ -166,8 +169,34 @@ fun ReporteLaboratorioScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ActionButton("DESCARGAR", Color(0xFF007ACC)) { /* acción descargar */ }
-                ActionButton("IMPRIMIR", Color(0xFF00B4D8)) { /* acción imprimir */ }
+                ActionButton("DESCARGAR", Color(0xFF007ACC)) {
+                    if (state.reservas.isNotEmpty()) {
+                        val pdfFile = generarPdfReservasLaboratorios(context, state.reservas)
+                        Toast.makeText(
+                            context,
+                            "PDF guardado en: ${pdfFile.absolutePath}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No hay reservas para generar PDF",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                ActionButton("IMPRIMIR", Color(0xFF00B4D8)) {
+                    if (state.reservas.isNotEmpty()) {
+                        imprimirPdfLaboratorios(context, state.reservas)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "No hay reservas para imprimir",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
