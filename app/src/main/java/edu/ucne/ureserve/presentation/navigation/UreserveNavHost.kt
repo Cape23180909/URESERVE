@@ -3,7 +3,6 @@ package edu.ucne.ureserve.presentation.navigation
 import AgregarEstudianteScreen
 import DetalleReservaEnCursoProyectorScreen
 import ProyectorSwitchScreen
-import ReservasenCursoRestauranteScreen
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
@@ -54,6 +53,7 @@ import edu.ucne.ureserve.presentation.empleados.LaboratorioSwitchScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoCubiculoScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoLaboratorioScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoProyectorScreen
+import edu.ucne.ureserve.presentation.empleados.ReservasenCursoRestauranteScreen
 import edu.ucne.ureserve.presentation.empleados.RestauranteSwitchScreen
 import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLaboratorio
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
@@ -73,7 +73,7 @@ import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
 import edu.ucne.ureserve.presentation.reportes.ReporteCubiculosScreen
 import edu.ucne.ureserve.presentation.reportes.ReporteGeneralListScreen
-import edu.ucne.ureserve.presentation.reportes.ReporteLaboratorioScreen
+import edu.ucne.ureserve.presentation.reportes.ReporteLaboratoriosScreen
 import edu.ucne.ureserve.presentation.reportes.ReporteProyectoresScreen
 import edu.ucne.ureserve.presentation.reportes.ReporteRestauranteScreen
 import edu.ucne.ureserve.presentation.reservas.DetallesReservacionScreen
@@ -1459,7 +1459,7 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
             ReporteCubiculosScreen(navController = navController)
         }
         composable("Reporte_laboratorio") {
-            ReporteLaboratorioScreen(navController = navController)
+            ReporteLaboratoriosScreen(navController = navController)
         }
         composable("Reporte_restaurante/{tipo}") { backStackEntry ->
             val tipo = backStackEntry.arguments?.getString("tipo")?.toIntOrNull() ?: 0
