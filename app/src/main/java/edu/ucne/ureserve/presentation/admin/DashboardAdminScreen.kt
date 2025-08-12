@@ -97,7 +97,11 @@ fun DashboardAdminScreen(
         MenuItem(
             iconRes = R.drawable.icon_reporte,
             text = "Reportes",
-            onClick = onReportes,
+            onClick = {
+                if (usuario.correoInstitucional == "admin.ureserve@ucne.edu.do") {
+                    navController.navigate("DashboardAdminReportScreen")
+                }
+            },
             circleWidth = 132.dp,
             circleHeight = 124.dp,
             iconWidth = 90.dp,
@@ -107,7 +111,11 @@ fun DashboardAdminScreen(
         MenuItem(
             iconRes = R.drawable.icon_search,
             text = "Buscar\nReservas",
-            onClick = onBuscarReservas,
+            onClick = {
+                if (usuario.correoInstitucional == "admin.ureserve@ucne.edu.do") {
+                    navController.navigate("admin_curso_filtro")
+                }
+            },
             circleWidth = 132.dp,
             circleHeight = 124.dp,
             iconWidth = 90.dp,

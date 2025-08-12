@@ -3,7 +3,6 @@ package edu.ucne.ureserve.presentation.navigation
 import AgregarEstudianteScreen
 import DetalleReservaEnCursoProyectorScreen
 import ProyectorSwitchScreen
-import ReservasenCursoRestauranteScreen
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
@@ -24,10 +23,16 @@ import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import edu.ucne.ureserve.presentation.admin.BuscarReservaGeneralesScreen
+import edu.ucne.ureserve.presentation.admin.DashboardAdminReportScreen
 import edu.ucne.ureserve.presentation.admin.DashboardAdminScreen
 import edu.ucne.ureserve.presentation.admin.DisponibilidadAdminReservaScreen
 import edu.ucne.ureserve.presentation.admin.DisponibilidadAdminScreen
 import edu.ucne.ureserve.presentation.admin.OptionAdminScreen
+import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaCubiculoScreen
+import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaLaboratorioScreen
+import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaProyectorScreen
+import edu.ucne.ureserve.presentation.buscar_reserva.BuscarReservaRestauranteScreen
 import edu.ucne.ureserve.presentation.cubiculos.CubiculoReservationScreen
 import edu.ucne.ureserve.presentation.cubiculos.DashboardCubiculoScreen
 import edu.ucne.ureserve.presentation.cubiculos.ExitosaCubiculoScreen
@@ -48,6 +53,7 @@ import edu.ucne.ureserve.presentation.empleados.LaboratorioSwitchScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoCubiculoScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoLaboratorioScreen
 import edu.ucne.ureserve.presentation.empleados.ReservasenCursoProyectorScreen
+import edu.ucne.ureserve.presentation.empleados.ReservasenCursoRestauranteScreen
 import edu.ucne.ureserve.presentation.empleados.RestauranteSwitchScreen
 import edu.ucne.ureserve.presentation.laboratorios.AgregarEstudianteScreenLaboratorio
 import edu.ucne.ureserve.presentation.laboratorios.DashboardLaboratorioListScreen
@@ -65,6 +71,11 @@ import edu.ucne.ureserve.presentation.proyectores.PrevisualizacionProyectorScree
 import edu.ucne.ureserve.presentation.proyectores.ProjectorReservationScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaExitosaScreen
 import edu.ucne.ureserve.presentation.proyectores.ReservaProyectorScreen
+import edu.ucne.ureserve.presentation.reportes.ReporteCubiculosScreen
+import edu.ucne.ureserve.presentation.reportes.ReporteGeneralListScreen
+import edu.ucne.ureserve.presentation.reportes.ReporteLaboratoriosScreen
+import edu.ucne.ureserve.presentation.reportes.ReporteProyectoresScreen
+import edu.ucne.ureserve.presentation.reportes.ReporteRestauranteScreen
 import edu.ucne.ureserve.presentation.reservas.DetallesReservacionScreen
 import edu.ucne.ureserve.presentation.reservas.ModificarReservaProyectorScreen
 import edu.ucne.ureserve.presentation.reservas.ReservaListScreen
@@ -1282,9 +1293,10 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
                 tipoReserva = 1
             )
 
+
             DetalleReservaEnCursoProyectorScreen(
                 navController = navController,
-                reserva = reserva
+                reserva = reserva,
             )
         }
 
@@ -1437,6 +1449,59 @@ fun UreserveNavHost(navController: NavHostController,uReserveDb: UReserveDb) {
 
         composable("Reserva_en_curso"){
             DisponibilidadAdminReservaScreen(
+                navController = navController
+            )
+        }
+
+        composable("Reportes_Proyectores") {
+            ReporteProyectoresScreen(navController = navController)
+        }
+        composable("Reporte_Cubiculos") {
+            ReporteCubiculosScreen(navController = navController)
+        }
+        composable("Reporte_laboratorio") {
+            ReporteLaboratoriosScreen(navController = navController)
+        }
+        composable("Reporte_restaurante/{tipo}") { backStackEntry ->
+            val tipo = backStackEntry.arguments?.getString("tipo")?.toIntOrNull() ?: 0
+            ReporteRestauranteScreen(navController = navController, tipo = tipo)
+        }
+
+        composable("Reporte_General") {
+        ReporteGeneralListScreen(navController = navController)
+        }
+
+        composable("empleadoproyector_En_Curso_Filtro") {
+            BuscarReservaProyectorScreen(
+                navController = navController
+            )
+        }
+
+        composable("empleadocubiculo_En_Curso_Filtro") {
+            BuscarReservaCubiculoScreen(
+                navController = navController
+            )
+        }
+
+        composable("empleadolaboratorio_En_Curso_Filtro") {
+            BuscarReservaLaboratorioScreen(
+                navController = navController
+            )
+        }
+
+        composable("empleadorestaurante_En_Curso_Filtro") {
+            BuscarReservaRestauranteScreen(
+                navController = navController
+            )
+        }
+
+        composable("admin_curso_filtro") {
+            BuscarReservaGeneralesScreen(
+                navController = navController
+            )
+        }
+        composable("DashboardAdminReportScreen") {
+            DashboardAdminReportScreen(
                 navController = navController
             )
         }

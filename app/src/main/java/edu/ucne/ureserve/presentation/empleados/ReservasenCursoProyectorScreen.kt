@@ -62,14 +62,14 @@ fun ReservasenCursoProyectorScreen(
         viewModel.getReservas()
     }
 
-    Box(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0F3278))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -90,7 +90,6 @@ fun ReservasenCursoProyectorScreen(
                     modifier = Modifier.size(50.dp)
                 )
             }
-
             Text(
                 text = "Reservas de proyectores en Curso",
                 fontSize = 23.sp,
@@ -99,11 +98,13 @@ fun ReservasenCursoProyectorScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentWidth(Alignment.CenterHorizontally)
-                    .padding(16.dp)
+                    .padding(vertical = 16.dp)
             )
+        }
 
-            when (state) {
-                is ReservaViewModel.ReservaListState.Loading -> {
+        when (state) {
+            is ReservaViewModel.ReservaListState.Loading -> {
+                item {
                     Text(
                         text = "Cargando reservas...",
                         fontSize = 18.sp,
@@ -111,50 +112,44 @@ fun ReservasenCursoProyectorScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentWidth(Alignment.CenterHorizontally)
-                            .padding(16.dp)
                     )
                 }
-                is ReservaViewModel.ReservaListState.Success -> {
-                    LazyColumn(
+            }
+            is ReservaViewModel.ReservaListState.Success -> {
+                item {
+                    Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0xFF2E5C94))
+                            .padding(16.dp)
                     ) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(Color(0xFF2E5C94))
-                                    .padding(16.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(text = "Tiempo Restante", color = Color.White)
-                                    Text(text = "Reservas", color = Color.White)
-                                }
-                            }
-                        }
-                        items(reservaciones.filterNot { isReservaFinalizada(it.fecha, it.horaFin) }) { reserva ->
-                            ProyectorReservationItem(
-                                horaInicio = reserva.horaInicio,
-                                horaFin = reserva.horaFin,
-                                fecha = reserva.fecha,
-                                color = Color(0xFF6EE610),
-                                onClick = {
-                                    navController.navigate(
-                                        "detalleReservaProyector/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
-                                    )
-                                }
-                            )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(text = "Tiempo Restante", color = Color.White)
+                            Text(text = "Reservas", color = Color.White)
                         }
                     }
                 }
-                is ReservaViewModel.ReservaListState.Error -> {
+                items(reservaciones.filterNot { isReservaFinalizada(it.fecha, it.horaFin) }) { reserva ->
+                    ProyectorReservationItem(
+                        horaInicio = reserva.horaInicio,
+                        horaFin = reserva.horaFin,
+                        fecha = reserva.fecha,
+                        color = Color(0xFF6EE610),
+                        onClick = {
+                            navController.navigate(
+                                "detalleReservaProyector/${reserva.codigoReserva}/${reserva.fecha}/${reserva.horaInicio}/${reserva.horaFin}/${reserva.matricula}"
+                            )
+                        }
+                    )
+                }
+            }
+            is ReservaViewModel.ReservaListState.Error -> {
+                item {
                     Text(
                         text = (state as ReservaViewModel.ReservaListState.Error).message,
                         fontSize = 18.sp,
@@ -162,11 +157,12 @@ fun ReservasenCursoProyectorScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentWidth(Alignment.CenterHorizontally)
-                            .padding(16.dp)
                     )
                 }
             }
+        }
 
+        item {
             Spacer(modifier = Modifier.height(15.dp))
             Button(
                 onClick = { navController.popBackStack() },
@@ -279,13 +275,24 @@ private fun parsearFechaHoraSeguro(fecha: String, hora: String): Date? {
     }
 }
 
+fun isReservaFinalizada(fecha: String, horaFin: String): Boolean {
+    val fechaHora = parsearFechaHoraSeguro(fecha, horaFin)
+    return fechaHora?.time ?: 0 < System.currentTimeMillis()
+}
+
 private fun formatearTiempoRestante(diferencia: Long): String {
     val segundos = diferencia / 1000
     val minutos = segundos / 60
     val horas = minutos / 60
     val minutosRestantes = minutos % 60
     val segundosRestantes = segundos % 60
-    return String.format("%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
+    return String.format(
+        Locale.getDefault(),
+        "%02dh %02dmin %02ds",
+        horas,
+        minutosRestantes,
+        segundosRestantes
+    )
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

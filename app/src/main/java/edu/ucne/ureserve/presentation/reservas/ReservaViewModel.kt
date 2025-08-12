@@ -10,8 +10,10 @@ import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.repository.ReservacionRepository
 import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.restaurantes.RestaurantesUiState
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,6 +26,8 @@ class ReservaViewModel @Inject constructor(
     private val authManager: AuthManager
 ) : ViewModel() {
 
+    private val _navigateBack = MutableSharedFlow<Unit>()
+    val navigateBack = _navigateBack.asSharedFlow()
     private val _state = MutableStateFlow<ReservaListState>(ReservaListState.Loading)
     val state: StateFlow<ReservaListState> = _state
 
@@ -36,6 +40,29 @@ class ReservaViewModel @Inject constructor(
     init {
         loadReservas()
         getReservasUsuario()
+    }
+
+    fun terminarReserva(reservacionId: Int) {
+        viewModelScope.launch {
+            if (reservacionId <= 0) {
+                Log.e("ReservaViewModel", "ID de reserva inválido: $reservacionId")
+                return@launch
+            }
+
+            Log.d("ReservaViewModel", "Iniciando eliminación de reserva con ID $reservacionId")
+            try {
+                val exito = repository.deleteReservacion(reservacionId)
+                if (exito) {
+                    Log.d("ReservaViewModel", "Reserva eliminada con éxito")
+                    _navigateBack.emit(Unit)
+                } else {
+                    Log.e("ReservaViewModel", "No se pudo eliminar la reserva con ID $reservacionId")
+                }
+            } catch (e: Exception) {
+                Log.e("ReservaViewModel", "Error al eliminar la reserva", e)
+
+            }
+        }
     }
 
     fun loadReservas() {
@@ -52,6 +79,28 @@ class ReservaViewModel @Inject constructor(
                 _state.value = ReservaListState.Success(reservas)
             } catch (e: Exception) {
                 _state.value = ReservaListState.Error(e.message ?: "Error desconocido")
+            }
+        }
+    }
+
+    fun getAllReservations() {
+        viewModelScope.launch {
+            repository.getReservas().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val todasLasReservas = result.data ?: emptyList()
+                        _reservaciones.value = todasLasReservas
+                        _state.update { ReservaListState.Success(todasLasReservas) }
+                    }
+                    is Resource.Error -> {
+                        _state.update {
+                            ReservaListState.Error(result.message ?: "Error al obtener Todas las reservas")
+                        }
+                    }
+                    is Resource.Loading -> {
+                        _state.update { ReservaListState.Loading }
+                    }
+                }
             }
         }
     }

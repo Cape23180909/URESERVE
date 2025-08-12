@@ -368,6 +368,7 @@ fun PrevisualizacionProyectorScreen(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun isWithinReservation(horario: String, horaInicio: String, horaFin: String): Boolean {
     val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
     return try {
