@@ -3,7 +3,6 @@ package edu.ucne.ureserve.presentation.reservas
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.ureserve.data.remote.Resource
@@ -11,7 +10,6 @@ import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.data.repository.ReservacionRepository
 import edu.ucne.ureserve.presentation.login.AuthManager
 import edu.ucne.ureserve.presentation.restaurantes.RestaurantesUiState
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,7 +46,6 @@ class ReservaViewModel @Inject constructor(
         viewModelScope.launch {
             if (reservacionId <= 0) {
                 Log.e("ReservaViewModel", "ID de reserva inválido: $reservacionId")
-                // Mostrar un mensaje al usuario
                 return@launch
             }
 
@@ -60,11 +57,10 @@ class ReservaViewModel @Inject constructor(
                     _navigateBack.emit(Unit)
                 } else {
                     Log.e("ReservaViewModel", "No se pudo eliminar la reserva con ID $reservacionId")
-                    // Mostrar un mensaje al usuario
                 }
             } catch (e: Exception) {
                 Log.e("ReservaViewModel", "Error al eliminar la reserva", e)
-                // Mostrar un mensaje al usuario
+
             }
         }
     }

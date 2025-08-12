@@ -27,12 +27,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.ReservacionesDto
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
@@ -201,20 +199,3 @@ fun ReservationDetailBlock(label: String, value: String) {
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewDetalleReservaEnCursoProyectorScreen() {
-//    val navController = rememberNavController()
-//    val reserva = ReservacionesDto(
-//        codigoReserva = 789521456,
-//        fecha = "2023-04-08",
-//        horaInicio = "08:00",
-//        horaFin = "10:00",
-//        matricula = "2025-7896",
-//        tipoReserva = 1,
-//    )
-//    DetalleReservaEnCursoProyectorScreen(
-//        navController = navController,
-//        reserva = reserva
-//    )
-//}

@@ -72,7 +72,7 @@ fun ModificarReservaLaboratorioScreen(
     viewModel: ReservaLaboratorioViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    // Solicitud de permiso para notificaciones en Android 13+
+
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)

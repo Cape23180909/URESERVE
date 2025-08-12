@@ -58,7 +58,7 @@ fun BuscarReservaCubiculoScreen(
                 .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
-            // Header
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -90,7 +90,6 @@ fun BuscarReservaCubiculoScreen(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
-            // Search box
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -158,7 +157,6 @@ fun BuscarReservaCubiculoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Reservas
             when (val currentState = state) {
                 is ReservaViewModel.ReservaListState.Loading -> {
                     Box(
@@ -235,7 +233,6 @@ fun BuscarReservaCubiculoScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Botón volver
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
