@@ -2,6 +2,7 @@ package edu.ucne.ureserve.presentation.restaurantes
 
 import android.Manifest
 import android.app.DatePickerDialog
+import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +52,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -59,9 +61,11 @@ fun TarjetaCreditoSalaVipScreen(
     navController: NavController
 ) {
     val context = LocalContext.current
+
     val postNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
     } else null
+
     val notificationHandler = remember { NotificationHandler(context) }
 
     LaunchedEffect(true) {
@@ -75,28 +79,18 @@ fun TarjetaCreditoSalaVipScreen(
     var fechaVencimiento by remember { mutableStateOf("") }
     var codigoSeguridad by remember { mutableStateOf("") }
 
-    val calendar = Calendar.getInstance()
-    val datePickerDialog = remember {
-        DatePickerDialog(
-            context,
-            { _, year, month, _ ->
-                val mes = String.format("%02d", month + 1)
-                val anno = year.toString().takeLast(2)
-                fechaVencimiento = "$mes$anno"
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).apply {
-            datePicker.minDate = calendar.timeInMillis
-        }
+    val datePickerDialog = rememberDatePicker(context) { year, month ->
+        val mes = String.format(Locale.US, "%02d", month + 1)
+        val anno = year.toString().takeLast(2)
+        fechaVencimiento = "$mes$anno"
     }
 
-    val isCardValid = numeroTarjeta.length == 16
-    val isNameValid = nombreTitular.trim().isNotEmpty()
-    val isFechaValid = fechaVencimiento.length == 4 && fechaVencimiento.take(2).toIntOrNull() in 1..12
-    val isCvvValid = codigoSeguridad.length in 3..4 && codigoSeguridad.all { it.isDigit() }
-    val isFormValid = isCardValid && isNameValid && isFechaValid && isCvvValid
+    val isFormValid = remember(numeroTarjeta, nombreTitular, fechaVencimiento, codigoSeguridad) {
+        isCardValid(numeroTarjeta) &&
+                isNameValid(nombreTitular) &&
+                isExpiryValid(fechaVencimiento) &&
+                isCvvValid(codigoSeguridad)
+    }
 
     Box(
         modifier = Modifier
@@ -111,131 +105,218 @@ fun TarjetaCreditoSalaVipScreen(
                 .background(Color(0xFFF5F5F5), shape = MaterialTheme.shapes.medium)
                 .padding(16.dp)
         ) {
-            Text(
-                text = "Datos de pago",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "Tarjeta de crédito",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.Gray,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
+            TarjetaHeader()
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
+            NumeroTarjetaField(
                 value = numeroTarjeta,
-                onValueChange = {
-                    val digits = it.filter { it.isDigit() }.take(16)
-                    numeroTarjeta = digits
-                },
-                label = { Text("Número de Tarjeta", fontWeight = FontWeight.Bold, color = Color.Black) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                visualTransformation = CreditCardVisualTransformation,
-                singleLine = true,
-                maxLines = 1,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black)
+                onValueChange = { value ->
+                    numeroTarjeta = value.filter { it.isDigit() }.take(16)
+                }
             )
+
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
+            NombreTitularField(
                 value = nombreTitular,
-                onValueChange = { nombreTitular = it },
-                label = { Text("Nombre del titular de la tarjeta", fontWeight = FontWeight.Bold, color = Color.Black) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                maxLines = 1,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black)
+                onValueChange = { nombreTitular = it }
             )
+
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = fechaVencimiento,
-                    onValueChange = {
-                        val filtered = it.filter { it.isDigit() }.take(4)
-                        fechaVencimiento = filtered
-                    },
-                    label = { Text("Fecha de vencimiento", fontWeight = FontWeight.Bold, color = Color.Black) },
-                    placeholder = { Text("MM / AA") },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    visualTransformation = FechaVisualTransformation,
-                    trailingIcon = {
-                        IconButton(onClick = { datePickerDialog.show() }) {
-                            Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
-                        }
-                    },
-                    singleLine = true,
-                    maxLines = 1,
-                    textStyle = LocalTextStyle.current.copy(color = Color.Black)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                OutlinedTextField(
-                    value = codigoSeguridad,
-                    onValueChange = {
-                        val digits = it.filter { it.isDigit() }.take(4)
-                        codigoSeguridad = digits
-                    },
-                    label = { Text("Código de seguridad", fontWeight = FontWeight.Bold, color = Color.Black) },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    singleLine = true,
-                    maxLines = 1,
-                    textStyle = LocalTextStyle.current.copy(color = Color.Black)
-                )
-            }
+            FechaYCvvRow(
+                fechaVencimiento = fechaVencimiento,
+                onFechaChange = { value ->
+                    fechaVencimiento = value.filter { it.isDigit() }.take(4)
+                },
+                codigoSeguridad = codigoSeguridad,
+                onCvvChange = { value ->
+                    codigoSeguridad = value.filter { it.isDigit() }.take(4)
+                },
+                datePickerDialog = datePickerDialog
+            )
+
             Text(
                 text = "3 dígitos en el reverso de la tarjeta\n4 dígitos en el anverso de la tarjeta*",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray,
                 modifier = Modifier.padding(top = 8.dp)
             )
+
             Spacer(modifier = Modifier.height(24.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = {
+            ActionButtons(
+                isFormValid = isFormValid,
+                onCancel = {
+                    notificationHandler.showNotification(
+                        title = "Reserva Cancelada",
+                        message = "Has cancelado el registro de pago."
+                    )
+                    navController.popBackStack()
+                },
+                onConfirm = {
+                    if (isFormValid) {
                         notificationHandler.showNotification(
-                            title = "Reserva Cancelada",
-                            message = "Has cancelado el registro de pago."
+                            title = "Pago Confirmado",
+                            message = "Los datos de tu tarjeta han sido registrados correctamente."
                         )
-                        navController.popBackStack()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004BBB)),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("CANCELAR", color = Color.White)
+                        navController.navigate("RegistroReservaSalaVip?fecha=${Uri.encode(fecha)}")
+                    }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Button(
-                    onClick = {
-                        if (isFormValid) {
-                            notificationHandler.showNotification(
-                                title = "Pago Confirmado",
-                                message = "Los datos de tu tarjeta han sido registrados correctamente."
-                            )
-                            navController.navigate("ReservaSalaVip")
-                            navController.navigate("RegistroReservaSalaVip?fecha=$fecha")
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isFormValid) Color(0xFF00B81D) else Color(0xFF6895D2)
-                    ),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("CONFIRMAR", color = Color.White)
+            )
+        }
+    }
+}
+
+private fun isCardValid(card: String): Boolean = card.length == 16
+
+private fun isNameValid(name: String): Boolean = name.trim().isNotEmpty()
+
+private fun isExpiryValid(date: String): Boolean {
+    if (date.length != 4) return false
+    val month = date.substring(0, 2).toIntOrNull() ?: return false
+    return month in 1..12
+}
+
+private fun isCvvValid(cvv: String): Boolean = cvv.length in 3..4 && cvv.all { it.isDigit() }
+
+@Composable
+private fun TarjetaHeader() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "Datos de pago",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = "Tarjeta de crédito",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.Gray,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun NumeroTarjetaField(value: String, onValueChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text("Número de Tarjeta", fontWeight = FontWeight.Bold, color = Color.Black) },
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        visualTransformation = CreditCardVisualTransformation,
+        singleLine = true,
+        maxLines = 1,
+        textStyle = LocalTextStyle.current.copy(color = Color.Black)
+    )
+}
+
+@Composable
+private fun NombreTitularField(value: String, onValueChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text("Nombre del titular de la tarjeta", fontWeight = FontWeight.Bold, color = Color.Black) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        maxLines = 1,
+        textStyle = LocalTextStyle.current.copy(color = Color.Black)
+    )
+}
+
+@Composable
+private fun FechaYCvvRow(
+    fechaVencimiento: String,
+    onFechaChange: (String) -> Unit,
+    codigoSeguridad: String,
+    onCvvChange: (String) -> Unit,
+    datePickerDialog: DatePickerDialog
+) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = fechaVencimiento,
+            onValueChange = onFechaChange,
+            label = { Text("Fecha de vencimiento", fontWeight = FontWeight.Bold, color = Color.Black) },
+            placeholder = { Text("MM / AA") },
+            modifier = Modifier.weight(1f),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            visualTransformation = FechaVisualTransformation,
+            trailingIcon = {
+                IconButton(onClick = { datePickerDialog.show() }) {
+                    Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
                 }
-            }
+            },
+            singleLine = true,
+            maxLines = 1,
+            textStyle = LocalTextStyle.current.copy(color = Color.Black)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        OutlinedTextField(
+            value = codigoSeguridad,
+            onValueChange = onCvvChange,
+            label = { Text("Código de seguridad", fontWeight = FontWeight.Bold, color = Color.Black) },
+            modifier = Modifier.weight(1f),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            singleLine = true,
+            maxLines = 1,
+            textStyle = LocalTextStyle.current.copy(color = Color.Black)
+        )
+    }
+}
+
+@Composable
+private fun ActionButtons(
+    isFormValid: Boolean,
+    onCancel: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Button(
+            onClick = onCancel,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004BBB)),
+            modifier = Modifier.weight(1f)
+        ) {
+            Text("CANCELAR", color = Color.White)
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Button(
+            onClick = onConfirm,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isFormValid) Color(0xFF00B81D) else Color(0xFF6895D2)
+            ),
+            modifier = Modifier.weight(1f),
+            enabled = isFormValid
+        ) {
+            Text("CONFIRMAR", color = Color.White)
+        }
+    }
+}
+
+@Composable
+private fun rememberDatePicker(
+    context: android.content.Context,
+    onDateSet: (year: Int, month: Int) -> Unit
+): DatePickerDialog {
+    val calendar = Calendar.getInstance()
+    return remember {
+        DatePickerDialog(
+            context,
+            { _, year, month, _ -> onDateSet(year, month) },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).apply {
+            datePicker.minDate = calendar.timeInMillis
         }
     }
 }
@@ -248,15 +329,12 @@ val CreditCardVisualTransformation = VisualTransformation { text ->
             if ((i + 1) % 4 == 0 && i != 15) append(" ")
         }
     }
-    val offsetTranslator = object : OffsetMapping {
-        override fun originalToTransformed(offset: Int): Int {
-            return offset + (offset / 4).coerceAtMost(3)
-        }
-        override fun transformedToOriginal(offset: Int): Int {
-            return offset - (offset / 5).coerceAtMost(3)
-        }
+    object : OffsetMapping {
+        override fun originalToTransformed(offset: Int): Int = offset + (offset / 4).coerceAtMost(3)
+        override fun transformedToOriginal(offset: Int): Int = offset - (offset / 5).coerceAtMost(3)
+    }.let { offsetMapper ->
+        TransformedText(AnnotatedString(spaced), offsetMapper)
     }
-    TransformedText(AnnotatedString(spaced), offsetTranslator)
 }
 
 val FechaVisualTransformation = VisualTransformation { text ->
@@ -264,18 +342,15 @@ val FechaVisualTransformation = VisualTransformation { text ->
     val formatted = buildString {
         for (i in trimmed.indices) {
             append(trimmed[i])
-            if (i == 1 && trimmed.length > 2) append(" / ")
+            if (i == 1 && trimmed.getOrNull(2) != null) append(" / ")
         }
     }
-    val offsetTranslator = object : OffsetMapping {
-        override fun originalToTransformed(offset: Int): Int {
-            return if (offset <= 1) offset else offset + 3
-        }
-        override fun transformedToOriginal(offset: Int): Int {
-            return if (offset <= 2) offset else offset - 3
-        }
+    object : OffsetMapping {
+        override fun originalToTransformed(offset: Int): Int = if (offset <= 1) offset else offset + 3
+        override fun transformedToOriginal(offset: Int): Int = if (offset <= 2) offset else offset - 3
+    }.let { offsetMapper ->
+        TransformedText(AnnotatedString(formatted), offsetMapper)
     }
-    TransformedText(AnnotatedString(formatted), offsetTranslator)
 }
 
 @Preview(showBackground = true, showSystemUi = true)
