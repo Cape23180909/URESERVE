@@ -153,8 +153,6 @@ class RemoteDataSource @Inject constructor(
         return apiDetalleReservaProyectors.insert(detalle)
     }
 
- fun deleteDetalleReservaProyector(id: Int) {}
-
     suspend fun getDetalleReservaRestaurantes(): List<DetalleReservaRestaurantesDto> =
         apiDetalleReservaRestaurantes.getAll()
 
