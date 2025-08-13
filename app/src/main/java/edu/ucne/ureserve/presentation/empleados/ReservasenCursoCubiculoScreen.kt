@@ -157,7 +157,7 @@ fun ReservasenCursoCubiculoScreen(
 
 fun isReservaFinalizadaCubiculo(fecha: String, horaFin: String): Boolean {
     val fechaHora = parsearFechaHoraSeguro(fecha, horaFin)
-    return fechaHora?.time ?: 0 < System.currentTimeMillis()
+    return (fechaHora?.time ?: 0) < System.currentTimeMillis()
 }
 
 @Composable
@@ -260,5 +260,5 @@ private fun formatearTiempoRestante(diferencia: Long): String {
     val minutosRestantes = minutos % 60
     val segundosRestantes = segundos % 60
 
-    return String.format("%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
+    return String.format(Locale.getDefault(), "%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
 }
