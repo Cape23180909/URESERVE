@@ -47,6 +47,15 @@ fun SalaVipTransferenciaScreen(
     onTransferenciaClick: (String) -> Unit = {},
     onConfirmarClick: (String) -> Unit = {}
 ) {
+
+    val transferSelectedTitle = "Transferencia seleccionada"
+    val confirmationTitle = "Confirmación"
+    val cancelledTitle = "Cancelado"
+
+    val bancoDedLobo1 = "Banco DED Lobo - 979-291390283"
+    val bancoDedLobo2 = "Banco DED Lobo - 999-100529-2"
+    val bancoPopular = "Banco Popular - 71936351-5"
+
     val context = LocalContext.current
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -99,51 +108,51 @@ fun SalaVipTransferenciaScreen(
 
                     Button(
                         onClick = {
-                            bancoSeleccionado = "Banco DED Lobo - 979-291390283"
+                            bancoSeleccionado = bancoDedLobo1
                             onTransferenciaClick(bancoSeleccionado)
                             notificationHandler.showNotification(
-                                title = "Transferencia seleccionada",
-                                message = "Has elegido transferir a DED Lobo (Cta. 979-291390283)."
+                                title = transferSelectedTitle,
+                                message = "Has elegido transferir a $bancoDedLobo1."
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
                     ) {
-                        Text("Transferir a DED Lobo (Cta. 979-291390283)")
+                        Text("Transferir a $bancoDedLobo1")
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
                         onClick = {
-                            bancoSeleccionado = "Banco DED Lobo - 999-100529-2"
+                            bancoSeleccionado = bancoDedLobo2
                             onTransferenciaClick(bancoSeleccionado)
                             notificationHandler.showNotification(
-                                title = "Transferencia seleccionada",
-                                message = "Has elegido transferir a DED Lobo (Cta. 999-100529-2)."
+                                title = transferSelectedTitle,
+                                message = "Has elegido transferir a $bancoDedLobo2."
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
                     ) {
-                        Text("Transferir a DED Lobo (Cta. 999-100529-2)")
+                        Text("Transferir a $bancoDedLobo2")
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
                         onClick = {
-                            bancoSeleccionado = "Banco Popular - 71936351-5"
+                            bancoSeleccionado = bancoPopular
                             onTransferenciaClick(bancoSeleccionado)
                             notificationHandler.showNotification(
-                                title = "Transferencia seleccionada",
-                                message = "Has elegido transferir a Banco Popular (Cta. 71936351-5)."
+                                title = transferSelectedTitle,
+                                message = "Has elegido transferir a $bancoPopular."
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
                     ) {
-                        Text("Transferir a Popular (Cta. 71936351-5)")
+                        Text("Transferir a $bancoPopular")
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
@@ -166,7 +175,7 @@ fun SalaVipTransferenciaScreen(
                             onClick = {
                                 onConfirmarClick(fecha)
                                 notificationHandler.showNotification(
-                                    title = "Confirmación",
+                                    title = confirmationTitle,
                                     message = "Tu transferencia ha sido confirmada para la fecha $fecha."
                                 )
                             },
@@ -181,7 +190,7 @@ fun SalaVipTransferenciaScreen(
                             onClick = {
                                 onCancelarClick()
                                 notificationHandler.showNotification(
-                                    title = "Cancelado",
+                                    title = cancelledTitle,
                                     message = "Has cancelado el proceso de transferencia."
                                 )
                             },
