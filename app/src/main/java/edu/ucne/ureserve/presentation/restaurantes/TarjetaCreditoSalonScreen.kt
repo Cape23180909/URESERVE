@@ -2,6 +2,7 @@ package edu.ucne.ureserve.presentation.salones
 
 import android.Manifest
 import android.app.DatePickerDialog
+import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -82,7 +84,7 @@ fun TarjetaCreditoSalonScreen(
         DatePickerDialog(
             context,
             { _, year, month, _ ->
-                val mes = String.format("%02d", month + 1)
+                val mes = String.format(Locale.US, "%02d", month + 1)
                 val anno = year.toString().takeLast(2)
                 fechaVencimiento = "$mes$anno"
             },
@@ -133,8 +135,8 @@ fun TarjetaCreditoSalonScreen(
 
             OutlinedTextField(
                 value = numeroTarjeta,
-                onValueChange = {
-                    val digits = it.filter { it.isDigit() }.take(16)
+                onValueChange = { value ->
+                    val digits = value.filter { it.isDigit() }.take(16)
                     numeroTarjeta = digits
                 },
                 label = { Text("Número de Tarjeta", fontWeight = FontWeight.Bold, color = Color.Black) },
@@ -150,7 +152,7 @@ fun TarjetaCreditoSalonScreen(
 
             OutlinedTextField(
                 value = nombreTitular,
-                onValueChange = { nombreTitular = it },
+                onValueChange = { nombre -> nombreTitular = nombre },
                 label = { Text("Nombre del titular de la tarjeta", fontWeight = FontWeight.Bold, color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -163,8 +165,8 @@ fun TarjetaCreditoSalonScreen(
             Row(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = fechaVencimiento,
-                    onValueChange = {
-                        val filtered = it.filter { it.isDigit() }.take(4)
+                    onValueChange = { value ->
+                        val filtered = value.filter { it.isDigit() }.take(4)
                         fechaVencimiento = filtered
                     },
                     label = { Text("Fecha de vencimiento", fontWeight = FontWeight.Bold, color = Color.Black) },
@@ -182,10 +184,11 @@ fun TarjetaCreditoSalonScreen(
                     textStyle = LocalTextStyle.current.copy(color = Color.Black)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
+
                 OutlinedTextField(
                     value = codigoSeguridad,
-                    onValueChange = {
-                        val digits = it.filter { it.isDigit() }.take(4)
+                    onValueChange = { value ->
+                        val digits = value.filter { it.isDigit() }.take(4)
                         codigoSeguridad = digits
                     },
                     label = { Text("Código de seguridad", fontWeight = FontWeight.Bold, color = Color.Black) },
@@ -228,13 +231,15 @@ fun TarjetaCreditoSalonScreen(
 
                 Button(
                     onClick = {
-                        notificationHandler.showNotification(
-                            title = "Pago confirmado",
-                            message = "El pago ha sido procesado correctamente."
-                        )
-                        navController.navigate("ReservaSalon?fecha=$fecha")
+                        if (isFormValid) {
+                            notificationHandler.showNotification(
+                                title = "Pago confirmado",
+                                message = "El pago ha sido procesado correctamente."
+                            )
+                            navController.navigate("ReservaSalon?fecha=${Uri.encode(fecha)}")
+                        }
                     },
-                    enabled = true,
+                    enabled = isFormValid,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isFormValid) Color(0xFF00B81D) else Color(0xFF6895D2)
                     ),
@@ -256,20 +261,12 @@ val CreditCardVisualTransformation = VisualTransformation { text ->
         }
     }
 
-    val offsetTranslator = object : OffsetMapping {
-        override fun originalToTransformed(offset: Int): Int {
-            return offset + (offset / 4).coerceAtMost(3)
-        }
-
-        override fun transformedToOriginal(offset: Int): Int {
-            return offset - (offset / 5).coerceAtMost(3)
-        }
+    object : OffsetMapping {
+        override fun originalToTransformed(offset: Int): Int = offset + (offset / 4).coerceAtMost(3)
+        override fun transformedToOriginal(offset: Int): Int = offset - (offset / 5).coerceAtMost(3)
+    }.let { offsetMapper ->
+        TransformedText(AnnotatedString(spaced), offsetMapper)
     }
-
-    TransformedText(
-        AnnotatedString(spaced),
-        offsetTranslator
-    )
 }
 
 val FechaVisualTransformation = VisualTransformation { text ->
@@ -277,22 +274,14 @@ val FechaVisualTransformation = VisualTransformation { text ->
     val formatted = buildString {
         for (i in trimmed.indices) {
             append(trimmed[i])
-            if (i == 1 && trimmed.length > 2) append(" / ")
+            if (i == 1 && trimmed.getOrNull(2) != null) append(" / ")
         }
     }
 
-    val offsetTranslator = object : OffsetMapping {
-        override fun originalToTransformed(offset: Int): Int {
-            return if (offset <= 1) offset else offset + 3
-        }
-
-        override fun transformedToOriginal(offset: Int): Int {
-            return if (offset <= 2) offset else offset - 3
-        }
+    object : OffsetMapping {
+        override fun originalToTransformed(offset: Int): Int = if (offset <= 1) offset else offset + 3
+        override fun transformedToOriginal(offset: Int): Int = if (offset <= 2) offset else offset - 3
+    }.let { offsetMapper ->
+        TransformedText(AnnotatedString(formatted), offsetMapper)
     }
-
-    TransformedText(
-        AnnotatedString(formatted),
-        offsetTranslator
-    )
 }

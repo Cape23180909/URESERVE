@@ -133,7 +133,7 @@ fun TarjetaCreditoRestauranteScreen(
             OutlinedTextField(
                 value = numeroTarjeta,
                 onValueChange = {
-                    val digits = it.filter { it.isDigit() }.take(16)
+                    val digits = it.filter { char -> char.isDigit() }.take(16)
                     numeroTarjeta = digits
                 },
                 label = { Text("Número de Tarjeta", fontWeight = FontWeight.Bold, color = Color.Black) },
@@ -163,7 +163,7 @@ fun TarjetaCreditoRestauranteScreen(
                 OutlinedTextField(
                     value = fechaVencimiento,
                     onValueChange = {
-                        val filtered = it.filter { it.isDigit() }.take(4)
+                        val filtered = it.filter { char -> char.isDigit() }.take(4)
                         fechaVencimiento = filtered
                     },
                     label = { Text("Fecha de vencimiento", fontWeight = FontWeight.Bold, color = Color.Black) },
@@ -184,7 +184,7 @@ fun TarjetaCreditoRestauranteScreen(
                 OutlinedTextField(
                     value = codigoSeguridad,
                     onValueChange = {
-                        val digits = it.filter { it.isDigit() }.take(4)
+                        val digits = it.filter { char -> char.isDigit() }.take(4)
                         codigoSeguridad = digits
                     },
                     label = { Text("Código de seguridad", fontWeight = FontWeight.Bold, color = Color.Black) },

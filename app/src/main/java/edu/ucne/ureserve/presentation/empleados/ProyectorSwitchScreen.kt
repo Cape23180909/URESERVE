@@ -1,3 +1,5 @@
+package edu.ucne.ureserve.presentation.empleados
+
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -42,7 +44,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.presentation.empleados.EmpleadoViewModel
 
 @Composable
 fun ProyectorSwitchScreen(
@@ -124,7 +125,6 @@ fun ProyectorSwitchScreen(
                     LazyColumn(modifier = Modifier.padding(16.dp)) {
                         items(proyectores) { proyector ->
                             ProyectorItem(
-                                nombre = proyector.nombre,
                                 disponible = proyector.disponible,
                                 proyectorId = proyector.proyectorId,
                             ) {
@@ -157,7 +157,6 @@ fun ProyectorSwitchScreen(
 @Composable
 fun ProyectorItem(
     proyectorId: Int,
-    nombre: String,
     disponible: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
@@ -215,7 +214,7 @@ fun ProyectorItem(
                     currentState = newState
                     try {
                         onCheckedChange(newState)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         currentState = !newState
                         showError = true
                     }
@@ -230,8 +229,8 @@ fun ProyectorItem(
         }
     }
 
-    if (showError) {
-        LaunchedEffect(showError) {
+    LaunchedEffect(showError) {
+        if (showError) {
             Toast.makeText(
                 context,
                 "Error al actualizar el estado del proyector",

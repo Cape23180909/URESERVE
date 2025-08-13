@@ -25,13 +25,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -120,9 +120,6 @@ fun SalonReunionesReservationScreen(
 
                 ReservationButtonReuniones(
                     isEnabled = isDateValid,
-                    onClick = {
-                        println("Reserva de Salón de Reuniones para ${selectedDate?.time}")
-                    },
                     onBottomNavClick = onBottomNavClick,
                     navController = navController,
                     selectedDate = selectedDate ?: calendar
@@ -174,31 +171,51 @@ private fun CalendarSectionReuniones(
     selectedDate: Calendar?,
     onDateSelected: (Calendar) -> Unit
 ) {
-    var currentMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
-    var currentYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
-    val tempCalendar = Calendar.getInstance().apply {
-        set(Calendar.YEAR, currentYear)
-        set(Calendar.MONTH, currentMonth)
-        set(Calendar.DAY_OF_MONTH, 1)
+    var currentMonth by remember { mutableIntStateOf(calendar[Calendar.MONTH]) }
+    var currentYear by remember { mutableIntStateOf(calendar[Calendar.YEAR]) }
+
+    val monthData = rememberMonthData(currentYear, currentMonth)
+    val today = Calendar.getInstance()
+
+    Column {
+        MonthNavigationHeader(
+            monthName = monthData.monthName,
+            onPreviousMonth = {
+                currentMonth = if (currentMonth == 0) 11 else currentMonth - 1
+                if (currentMonth == 11) currentYear--
+            },
+            onNextMonth = {
+                currentMonth = if (currentMonth == 11) 0 else currentMonth + 1
+                if (currentMonth == 0) currentYear++
+            }
+        )
+
+        WeekdaysHeader(monthData.shortWeekdays)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        CalendarGrid(
+            monthData = monthData,
+            currentYear = currentYear,
+            currentMonth = currentMonth,
+            selectedDate = selectedDate,
+            today = today,
+            onDateSelected = onDateSelected
+        )
     }
-    val daysInMonth = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-    val firstDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK) - 1
-    val monthName = tempCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
-    val shortWeekdays = Array(7) { i ->
-        tempCalendar.apply { set(Calendar.DAY_OF_WEEK, i + 1) }
-            .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
-    }
+}
+
+@Composable
+private fun MonthNavigationHeader(
+    monthName: String?,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = {
-            currentMonth--
-            if (currentMonth < 0) {
-                currentMonth = 11
-                currentYear--
-            }
-        }) {
+        IconButton(onClick = onPreviousMonth) {
             Icon(
                 painter = painterResource(id = R.drawable.icon_left),
                 contentDescription = "Retroceder Mes",
@@ -214,13 +231,7 @@ private fun CalendarSectionReuniones(
             ),
             modifier = Modifier.weight(1f)
         )
-        IconButton(onClick = {
-            currentMonth++
-            if (currentMonth > 11) {
-                currentMonth = 0
-                currentYear++
-            }
-        }) {
+        IconButton(onClick = onNextMonth) {
             Icon(
                 painter = painterResource(id = R.drawable.icon_right),
                 contentDescription = "Avanzar Mes",
@@ -228,6 +239,10 @@ private fun CalendarSectionReuniones(
             )
         }
     }
+}
+
+@Composable
+private fun WeekdaysHeader(shortWeekdays: List<String>) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -241,48 +256,107 @@ private fun CalendarSectionReuniones(
             )
         }
     }
-    Spacer(modifier = Modifier.height(8.dp))
+}
+
+@Composable
+private fun CalendarGrid(
+    monthData: MonthData,
+    currentYear: Int,
+    currentMonth: Int,
+    selectedDate: Calendar?,
+    today: Calendar,
+    onDateSelected: (Calendar) -> Unit
+) {
+    var dayCounter = 1 - monthData.firstDayOfWeek
+
     Column {
-        var dayCounter = 1 - firstDayOfWeek
         repeat(6) {
+            if (dayCounter > monthData.daysInMonth) return@Column
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 repeat(7) { dayOfWeek ->
                     val day = dayCounter + dayOfWeek
-                    val isCurrentMonth = day in 1..daysInMonth
-                    val date = if (isCurrentMonth) {
-                        Calendar.getInstance().apply {
-                            set(Calendar.YEAR, currentYear)
-                            set(Calendar.MONTH, currentMonth)
-                            set(Calendar.DAY_OF_MONTH, day)
-                        }
-                    } else null
-                    val today = Calendar.getInstance()
-                    val isToday = date?.let {
-                        it.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                                it.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                                it.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH)
-                    } ?: false
-                    val isPastDate = date?.let { it.before(today) && !isToday } ?: false
-                    val isSunday = date?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
-                    CalendarDayReuniones(
-                        day = if (isCurrentMonth) day.toString() else "",
-                        isSelected = selectedDate?.let {
-                            it.get(Calendar.YEAR) == date?.get(Calendar.YEAR) &&
-                                    it.get(Calendar.MONTH) == date?.get(Calendar.MONTH) &&
-                                    it.get(Calendar.DAY_OF_MONTH) == date?.get(Calendar.DAY_OF_MONTH)
-                        } ?: false,
-                        isAvailable = isCurrentMonth && !isPastDate && !isSunday,
-                        onClick = { if (isCurrentMonth && date != null && !isSunday) onDateSelected(date) }
-                    )
+                    val date = createDateIfValid(day, monthData.daysInMonth, currentYear, currentMonth)
+
+                    if (date != null) {
+                        val isToday = isToday(date, today)
+                        val isPastDate = date.before(today) && !isToday
+                        val isSunday = date[Calendar.DAY_OF_WEEK] == Calendar.SUNDAY
+
+                        CalendarDayReuniones(
+                            day = day.toString(),
+                            isSelected = isSelected(date, selectedDate),
+                            isAvailable = !isPastDate && !isSunday,
+                            onClick = { if (!isSunday) onDateSelected(date) }
+                        )
+                    } else {
+                        CalendarDayReuniones(
+                            day = "",
+                            isSelected = false,
+                            isAvailable = false,
+                            onClick = {}
+                        )
+                    }
                 }
             }
             dayCounter += 7
-            if (dayCounter > daysInMonth) return@Column
         }
     }
+}
+
+private data class MonthData(
+    val daysInMonth: Int,
+    val firstDayOfWeek: Int,
+    val monthName: String?,
+    val shortWeekdays: List<String>
+)
+
+@Composable
+private fun rememberMonthData(year: Int, month: Int): MonthData {
+    val calendar = Calendar.getInstance().apply {
+        set(Calendar.YEAR, year)
+        set(Calendar.MONTH, month)
+        set(Calendar.DAY_OF_MONTH, 1)
+    }
+
+    val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+    val firstDayOfWeek = calendar[Calendar.DAY_OF_WEEK] - 1
+    val monthName = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
+
+    val shortWeekdays = List(7) { i ->
+        calendar.apply { set(Calendar.DAY_OF_WEEK, i + 1) }
+            .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
+            ?: "??"
+    }
+
+    return MonthData(daysInMonth, firstDayOfWeek, monthName, shortWeekdays)
+}
+
+private fun createDateIfValid(day: Int, daysInMonth: Int, year: Int, month: Int): Calendar? {
+    return if (day in 1..daysInMonth) {
+        Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month)
+            set(Calendar.DAY_OF_MONTH, day)
+        }
+    } else null
+}
+
+private fun isToday(date: Calendar, today: Calendar): Boolean {
+    return date[Calendar.YEAR] == today[Calendar.YEAR] &&
+            date[Calendar.MONTH] == today[Calendar.MONTH] &&
+            date[Calendar.DAY_OF_MONTH] == today[Calendar.DAY_OF_MONTH]
+}
+
+private fun isSelected(date: Calendar, selectedDate: Calendar?): Boolean {
+    return selectedDate?.let {
+        it[Calendar.YEAR] == date[Calendar.YEAR] &&
+                it[Calendar.MONTH] == date[Calendar.MONTH] &&
+                it[Calendar.DAY_OF_MONTH] == date[Calendar.DAY_OF_MONTH]
+    } ?: false
 }
 
 @Composable
@@ -342,7 +416,6 @@ private fun CalendarDayReuniones(
 @Composable
 private fun ReservationButtonReuniones(
     isEnabled: Boolean,
-    onClick: () -> Unit,
     onBottomNavClick: (String) -> Unit,
     navController: NavController?,
     selectedDate: Calendar
@@ -359,7 +432,6 @@ private fun ReservationButtonReuniones(
                             "${selectedDate.get(Calendar.MONTH) + 1}/" +
                             "${selectedDate.get(Calendar.YEAR)}"
                     navController?.navigate("PagoSalon?fecha=$fechaFormateada")
-
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -398,7 +470,7 @@ fun PreviewSalonReunionesReservationScreen() {
     MaterialTheme {
         SalonReunionesReservationScreen(
             onBottomNavClick = {},
-            navController = NavController(LocalContext.current)
+            navController = null
         )
     }
 }

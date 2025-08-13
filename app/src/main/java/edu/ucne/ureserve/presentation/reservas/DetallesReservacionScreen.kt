@@ -50,16 +50,21 @@ import edu.ucne.ureserve.R
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
+private const val TIPO_CUBICULO = "CUBÍCULO"
+
+data class ReservaInfo(
+    val fecha: String,
+    val horaInicio: String,
+    val horaFin: String,
+    val matricula: String,
+    val tipoReserva: String
+)
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun DetallesReservacionScreen(
     reservaId: Int,
-    fecha: String,
-    horaInicio: String,
-    horaFin: String,
-    matricula: String,
-    tipoReserva: String,
-    onCancelarReserva: (() -> Unit)? = null,
+    reservaInfo: ReservaInfo,
     navController: NavHostController? = null
 ) {
     val context = LocalContext.current
@@ -75,9 +80,9 @@ fun DetallesReservacionScreen(
         }
     }
 
-    val (nombreTipo, iconoTipo) = when (tipoReserva.uppercase()) {
+    val (nombreTipo, iconoTipo) = when (reservaInfo.tipoReserva.uppercase()) {
         "PROYECTOR" -> Pair("PROYECTOR", R.drawable.icon_proyector)
-        "CUBÍCULO" -> Pair("CUBÍCULO", R.drawable.icon_cubiculo)
+        TIPO_CUBICULO -> Pair(TIPO_CUBICULO, R.drawable.icon_cubiculo)
         "LABORATORIO" -> Pair("LABORATORIO", R.drawable.icon_laboratorio)
         "SALA" -> Pair("SALA", R.drawable.sala)
         "SALÓN" -> Pair("SALÓN", R.drawable.salon)
@@ -87,11 +92,11 @@ fun DetallesReservacionScreen(
 
     val qrDataRaw = """
         {
-            "fecha": "$fecha",
-            "hora_inicio": "$horaInicio",
-            "hora_fin": "$horaFin",
-            "matricula": "$matricula",
-            "tipo_reserva": "$tipoReserva"
+            "fecha": "${reservaInfo.fecha}",
+            "hora_inicio": "${reservaInfo.horaInicio}",
+            "hora_fin": "${reservaInfo.horaFin}",
+            "matricula": "${reservaInfo.matricula}",
+            "tipo_reserva": "${reservaInfo.tipoReserva}"
         }
     """.trimIndent()
     val qrDataEncoded = URLEncoder.encode(qrDataRaw, StandardCharsets.UTF_8.toString())
@@ -167,19 +172,19 @@ fun DetallesReservacionScreen(
             }
 
             item {
-                InfoRow("FECHA:", fecha)
+                InfoRow("FECHA:", reservaInfo.fecha)
             }
 
             item {
-                InfoRow("HORA:", "$horaInicio - $horaFin")
+                InfoRow("HORA:", "${reservaInfo.horaInicio} - ${reservaInfo.horaFin}")
             }
 
             item {
-                InfoRow("MATRÍCULA:", matricula)
+                InfoRow("MATRÍCULA:", reservaInfo.matricula)
             }
 
             item {
-                InfoRow("TIPO:", tipoReserva)
+                InfoRow("TIPO:", reservaInfo.tipoReserva)
             }
 
             item {
@@ -253,7 +258,7 @@ fun DetallesReservacionScreen(
                                     fontSize = 16.sp
                                 )
                                 Text(
-                                    text = "Fecha: $fecha\nHora: $horaInicio - $horaFin\nMatrícula: $matricula",
+                                    text = "Fecha: ${reservaInfo.fecha}\nHora: ${reservaInfo.horaInicio} - ${reservaInfo.horaFin}\nMatrícula: ${reservaInfo.matricula}",
                                     color = Color.Gray,
                                     fontSize = 14.sp,
                                     modifier = Modifier.padding(top = 8.dp)
@@ -268,36 +273,7 @@ fun DetallesReservacionScreen(
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Button(
-                            onClick = { /* TODO: Finalizar reserva */ },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
-                                .height(48.dp),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("FINALIZAR RESERVA", color = Color.White)
-                        }
-                        Button(
-                            onClick = {
-                                onCancelarReserva?.invoke()
-                                navController?.popBackStack()
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
-                                .height(48.dp),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("CANCELAR", color = Color.White)
-                        }
-                    }
+
                     Row(
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         modifier = Modifier.fillMaxWidth()
@@ -317,10 +293,10 @@ fun DetallesReservacionScreen(
                             onClick = {
                                 notificationHandler.showNotification(
                                     title = "Modificando reserva",
-                                    message = "Estás a punto de modificar una reserva de tipo $tipoReserva."
+                                    message = "Estás a punto de modificar una reserva de tipo ${reservaInfo.tipoReserva}."
                                 )
-                                when (tipoReserva.uppercase()) {
-                                    "CUBÍCULO" -> navController?.navigate("modificar_cubiculo/$reservaId")
+                                when (reservaInfo.tipoReserva.uppercase()) {
+                                    TIPO_CUBICULO -> navController?.navigate("modificar_cubiculo/$reservaId")
                                     "PROYECTOR" -> navController?.navigate("modificar_proyector/$reservaId")
                                     "LABORATORIO" -> navController?.navigate("modificar_laboratorio/$reservaId")
                                     "RESTAURANTE" -> navController?.navigate("modificar_restaurante/$reservaId")
@@ -371,11 +347,13 @@ fun InfoRow(label: String, value: String) {
 fun PreviewDetallesReservacionScreen() {
     DetallesReservacionScreen(
         reservaId = 1,
-        fecha = "2025-08-01",
-        horaInicio = "10:00",
-        horaFin = "12:00",
-        matricula = "A12345",
-        tipoReserva = "PROYECTOR",
+        reservaInfo = ReservaInfo(
+            fecha = "2025-08-01",
+            horaInicio = "10:00",
+            horaFin = "12:00",
+            matricula = "A12345",
+            tipoReserva = "PROYECTOR"
+        ),
         navController = null
     )
 }

@@ -77,8 +77,7 @@ import java.util.Locale
 fun ReservaProyectorScreen(
     viewModel: ReservaProyectorViewModel = hiltViewModel(),
     navController: NavController,
-    fecha: String? = null,
-    onBottomNavClick: (String) -> Unit = {}
+    fecha: String? = null
 ) {
     val context = LocalContext.current
     val postNotificationPermission =

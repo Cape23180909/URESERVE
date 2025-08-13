@@ -23,16 +23,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 
 @Composable
 fun ExitosaCubiculoScreen(
-    viewModel: ReservaCubiculoViewModel = hiltViewModel(),
     navController: NavController,
     codigoReserva: Int?,
-    onBottomNavClick: (String) -> Unit = {}
 ){
     Column(
         modifier = Modifier

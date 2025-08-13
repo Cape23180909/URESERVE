@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val ERROR_DESCONOCIDO = "Error desconocido"
+
 @HiltViewModel
 class EmpleadoViewModel @Inject constructor(
     private val api: ProyectoresApi,
@@ -119,7 +121,7 @@ class EmpleadoViewModel @Inject constructor(
 
                 _isLoading.value = true
 
-                val updatedProyector = api.update(
+                api.update(
                     id = id,
                     proyector = ProyectoresDto(
                         proyectorId = id,
@@ -135,7 +137,7 @@ class EmpleadoViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
-                _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
+                _error.value = "Error al actualizar: ${e.message ?: ERROR_DESCONOCIDO}"
 
                 cargarProyectores()
             } finally {
@@ -152,7 +154,7 @@ class EmpleadoViewModel @Inject constructor(
 
                 _isLoading.value = true
 
-                val updatedCubiculo = apicubiculos.update(
+                apicubiculos.update(
                     id = id,
                     cubiculo = CubiculosDto(
                         cubiculoId = id,
@@ -166,7 +168,7 @@ class EmpleadoViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
-                _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
+                _error.value = "Error al actualizar: ${e.message ?: ERROR_DESCONOCIDO}"
                 cargarCubiculos()
             } finally {
                 _isLoading.value = false
@@ -177,16 +179,16 @@ class EmpleadoViewModel @Inject constructor(
     fun actualizarDisponibilidadLaboratorio(id: Int, disponible: Boolean) {
         viewModelScope.launch {
             try {
-                val proyector = _laboratorios.value.find { it.laboratorioId == id }
+                val laboratorio = _laboratorios.value.find { it.laboratorioId == id }
                     ?: throw IllegalArgumentException("Laboratorio con id $id no encontrado")
 
                 _isLoading.value = true
 
-                val updatedLaboratorio = apilaboratorios.update(
+                apilaboratorios.update(
                     id = id,
                     laboratorio = LaboratoriosDto(
                         laboratorioId = id,
-                        nombre = proyector.nombre,
+                        nombre = laboratorio.nombre,
                         disponible = disponible
                     )
                 )
@@ -196,7 +198,7 @@ class EmpleadoViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
-                _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
+                _error.value = "Error al actualizar: ${e.message ?: ERROR_DESCONOCIDO}"
                 cargarLaboratorios()
             } finally {
                 _isLoading.value = false
@@ -207,15 +209,13 @@ class EmpleadoViewModel @Inject constructor(
     fun actualizarDisponibilidadRestaurantes(id: Int?, disponible: Boolean) {
         viewModelScope.launch {
             try {
-                val restauranteId = id ?: throw IllegalArgumentException("ID no puede ser nulo")
-
                 val restaurante = _restaurantes.value.find { it.restauranteId == id }
-                    ?: throw IllegalArgumentException("Laboratorio con id $id no encontrado")
+                    ?: throw IllegalArgumentException("Restaurante con id $id no encontrado")
 
                 _isLoading.value = true
 
-                val updatedRestaurante = apiRestaurantes.update(
-                    id = id,
+                apiRestaurantes.update(
+                    id = id!!,
                     restaurante = RestaurantesDto(
                         restauranteId = id,
                         nombre = restaurante.nombre,
@@ -228,12 +228,12 @@ class EmpleadoViewModel @Inject constructor(
                     )
                 )
 
-                _laboratorios.value = _laboratorios.value.map { item ->
-                    if (item.laboratorioId == id) item.copy(disponible = disponible) else item
+                _restaurantes.value = _restaurantes.value.map { item ->
+                    if (item.restauranteId == id) item.copy(disponible = disponible) else item
                 }
 
             } catch (e: Exception) {
-                _error.value = "Error al actualizar: ${e.message ?: "Error desconocido"}"
+                _error.value = "Error al actualizar: ${e.message ?: ERROR_DESCONOCIDO}"
                 cargarRestaurantes()
             } finally {
                 _isLoading.value = false

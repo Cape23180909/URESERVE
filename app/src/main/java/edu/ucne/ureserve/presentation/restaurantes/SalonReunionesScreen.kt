@@ -35,18 +35,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
+
+private const val NOTIFICATION_TITLE_NAVIGATION = "Navegación"
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun SalonReunionesScreen(
-    navController: NavHostController,
     onCancelClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onBottomNavClick: (String) -> Unit = {},
@@ -65,6 +65,7 @@ fun SalonReunionesScreen(
             postNotificationPermission.launchPermissionRequest()
         }
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -95,8 +96,7 @@ fun SalonReunionesScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -127,6 +127,7 @@ fun SalonReunionesScreen(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -138,13 +139,7 @@ fun SalonReunionesScreen(
                 contentDescription = "Icono de exclamación",
                 modifier = Modifier
                     .size(32.dp)
-                    .clickable {
-                        onExclamacionClick()
-                        notificationHandler.showNotification(
-                            title = "Importante",
-                            message = "Lee los términos antes de reservar."
-                        )
-                    },
+                    .clickable { onExclamacionClick() },
                 colorFilter = ColorFilter.tint(Color.White)
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -210,7 +205,7 @@ fun SalonReunionesScreen(
                 onClick = {
                     onBottomNavClick("Tutorial")
                     notificationHandler.showNotification(
-                        title = "Navegación",
+                        title = NOTIFICATION_TITLE_NAVIGATION,
                         message = "Ir a la sección Tutorial"
                     )
                 }
@@ -221,7 +216,7 @@ fun SalonReunionesScreen(
                 onClick = {
                     onBottomNavClick("Inicio")
                     notificationHandler.showNotification(
-                        title = "Navegación",
+                        title = NOTIFICATION_TITLE_NAVIGATION,
                         message = "Ir a la página de Inicio"
                     )
                 }
@@ -232,7 +227,7 @@ fun SalonReunionesScreen(
                 onClick = {
                     onBottomNavClick("Perfil")
                     notificationHandler.showNotification(
-                        title = "Navegación",
+                        title = NOTIFICATION_TITLE_NAVIGATION,
                         message = "Ir a tu Perfil"
                     )
                 }
@@ -244,9 +239,7 @@ fun SalonReunionesScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSalonReunionesScreen() {
-    val navController = rememberNavController()
     SalonReunionesScreen(
-        navController = navController,
         onBottomNavClick = {}
     )
 }

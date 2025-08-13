@@ -5,31 +5,14 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,8 +29,7 @@ import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.reservas.ReservaViewModel
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -70,69 +52,18 @@ fun ReservasenCursoProyectorScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .background(Color(0xFFA7A7A7))
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo_reserve),
-                    contentDescription = "Logo",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.icon_reserva),
-                    contentDescription = "Reservas en Curso",
-                    modifier = Modifier.size(50.dp)
-                )
-            }
-            Text(
-                text = "Reservas de proyectores en Curso",
-                fontSize = 23.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentWidth(Alignment.CenterHorizontally)
-                    .padding(vertical = 16.dp)
-            )
+            ReservasProyectorHeader()
         }
 
         when (state) {
             is ReservaViewModel.ReservaListState.Loading -> {
                 item {
-                    Text(
-                        text = "Cargando reservas...",
-                        fontSize = 18.sp,
-                        color = Color.White,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentWidth(Alignment.CenterHorizontally)
-                    )
+                    LoadingStateText()
                 }
             }
             is ReservaViewModel.ReservaListState.Success -> {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color(0xFF2E5C94))
-                            .padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(text = "Tiempo Restante", color = Color.White)
-                            Text(text = "Reservas", color = Color.White)
-                        }
-                    }
+                    ReservasProyectorTableHeader()
                 }
                 items(reservaciones.filterNot { isReservaFinalizada(it.fecha, it.horaFin) }) { reserva ->
                     ProyectorReservationItem(
@@ -150,35 +81,111 @@ fun ReservasenCursoProyectorScreen(
             }
             is ReservaViewModel.ReservaListState.Error -> {
                 item {
-                    Text(
-                        text = (state as ReservaViewModel.ReservaListState.Error).message,
-                        fontSize = 18.sp,
-                        color = Color.Red,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentWidth(Alignment.CenterHorizontally)
-                    )
+                    ErrorStateText((state as ReservaViewModel.ReservaListState.Error).message)
                 }
             }
         }
 
         item {
             Spacer(modifier = Modifier.height(15.dp))
-            Button(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier
-                    .width(150.dp)
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(25.dp)),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
-            ) {
-                Text(
-                    text = "Volver",
-                    fontSize = 18.sp,
-                    color = Color.White
-                )
-            }
+            ButtonVolver(onClick = { navController.popBackStack() })
         }
+    }
+}
+
+@Composable
+fun ReservasProyectorHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .background(Color(0xFFA7A7A7))
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.logo_reserve),
+            contentDescription = "Logo",
+            modifier = Modifier.size(50.dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.icon_reserva),
+            contentDescription = "Reservas en Curso",
+            modifier = Modifier.size(50.dp)
+        )
+    }
+    Text(
+        text = "Reservas de proyectores en Curso",
+        fontSize = 23.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.CenterHorizontally)
+            .padding(vertical = 16.dp)
+    )
+}
+
+@Composable
+fun LoadingStateText() {
+    Text(
+        text = "Cargando reservas...",
+        fontSize = 18.sp,
+        color = Color.White,
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.CenterHorizontally)
+    )
+}
+
+@Composable
+fun ErrorStateText(message: String) {
+    Text(
+        text = message,
+        fontSize = 18.sp,
+        color = Color.Red,
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.CenterHorizontally)
+    )
+}
+
+@Composable
+fun ReservasProyectorTableHeader() {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF2E5C94))
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = "Tiempo Restante", color = Color.White)
+            Text(text = "Reservas", color = Color.White)
+        }
+    }
+}
+
+@Composable
+fun ButtonVolver(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .width(150.dp)
+            .height(50.dp)
+            .clip(RoundedCornerShape(25.dp)),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
+    ) {
+        Text(
+            text = "Volver",
+            fontSize = 18.sp,
+            color = Color.White
+        )
     }
 }
 
@@ -277,7 +284,7 @@ private fun parsearFechaHoraSeguro(fecha: String, hora: String): Date? {
 
 fun isReservaFinalizada(fecha: String, horaFin: String): Boolean {
     val fechaHora = parsearFechaHoraSeguro(fecha, horaFin)
-    return fechaHora?.time ?: 0 < System.currentTimeMillis()
+    return (fechaHora?.time ?: 0) < System.currentTimeMillis()
 }
 
 private fun formatearTiempoRestante(diferencia: Long): String {

@@ -17,9 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +51,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import kotlinx.coroutines.launch
 import java.time.LocalTime
@@ -65,10 +63,8 @@ fun ReservaCubiculoScreen(
     viewModel: ReservaCubiculoViewModel = hiltViewModel(),
     cubiculoId: Int? = null,
     navController: NavController,
-    usuarioDTO: UsuarioDTO,
-    estudiante: EstudianteDto
+    usuarioDTO: UsuarioDTO
 ) {
-    val cubiculos = viewModel.cubiculos.collectAsState().value
     val hours by viewModel.selectedHours.collectAsState()
     val allMembers by viewModel.members.collectAsState()
     val scope = rememberCoroutineScope()
@@ -97,8 +93,16 @@ fun ReservaCubiculoScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(painter = painterResource(id = R.drawable.logo_reserve), contentDescription = "Logo", modifier = Modifier.size(60.dp))
-                    Image(painter = painterResource(id = R.drawable.icon_cubiculo), contentDescription = "Icono de Cubículo", modifier = Modifier.size(60.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_reserve),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(60.dp)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.icon_cubiculo),
+                        contentDescription = "Icono de Cubículo",
+                        modifier = Modifier.size(60.dp)
+                    )
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6D87A4))
@@ -173,7 +177,12 @@ fun ReservaCubiculoScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Añade los integrantes de tu grupo", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(
+                    "Añade los integrantes de tu grupo",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
                 IconButton(
                     onClick = {
                         if (hours.isBlank()) {
@@ -209,10 +218,21 @@ fun ReservaCubiculoScreen(
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Nombre", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(start = 16.dp))
-                    Text("Matrícula", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(end = 16.dp), textAlign = TextAlign.End)
+                    Text(
+                        "Nombre",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Yellow,
+                        modifier = Modifier.weight(1f).padding(start = 16.dp)
+                    )
+                    Text(
+                        "Matrícula",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Yellow,
+                        modifier = Modifier.weight(1f).padding(end = 16.dp),
+                        textAlign = TextAlign.End
+                    )
                 }
-                Divider(color = Color.White, thickness = 1.dp)
+                HorizontalDivider(color = Color.White, thickness = 1.dp)
                 allMembers.forEachIndexed { index, member ->
                     Row(
                         modifier = Modifier
@@ -222,10 +242,11 @@ fun ReservaCubiculoScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = member.nombres.orEmpty() + " " + member.apellidos.orEmpty(),
+                            text = member.nombres + " " + member.apellidos,
                             modifier = Modifier.weight(1f).padding(start = 16.dp),
                             color = Color.Black
                         )
+
                         Text(
                             text = member.estudiante?.matricula.orEmpty(),
                             modifier = Modifier.weight(1f).padding(end = 16.dp),
@@ -234,7 +255,7 @@ fun ReservaCubiculoScreen(
                         )
                     }
                     if (index < allMembers.size - 1) {
-                        Divider(color = Color.White, thickness = 1.dp)
+                        HorizontalDivider(color = Color.White, thickness = 1.dp)
                     }
                 }
             }
@@ -271,7 +292,8 @@ fun ReservaCubiculoScreen(
                 Text(
                     text = "VOLVER",
                     fontSize = 16.sp,
-                    modifier = Modifier.padding(8.dp))
+                    modifier = Modifier.padding(8.dp)
+                )
             }
 
             Button(
@@ -360,13 +382,5 @@ fun ReservaCubiculoScreen(
 
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth().background(Color(0xFF2E5C94)).padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            IconButton(onClick = { /* TODO: Ir a Inicio */ }) {
-                Icon(painter = painterResource(id = R.drawable.icon_inicio), contentDescription = "Inicio", tint = Color.White)
-            }
-        }
     }
 }

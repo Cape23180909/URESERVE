@@ -116,7 +116,7 @@ fun DetalleReservaEnCursoCubiculoScreen(
                     ReservationDetailBlock(label = "NO. RESERVA", value = reserva.codigoReserva.toString())
                     ReservationDetailBlock(label = "FECHA", value = reserva.fechaFormateada)
                     ReservationDetailBlock(label = "HORARIO", value = "${reserva.horaInicio} a ${reserva.horaFin}")
-                    ReservationDetailBlock(label = "MATRÍCULA(S)", value = reserva.matricula)
+                    ReservationDetailBlock(label = "MATRÍCULA(S)", value = reserva.matricula!!)
 
                     Spacer(modifier = Modifier.height(32.dp))
 

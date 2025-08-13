@@ -11,9 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import androidx.room.Room
 import dagger.hilt.android.AndroidEntryPoint
-import edu.ucne.ureserve.data.local.database.UReserveDb
 import edu.ucne.ureserve.presentation.navigation.UreserveNavHost
 import edu.ucne.ureserve.ui.theme.URESERVETheme
 
@@ -27,19 +25,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             URESERVETheme {
                 val navController = rememberNavController()
-                val uReserveDb = Room.databaseBuilder(
-                    applicationContext,
-                    UReserveDb::class.java,
-                    "UReserveDb"
-                ).build()
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     UreserveNavHost(
-                        navController = navController,
-                        uReserveDb = uReserveDb
+                        navController = navController
                     )
                 }
             }

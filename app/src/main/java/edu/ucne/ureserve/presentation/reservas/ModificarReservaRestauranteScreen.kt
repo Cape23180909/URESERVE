@@ -5,46 +5,12 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SelectableDates
-import androidx.compose.material3.Text
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -80,18 +46,13 @@ fun ModificarReservaRestauranteScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
         } else null
-
     val notificationHandler = remember { NotificationHandler(context) }
 
-    LaunchedEffect(true) {
-        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
-            postNotificationPermission.launchPermissionRequest()
-        }
-    }
+    RequestNotificationPermission(postNotificationPermission)
+
     val uiState by viewModel.uiState.collectAsState()
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val (showDatePicker, setShowDatePicker) = remember { mutableStateOf(false) }
+    val (errorMessage, setErrorMessage) = remember { mutableStateOf<String?>(null) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var startTime by remember { mutableStateOf(LocalTime.NOON) }
     var endTime by remember { mutableStateOf(LocalTime.NOON.plusHours(1)) }
@@ -99,7 +60,7 @@ fun ModificarReservaRestauranteScreen(
     var originalStartTime by remember { mutableStateOf<LocalTime?>(null) }
     var originalEndTime by remember { mutableStateOf<LocalTime?>(null) }
 
-    val hasChanges = remember {
+    val hasChanges by remember {
         derivedStateOf {
             selectedDate != originalDate ||
                     startTime != originalStartTime ||
@@ -107,6 +68,95 @@ fun ModificarReservaRestauranteScreen(
         }
     }
 
+    LoadReservaData(
+        reservaId,
+        viewModel,
+        setErrorMessage,
+        onLoad = { fecha, horaInicio, horaFin ->
+            selectedDate = fecha
+            startTime = horaInicio
+            endTime = horaFin
+            originalDate = fecha
+            originalStartTime = horaInicio
+            originalEndTime = horaFin
+        }
+    )
+
+    Scaffold(
+        topBar = {
+            AppTopBar(navController)
+        },
+        containerColor = Color(0xFF023E8A)
+    ) { innerPadding ->
+        ContentBody(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(16.dp)
+                .fillMaxSize(),
+            errorMessage = errorMessage,
+            uiErrorMessage = uiState.errorMessage,
+            selectedDate = selectedDate,
+            hasChanges = hasChanges,
+            isLoading = uiState.isLoading,
+            onShowDatePicker = { setShowDatePicker(true) },
+            onSaveChanges = {
+                notificationHandler.showNotification(
+                    title = "Cambios detectados",
+                    message = "Los cambios fueron guardados correctamente."
+                )
+                reservaId?.let { id ->
+                    viewModel.modificarReservaRestauranteCompleta(
+                        nuevaFecha = selectedDate,
+                        nuevaHoraInicio = startTime,
+                        nuevaHoraFin = endTime,
+                        onSuccess = {
+                            navController?.navigate("reservaList") {
+                                popUpTo("modificar_restaurante/$id") { inclusive = true }
+                            }
+                        },
+                        onError = { error -> setErrorMessage(error) }
+                    )
+                }
+            },
+            onBack = { navController?.popBackStack() }
+        )
+
+        if (showDatePicker) {
+            DatePickerDialogComponent(
+                initialDate = selectedDate,
+                onDismiss = { setShowDatePicker(false) },
+                onConfirm = { newDate ->
+                    selectedDate = newDate
+                    notificationHandler.showNotification(
+                        title = "Fecha modificada",
+                        message = "La nueva fecha fue seleccionada correctamente."
+                    )
+                    setShowDatePicker(false)
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+private fun RequestNotificationPermission(postNotificationPermission: com.google.accompanist.permissions.PermissionState?) {
+    LaunchedEffect(true) {
+        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+private fun LoadReservaData(
+    reservaId: Int?,
+    viewModel: RestaurantesViewModel,
+    setErrorMessage: (String?) -> Unit,
+    onLoad: (LocalDate, LocalTime, LocalTime) -> Unit
+) {
     LaunchedEffect(reservaId) {
         reservaId?.let { id ->
             try {
@@ -115,248 +165,188 @@ fun ModificarReservaRestauranteScreen(
                     val fecha = LocalDate.parse(reserva.fecha.substring(0, 10))
                     val horaInicio = LocalTime.parse(reserva.horaInicio)
                     val horaFin = LocalTime.parse(reserva.horaFin)
-
-                    selectedDate = fecha
-                    startTime = horaInicio
-                    endTime = horaFin
-
-                    originalDate = fecha
-                    originalStartTime = horaInicio
-                    originalEndTime = horaFin
+                    onLoad(fecha, horaInicio, horaFin)
                 }
             } catch (e: Exception) {
-                errorMessage = "Error al cargar la reserva: ${e.message}"
+                setErrorMessage("Error al cargar la reserva: ${e.message}")
             }
         }
     }
+}
 
-    Scaffold(
-        topBar = {
-            Column {
-                TopAppBar(
-                    title = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.logo_reserve),
-                                contentDescription = "Logo",
-                                modifier = Modifier.size(50.dp)
-                            )
-                            Image(
-                                painter = painterResource(id = R.drawable.icon_reserva),
-                                contentDescription = "Reserva",
-                                modifier = Modifier.size(50.dp)
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { navController?.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Atrás",
-                                tint = Color.White
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF6D87A4)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AppTopBar(navController: NavHostController?) {
+    Column {
+        TopAppBar(
+            title = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_reserve),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(50.dp)
                     )
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(4.dp)
-                        .background(Color(0xFF023E8A)))
-            }
-        },
-        containerColor = Color(0xFF023E8A)
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            errorMessage?.let {
-                Text(text = it, color = Color.Red)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            uiState.errorMessage?.let {
-                Text(text = it, color = Color.Red)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            Text(
-                text = "MODIFICAR RESERVA DE RESTAURANTE",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
+                    Image(
+                        painter = painterResource(id = R.drawable.icon_reserva),
+                        contentDescription = "Reserva",
+                        modifier = Modifier.size(50.dp)
+                    )
+                }
+            },
+            navigationIcon = {
+                IconButton(onClick = { navController?.popBackStack() }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Atrás",
+                        tint = Color.White
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color(0xFF6D87A4)
             )
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .background(Color(0xFF023E8A))
+        )
+    }
+}
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Reserva actual:", color = Color.White, fontWeight = FontWeight.Bold)
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ContentBody(
+    modifier: Modifier,
+    errorMessage: String?,
+    uiErrorMessage: String?,
+    selectedDate: LocalDate,
+    hasChanges: Boolean,
+    isLoading: Boolean,
+    onShowDatePicker: () -> Unit,
+    onSaveChanges: () -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        errorMessage?.let {
+            Text(text = it, color = Color.Red)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        uiErrorMessage?.let {
+            Text(text = it, color = Color.Red)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        Text(
+            text = "MODIFICAR RESERVA DE RESTAURANTE",
+            color = Color.White,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Reserva actual:", color = Color.White, fontWeight = FontWeight.Bold)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     Text(
                         "Fecha: ${selectedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}",
                         color = Color.White
                     )
-
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { showDatePicker = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Cambiar Fecha", color = Color.White, fontWeight = FontWeight.Bold)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = {
-                    notificationHandler.showNotification(
-                        title = "Cambios detectados",
-                        message = "Los cambios fueron guardados correctamente."
-                    )
-                    reservaId?.let { id ->
-                        viewModel.modificarReservaRestauranteCompleta(
-                            reservaId = id,
-                            nuevaFecha = selectedDate,
-                            nuevaHoraInicio = startTime,
-                            nuevaHoraFin = endTime,
-                            onSuccess = {
-                                navController?.navigate("reservaList") {
-                                    popUpTo("modificar_restaurante/$id") { inclusive = true }
-                                }
-                            },
-                            onError = { error ->
-                                errorMessage = error
-                            }
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (hasChanges.value) Color(0xFF0077B6) else Color.Gray
-                ),
-                shape = RoundedCornerShape(12.dp),
-                enabled = hasChanges.value && !uiState.isLoading
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(color = Color.White)
-                } else {
-                    Text("GUARDAR CAMBIOS", fontWeight = FontWeight.Bold, color = Color.White)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = { navController?.popBackStack() },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("REGRESAR", fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
-
-        if (showDatePicker) {
-            val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = selectedDate
-                    .atStartOfDay(ZoneId.systemDefault())
-                    .toInstant()
-                    .toEpochMilli(),
-                selectableDates = object : SelectableDates {
-                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                        val date = Instant.ofEpochMilli(utcTimeMillis)
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate()
-                        return !date.isBefore(LocalDate.now())
-                    }
-                }
-            )
-
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    Button(onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            selectedDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                        }
-
-                        notificationHandler.showNotification(
-                            title = "Fecha modificada",
-                            message = "La nueva fecha fue seleccionada correctamente."
-                        )
-                        showDatePicker = false
-                    }) {
-                        Text("CONFIRMAR")
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = { showDatePicker = false }) {
-                        Text("CANCELAR")
-                    }
-                }
-            ) {
-                DatePicker(state = datePickerState)
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onShowDatePicker,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0096C7)),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Cambiar Fecha", color = Color.White, fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = onSaveChanges,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (hasChanges) Color(0xFF0077B6) else Color.Gray
+            ),
+            shape = RoundedCornerShape(12.dp),
+            enabled = hasChanges && !isLoading
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(color = Color.White)
+            } else {
+                Text("GUARDAR CAMBIOS", fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
-
-        if (showTimePicker) {
-            val startState = rememberTimePickerState(startTime.hour, startTime.minute)
-            val endState = rememberTimePickerState(endTime.hour, endTime.minute)
-
-            AlertDialog(
-                onDismissRequest = { showTimePicker = false },
-                title = { Text("Seleccionar Horario") },
-                text = {
-                    Column {
-                        Text("Hora de inicio:")
-                        TimePicker(state = startState)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Hora de fin:")
-                        TimePicker(state = endState)
-                    }
-                },
-                confirmButton = {
-                    Button(onClick = {
-                        startTime = LocalTime.of(startState.hour, startState.minute)
-                        endTime = LocalTime.of(endState.hour, endState.minute)
-                        notificationHandler.showNotification(
-                            title = "Horario actualizado",
-                            message = "El nuevo horario fue seleccionado correctamente."
-                        )
-                        showTimePicker = false
-                    }) {
-                        Text("CONFIRMAR")
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = { showTimePicker = false }) {
-                        Text("CANCELAR")
-                    }
-                }
-            )
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(
+            onClick = onBack,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94)),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("REGRESAR", fontWeight = FontWeight.Bold, color = Color.White)
         }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DatePickerDialogComponent(
+    initialDate: LocalDate,
+    onDismiss: () -> Unit,
+    onConfirm: (LocalDate) -> Unit
+) {
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialDate
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli(),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                val date = Instant.ofEpochMilli(utcTimeMillis)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                return !date.isBefore(LocalDate.now())
+            }
+        }
+    )
+
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(onClick = {
+                datePickerState.selectedDateMillis?.let { millis ->
+                    val selectedDate = Instant.ofEpochMilli(millis)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    onConfirm(selectedDate)
+                }
+            }) {
+                Text("CONFIRMAR")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("CANCELAR")
+            }
+        }
+    ) {
+        DatePicker(state = datePickerState)
     }
 }
 

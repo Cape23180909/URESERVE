@@ -14,7 +14,7 @@ data class ReservacionesDto(
     val horaInicio: String,
     val horaFin: String,
     val estado: Int = 0,
-    val matricula: String
+    val matricula: String?
 ){
     val fechaFormateada: String
         get() = fecha.formatDate()

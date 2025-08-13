@@ -1,4 +1,4 @@
-package edu.ucne.ureserve.presentation.salones
+package edu.ucne.ureserve.presentation.restaurantes
 
 import android.Manifest
 import android.os.Build
@@ -45,7 +45,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
-import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -121,7 +120,6 @@ fun RegistroReservaSalonScreen(
                     )
 
                     RegistroReservaSalonForm(
-                        fecha = fecha,
                         onCancelarClick = {
                             notificationHandler.showNotification(
                                 title = "Formulario Cancelado",
@@ -158,7 +156,6 @@ fun RegistroReservaSalonScreen(
 
 @Composable
 private fun RegistroReservaSalonForm(
-    fecha: String,
     onCancelarClick: () -> Unit,
     onConfirmarClick: (
         nombres: String,

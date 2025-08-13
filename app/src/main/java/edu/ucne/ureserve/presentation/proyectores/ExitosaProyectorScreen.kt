@@ -24,17 +24,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import edu.ucne.ureserve.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservaExitosaScreen(
-    viewModel: ReservaProyectorViewModel = hiltViewModel(),
     navController: NavController,
     codigoReserva: Int?,
-    onBottomNavClick: (String) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -115,4 +112,3 @@ fun ReservaExitosaScreen(
         }
     }
 }
-

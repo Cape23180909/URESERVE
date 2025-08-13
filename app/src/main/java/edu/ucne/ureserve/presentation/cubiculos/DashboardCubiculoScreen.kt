@@ -40,11 +40,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -60,7 +58,6 @@ import java.net.URLEncoder
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun DashboardCubiculoScreen(
-    fecha: String = "Hoy",
     onBottomNavClick: (String) -> Unit = {},
     viewModel: ReservaCubiculoViewModel = hiltViewModel(),
     usuarioDTO: UsuarioDTO,
@@ -138,7 +135,6 @@ fun DashboardCubiculoScreen(
                     cubiculo = cubiculo,
                     onClick = {
                         if (cubiculo.disponible) {
-                            // Notificación
                             notificationHandler.showNotification(
                                 title = "Cubículo Seleccionado",
                                 message = "Seleccionaste el ${cubiculo.nombre}"
@@ -225,46 +221,5 @@ fun CubiculoCard(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ReservaCubiculoScreenPreview() {
-    val cubiculosEjemplo = listOf(
-        CubiculosDto(
-            cubiculoId = 1,
-            nombre = "Cubículo #1",
-            disponible = true
-        ),
-        CubiculosDto(
-            cubiculoId = 2,
-            nombre = "Cubículo #2",
-            disponible = false
-        ),
-        CubiculosDto(
-            cubiculoId = 3,
-            nombre = "Cubículo #3",
-            disponible = true
-        ),
-        CubiculosDto(
-            cubiculoId = 4,
-            nombre = "Cubículo #4",
-            disponible = false
-        ),
-        CubiculosDto(
-            cubiculoId = 5,
-            nombre = "Cubículo #5",
-            disponible = true
-        ),
-        CubiculosDto(
-            cubiculoId = 6,
-            nombre = "Cubículo #6",
-            disponible = false
-        )
-    )
-
-    MaterialTheme {
-        DashboardCubiculoScreen(navController = rememberNavController(), usuarioDTO = UsuarioDTO())
     }
 }

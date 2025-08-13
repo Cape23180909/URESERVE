@@ -43,12 +43,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import edu.ucne.ureserve.R
+import edu.ucne.ureserve.data.remote.dto.RestaurantesDto
 
 @Composable
 fun RestauranteSwitchScreen(
     navController: NavController,
     viewModel: EmpleadoViewModel = hiltViewModel()
-){
+) {
     val restaurantes by viewModel.restaurantes.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -63,117 +64,133 @@ fun RestauranteSwitchScreen(
             .background(Color(0xFF0F3278))
     ) {
         Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(75.dp)
-                    .background(Color(0xFFA7A7A7))
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo_reserve),
-                    contentDescription = "Logo",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.icon_restaurante),
-                    contentDescription = "Icono Restaurante",
-                    modifier = Modifier.size(50.dp)
-                )
-            }
+            HeaderSection()
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .background(Color(0xFFFFD600), shape = RoundedCornerShape(8.dp))
-                        .padding(horizontal = 20.dp, vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Restaurantes Disponibles",
-                        color = Color.Black,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.ExtraBold
-                        ),
-                        fontSize = 20.sp
-                    )
+            TitleSection()
+
+            ContentSection(
+                isLoading = isLoading,
+                error = error,
+                restaurantes = restaurantes,
+                onToggle = { restauranteId, nuevoEstado ->
+                    viewModel.actualizarDisponibilidadRestaurantes(restauranteId, nuevoEstado)
                 }
-            }
+            )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .background(Color(0xFF004BBB), shape = RoundedCornerShape(8.dp))
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                } else if (error != null) {
-                    Text(
-                        text = error!!,
-                        color = Color.Red,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                } else {
-                    LazyColumn(modifier = Modifier.padding(16.dp)) {
-                        items(restaurantes) { restaurante ->
-                            RestauranteItem(
-                                restauranteId = restaurante.restauranteId,
-                                nombre = restaurante.nombre,
-                                ubicacion = restaurante.ubicacion,
-                                capacidad = restaurante.capacidad,
-                                telefono = restaurante.telefono,
-                                correo = restaurante.correo,
-                                descripcion = restaurante.descripcion,
-                                disponible = restaurante.disponible,
-                            ) {
-                                viewModel.actualizarDisponibilidadRestaurantes(restaurante.restauranteId, it)
-                            }
-                        }
+            BackButton { navController.popBackStack() }
+        }
+    }
+}
+
+@Composable
+private fun HeaderSection() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(75.dp)
+            .background(Color(0xFFA7A7A7))
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.logo_reserve),
+            contentDescription = "Logo",
+            modifier = Modifier.size(50.dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.icon_restaurante),
+            contentDescription = "Icono Restaurante",
+            modifier = Modifier.size(50.dp)
+        )
+    }
+}
+
+@Composable
+private fun TitleSection() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .background(Color(0xFFFFD600), shape = RoundedCornerShape(8.dp))
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Restaurantes Disponibles",
+                color = Color.Black,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                fontSize = 20.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun ContentSection(
+    isLoading: Boolean,
+    error: String?,
+    restaurantes: List<RestaurantesDto>,
+    onToggle: (Int, Boolean) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .background(Color(0xFF004BBB), shape = RoundedCornerShape(8.dp))
+    ) {
+        when {
+            isLoading -> {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+            error != null -> {
+                Text(
+                    text = error,
+                    color = Color.Red,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            else -> {
+                LazyColumn(modifier = Modifier.padding(16.dp)) {
+                    items(restaurantes) { restaurante ->
+                        RestauranteItem(
+                            nombre = restaurante.nombre,
+                            disponible = restaurante.disponible,
+                            restauranteId = restaurante.restauranteId,
+                            onCheckedChange = onToggle
+                        )
                     }
                 }
-            }
-
-            Button(
-                onClick = {
-                    navController.popBackStack()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6895D2))
-            ) {
-                Text(
-                    text = "VOLVER",
-                    color = Color.White
-                )
             }
         }
     }
 }
 
 @Composable
+private fun BackButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .height(50.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6895D2))
+    ) {
+        Text(text = "VOLVER", color = Color.White)
+    }
+}
+
+@Composable
 fun RestauranteItem(
-    restauranteId: Int?,
     nombre: String,
-    ubicacion: String,
-    capacidad: Int,
-    telefono: String,
-    correo: String,
-    descripcion: String,
     disponible: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    restauranteId: Int?,
+    onCheckedChange: (Int, Boolean) -> Unit
 ) {
     var currentState by remember(disponible) { mutableStateOf(disponible) }
     var showError by remember { mutableStateOf(false) }
@@ -184,12 +201,7 @@ fun RestauranteItem(
         "SalaReuniones" -> R.drawable.salon
         else -> R.drawable.comer
     }
-
-    val iconBackgroundColor = when (nombre) {
-        "SalaVIP" -> Color(0xFFFFD500)
-        "SalaReuniones" -> Color(0xFFFFD500)
-        else -> Color(0xFFFFD500)
-    }
+    val iconBackgroundColor = Color(0xFFFFD500)
 
     LaunchedEffect(disponible) {
         currentState = disponible
@@ -240,8 +252,13 @@ fun RestauranteItem(
                 onCheckedChange = { newState ->
                     currentState = newState
                     try {
-                        onCheckedChange(newState)
-                    } catch (e: Exception) {
+                        restauranteId?.let {
+                            onCheckedChange(it, newState)
+                        } ?: run {
+                            currentState = !newState
+                            showError = true
+                        }
+                    } catch (_: Exception) {
                         currentState = !newState
                         showError = true
                     }
@@ -256,8 +273,8 @@ fun RestauranteItem(
         }
     }
 
-    if (showError) {
-        LaunchedEffect(showError) {
+    LaunchedEffect(showError) {
+        if (showError) {
             Toast.makeText(
                 context,
                 "Error al actualizar el estado",
