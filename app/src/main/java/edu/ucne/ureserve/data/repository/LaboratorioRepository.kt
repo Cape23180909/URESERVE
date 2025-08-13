@@ -12,16 +12,20 @@ class LaboratorioRepository @Inject constructor(
         return try {
             val usuarios = usuarioApi.getAll()
             Log.d("Repository", "Usuarios recuperados: ${usuarios.size}")
-            val normalizedMatricula = matricula.replace("-", "")
+
+            val normalizedMatricula = matricula.replace("-", "").lowercase()
+
             val usuario = usuarios.find { usuario ->
-                val userMatricula = usuario.estudiante?.matricula?.replace("-", "") ?: ""
-                userMatricula.equals(normalizedMatricula, ignoreCase = true)
+                val userMatricula = usuario.estudiante?.matricula?.replace("-", "")?.lowercase() ?: ""
+                userMatricula == normalizedMatricula
             }
+
             if (usuario != null) {
                 Log.d("Repository", "Usuario encontrado: ${usuario.nombres}")
             } else {
                 Log.d("Repository", "Usuario no encontrado para la matrícula: $matricula")
             }
+
             usuario
         } catch (e: Exception) {
             Log.e("Repository", "Error buscando usuario", e)
