@@ -23,6 +23,15 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
+data class ReservaParams(
+    val laboratorioId: Int,
+    val cantidadHoras: Int,
+    val horaInicio: String,
+    val horaFin: String,
+    val fecha: String,
+    val matricula: String
+)
+
 @HiltViewModel
 class ReservaLaboratorioViewModel @Inject constructor(
     private val repository: LaboratorioRepository,
@@ -33,29 +42,15 @@ class ReservaLaboratorioViewModel @Inject constructor(
     private val _members = MutableStateFlow<List<UsuarioDTO>>(emptyList())
     val members: StateFlow<List<UsuarioDTO>> = _members.asStateFlow()
 
-    private val _selectedHours = MutableStateFlow("")
-    val selectedHours: StateFlow<String> = _selectedHours.asStateFlow()
-
-    private val _laboratorioNombre = MutableStateFlow("")
-    val laboratorioNombre: StateFlow<String> = _laboratorioNombre.asStateFlow()
-
-    private val _fechaSeleccionada = MutableStateFlow<String?>(null)
-    val fechaSeleccionada: StateFlow<String?> = _fechaSeleccionada.asStateFlow()
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _reservaSeleccionada = MutableStateFlow<ReservacionesDto?>(null)
-    val reservaSeleccionada: StateFlow<ReservacionesDto?> = _reservaSeleccionada.asStateFlow()
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    private val _laboratorioSeleccionado = MutableStateFlow<Int?>(null)
-    val laboratorioSeleccionado: StateFlow<Int?> = _laboratorioSeleccionado.asStateFlow()
-
     private val _uiState = MutableStateFlow(ReservaLaboratorioUiState())
     val uiState: StateFlow<ReservaLaboratorioUiState> = _uiState.asStateFlow()
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun cargarReservaParaModificar(reservaId: Int) {
         viewModelScope.launch {
@@ -75,7 +70,7 @@ class ReservaLaboratorioViewModel @Inject constructor(
                         horaInicio = horaInicio,
                         horaFin = horaFin,
                         estado = reserva.estado,
-                        matricula = reserva.matricula,
+                        matricula = reserva.matricula!!,
                         fechaString = fecha.format(DateTimeFormatter.ISO_LOCAL_DATE),
                         horaInicioString = horaInicio.format(DateTimeFormatter.ofPattern("HH:mm")),
                         horaFinString = horaFin.format(DateTimeFormatter.ofPattern("HH:mm")),
@@ -92,29 +87,23 @@ class ReservaLaboratorioViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun confirmarReservaLaboratorio(
-        laboratorioId: Int,
-        cantidadHoras: Int,
-        horaInicio: String,
-        horaFin: String,
-        fecha: String,
-        matricula: String,
+        reservaParams: ReservaParams,
         onSuccess: (Int) -> Unit,
         onError: (String) -> Unit
     ) {
         viewModelScope.launch {
             try {
                 val codigoReserva = (100000..999999).random()
-                val fechaSeleccionada = fecha
-                    ?: ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_INSTANT)
+                val fechaSeleccionada = reservaParams.fecha
                 val reservacionDto = ReservacionesDto(
                     codigoReserva = codigoReserva,
                     tipoReserva = 3,
                     cantidadEstudiantes = members.value.size,
                     fecha = fechaSeleccionada,
-                    horaInicio = horaInicio,
-                    horaFin = horaFin,
+                    horaInicio = reservaParams.horaInicio,
+                    horaFin = reservaParams.horaFin,
                     estado = 1,
-                    matricula = matricula
+                    matricula = reservaParams.matricula
                 )
                 val response = reservaApi.insert(reservacionDto)
                 if (response.isSuccessful) {
@@ -227,32 +216,6 @@ class ReservaLaboratorioViewModel @Inject constructor(
             currentMembers.add(member)
             _members.value = currentMembers
             Log.d("ViewModel", "Miembro agregado: ${member.nombres}. Total miembros: ${_members.value.size}")
-        }
-    }
-
-    fun eliminarMiembroPorMatricula(matricula: String) {
-        viewModelScope.launch {
-            try {
-                _uiState.update { it.copy(isLoading = true) }
-
-                val usuario = uiState.value.miembros.firstOrNull {
-                    it.estudiante?.matricula == matricula
-                }
-
-                usuario?.let {
-                    _uiState.update { state ->
-                        state.copy(
-                            miembros = state.miembros - it,
-                            cantidadEstudiantes = state.miembros.size - 1
-                        )
-                    }
-                    Log.d("ViewModel", "Miembro eliminado: ${it.nombres}")
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Error al eliminar miembro: ${e.message}") }
-            } finally {
-                _uiState.update { it.copy(isLoading = false) }
-            }
         }
     }
 
