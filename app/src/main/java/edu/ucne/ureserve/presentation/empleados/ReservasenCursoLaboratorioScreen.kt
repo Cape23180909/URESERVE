@@ -179,20 +179,24 @@ fun LaboratorioReservationItem(
     var error by remember { mutableStateOf(false) }
 
     LaunchedEffect(fecha, horaFin) {
-        val fechaHoraFin = parsearFechaHoraSeguroLaboratorio(fecha, horaFin)
-        if (fechaHoraFin == null) {
+        val fechaHoraFin = try {
+            parsearFechaHoraSeguroLaboratorio(fecha, horaFin)
+        } catch (_: IllegalArgumentException) {
             error = true
             return@LaunchedEffect
         }
+
         while (true) {
             val ahora = System.currentTimeMillis()
             val diff = fechaHoraFin.time - ahora
-            if (diff > 0) {
-                tiempoRestante = formatearTiempoRestante(diff)
+
+            tiempoRestante = if (diff > 0) {
+                formatearTiempoRestante(diff)
             } else {
-                tiempoRestante = "Finalizado"
-                break
+                "Finalizado"
             }
+
+            if (diff <= 0) break
             delay(1000L - (System.currentTimeMillis() % 1000))
         }
     }
@@ -248,16 +252,13 @@ fun LaboratorioReservationItem(
     }
 }
 
-private fun parsearFechaHoraSeguroLaboratorio(fecha: String, horaFin: String): Date? {
-    return try {
-        val fechaLimpia = fecha.take(10)
-        val horaLimpia = horaFin.take(5)
-        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-        sdf.parse("$fechaLimpia $horaLimpia")
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
+private fun parsearFechaHoraSeguroLaboratorio(fecha: String, horaFin: String): Date {
+    val fechaLimpia = fecha.take(10)
+    val horaLimpia = horaFin.take(5)
+    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    val fechaBase = sdf.parse("$fechaLimpia $horaLimpia")
+    requireNotNull(fechaBase) { "Fecha base no válida" }
+    return fechaBase
 }
 
 private fun formatearTiempoRestante(diferencia: Long): String {
@@ -266,7 +267,7 @@ private fun formatearTiempoRestante(diferencia: Long): String {
     val horas = minutos / 60
     val minutosRestantes = minutos % 60
     val segundosRestantes = segundos % 60
-    return String.format("%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
+    return String.format(Locale.getDefault(), "%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
