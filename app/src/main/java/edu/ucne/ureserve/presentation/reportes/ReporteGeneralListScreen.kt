@@ -154,7 +154,7 @@ fun ReporteGeneralListScreen(
                     ReservationDetailBlock("NO. RESERVA", reserva.codigoReserva.toString())
                     ReservationDetailBlock("FECHA", reserva.fechaFormateada)
                     ReservationDetailBlock("HORARIO", "${reserva.horaInicio} a ${reserva.horaFin}")
-                    ReservationDetailBlock("MATRÍCULA", reserva.matricula)
+                    ReservationDetailBlock("MATRÍCULA", reserva.matricula!!)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
