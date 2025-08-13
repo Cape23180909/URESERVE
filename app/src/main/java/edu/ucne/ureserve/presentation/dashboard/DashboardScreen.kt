@@ -32,7 +32,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 
 @Composable
@@ -40,8 +39,7 @@ fun DashboardScreen(
     onCategoryClick: (String) -> Unit = {},
     onBottomNavClick: (String) -> Unit = {},
     onProfileIconClick: () -> Unit,
-    usuario: UsuarioDTO,
-    estudiante: EstudianteDto,
+    usuario: UsuarioDTO
 ) {
     Column(
         modifier = Modifier
@@ -277,13 +275,11 @@ fun DashboardScreenPreview() {
     MaterialTheme {
 
         val dummyUsuario = UsuarioDTO(nombres = "Juan", apellidos = "Pérez")
-        val dummyEstudiante = EstudianteDto(matricula = "2020-0001")
 
         DashboardScreen(
             onCategoryClick = {},
             onBottomNavClick = {},
             usuario = dummyUsuario,
-            estudiante = dummyEstudiante,
             onProfileIconClick = {}
         )
     }
