@@ -5,35 +5,11 @@ import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,9 +36,8 @@ import edu.ucne.ureserve.R
 fun AgregarEstudianteScreenLaboratorio(
     viewModel: ReservaLaboratorioViewModel = hiltViewModel(),
     navController: NavController,
-    onCancel: () -> Unit = {},
-    onAdd: (String) -> Unit = {}
-){
+    onCancel: () -> Unit = {}
+) {
     val context = LocalContext.current
     val postNotificationPermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -71,7 +46,7 @@ fun AgregarEstudianteScreenLaboratorio(
 
     val notificationHandler = remember { NotificationHandler(context) }
 
-    LaunchedEffect(true) {
+    LaunchedEffect(Unit) {
         if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
             postNotificationPermission.launchPermissionRequest()
         }
@@ -105,6 +80,47 @@ fun AgregarEstudianteScreenLaboratorio(
         val cleanInput = input.replace("-", "")
         if (cleanInput.length <= 8) {
             matricula = formatMatricula(cleanInput)
+        }
+    }
+
+    fun validarYAgregarMatricula(matriculaInput: String) {
+        val matriculaLimpia = matriculaInput.replace("-", "")
+
+        when {
+            matriculaLimpia.isEmpty() -> {
+                viewModel.setError("Debe añadir una matrícula válida")
+                notificationHandler.showNotification(
+                    title = "Error",
+                    message = "Debe añadir una matrícula válida"
+                )
+            }
+
+            matriculaLimpia.length < 8 -> {
+                viewModel.setError("La matrícula debe tener 8 dígitos")
+                notificationHandler.showNotification(
+                    title = "Error",
+                    message = "La matrícula debe tener 8 dígitos"
+                )
+            }
+
+            else -> {
+                viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
+                    if (usuarioEncontrado != null) {
+                        viewModel.addMember(usuarioEncontrado)
+                        notificationHandler.showNotification(
+                            title = "Estudiante añadido",
+                            message = "Matrícula $matriculaInput añadida correctamente."
+                        )
+                        navController.popBackStack()
+                    } else {
+                        viewModel.setError("Matrícula no válida")
+                        notificationHandler.showNotification(
+                            title = "Error",
+                            message = "Matrícula no válida"
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -194,49 +210,12 @@ fun AgregarEstudianteScreenLaboratorio(
                     }
 
                     Button(
-                        onClick = {
-                            val matriculaLimpia = matricula.replace("-", "")
-
-                            when {
-                                matriculaLimpia.isEmpty() -> {
-                                    viewModel.setError("Debe añadir una matrícula válida")
-                                    notificationHandler.showNotification(
-                                        title = "Error",
-                                        message = "Debe añadir una matrícula válida"
-                                    )
-                                }
-
-                                matriculaLimpia.length < 8 -> {
-                                    viewModel.setError("La matrícula debe tener 8 dígitos")
-                                    notificationHandler.showNotification(
-                                        title = "Error",
-                                        message = "La matrícula debe tener 8 dígitos"
-                                    )
-                                }
-
-                                else -> {
-                                    viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
-                                        if (usuarioEncontrado != null) {
-                                            viewModel.addMember(usuarioEncontrado)
-
-                                            notificationHandler.showNotification(
-                                                title = "Estudiante añadido",
-                                                message = "Matrícula ${matricula} añadida correctamente."
-                                            )
-
-                                            navController.popBackStack()
-                                        } else {
-                                            viewModel.setError("Matrícula no válida")
-                                            notificationHandler.showNotification(
-                                                title = "Error",
-                                                message = "Matrícula no válida"
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
+                        onClick = { validarYAgregarMatricula(matricula) },
+                        enabled = !isLoading,
+                        modifier = Modifier
+                            .height(50.dp)
+                            .width(120.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D47A1))
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
@@ -254,64 +233,68 @@ fun AgregarEstudianteScreenLaboratorio(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF0D47A1))
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            for (i in 1..3) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    for (j in 1..3) {
-                        val number = (i - 1) * 3 + j
-                        Button(
-                            onClick = { onMatriculaChange(matricula + number.toString()) },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF2E5C94),
-                                contentColor = Color.White
-                            ),
-                            modifier = Modifier
-                                .size(100.dp)
-                                .padding(8.dp),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = number.toString(),
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+        TecladoNumerico(
+            onNumberClick = { number ->
+                if (matricula.replace("-", "").length < 8) {
+                    onMatriculaChange(matricula + number.toString())
                 }
             }
+        )
+    }
+}
 
+@Composable
+private fun TecladoNumerico(
+    onNumberClick: (Int) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF0D47A1))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        for (i in 1..3) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(
-                    onClick = { onMatriculaChange(matricula + "0") },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2E5C94),
-                        contentColor = Color.White
-                    ),
-                    modifier = Modifier
-                        .size(100.dp)
-                        .padding(8.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "0",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                for (j in 1..3) {
+                    val number = (i - 1) * 3 + j
+                    NumberButton(number = number, onClick = onNumberClick)
                 }
             }
         }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            NumberButton(number = 0, onClick = onNumberClick)
+        }
+    }
+}
+
+@Composable
+private fun NumberButton(
+    number: Int,
+    onClick: (Int) -> Unit
+) {
+    Button(
+        onClick = { onClick(number) },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF2E5C94),
+            contentColor = Color.White
+        ),
+        modifier = Modifier
+            .size(100.dp)
+            .padding(8.dp),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            text = number.toString(),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
