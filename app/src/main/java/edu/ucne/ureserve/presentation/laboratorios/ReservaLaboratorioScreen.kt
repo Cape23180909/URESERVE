@@ -17,8 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
@@ -45,7 +45,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -63,7 +62,6 @@ fun ReservaLaboratorioScreen(
     laboratorioId: Int? = null,
     navController: NavController,
     usuarioDTO: UsuarioDTO,
-    estudiante: EstudianteDto,
     horaInicio: String,
     horaFin: String,
     fecha: Long,
@@ -191,7 +189,7 @@ fun ReservaLaboratorioScreen(
                     Text("Nombre", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(start = 16.dp))
                     Text("Matrícula", fontWeight = FontWeight.Bold, color = Color.Yellow, modifier = Modifier.weight(1f).padding(end = 16.dp), textAlign = TextAlign.End)
                 }
-                Divider(color = Color.White, thickness = 1.dp)
+                HorizontalDivider(color = Color.White, thickness = 1.dp)
                 allMembers.forEachIndexed { index, member ->
                     Row(
                         modifier = Modifier
@@ -201,7 +199,7 @@ fun ReservaLaboratorioScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "${member.nombres.orEmpty()} ${member.apellidos.orEmpty()}",
+                            text = "${member.nombres} ${member.apellidos}",
                             modifier = Modifier.weight(1f).padding(start = 16.dp),
                             color = Color.Black
                         )
@@ -213,7 +211,7 @@ fun ReservaLaboratorioScreen(
                         )
                     }
                     if (index < allMembers.size - 1) {
-                        Divider(color = Color.White, thickness = 1.dp)
+                        HorizontalDivider(color = Color.White, thickness = 1.dp)
                     }
                 }
             }
@@ -260,7 +258,6 @@ fun ReservaLaboratorioScreen(
                         )
                         return@Button
                     }
-
                     if (allMembers.size < 3) {
                         notificationHandler.showNotification(
                             title = "Faltan miembros",
@@ -270,7 +267,7 @@ fun ReservaLaboratorioScreen(
                     }
 
                     val matricula = usuarioDTO.estudiante?.matricula ?: ""
-                    val cantidadHoras = calcularHorasLaboratorio(horaInicio, horaFin)
+                    val cantidadHoras = calcularHorasLaboratorio(horaInicio, horaFin) ?: 0 // Asegurar que no sea null
                     val horaInicio24 = convertirA24HorasLaboratorio(horaInicio)
                     val horaFin24 = convertirA24HorasLaboratorio(horaFin)
                     val fechaSeleccionadaStr = formatoFechaLaboratorio(fechaSeleccionada)
@@ -282,13 +279,19 @@ fun ReservaLaboratorioScreen(
                         return@Button
                     }
 
-                    viewModel.confirmarReservaLaboratorio(
-                        laboratorioId = laboratorioId ?: 0,
-                        cantidadHoras = cantidadHoras ?: 1,
+                    val laboratorioId = 1
+
+                    val reservaParams = ReservaParams(
+                        matricula = matricula,
+                        fecha = fechaSeleccionadaStr,
                         horaInicio = horaInicio24,
                         horaFin = horaFin24,
-                        fecha = fechaSeleccionadaStr,
-                        matricula = matricula,
+                        cantidadHoras = cantidadHoras,
+                        laboratorioId = laboratorioId
+                    )
+
+                    viewModel.confirmarReservaLaboratorio(
+                        reservaParams = reservaParams,
                         onSuccess = { codigo ->
                             Log.d("NAVIGATION", "Código recibido: $codigo")
                             if (codigo > 0) {
@@ -377,7 +380,7 @@ fun convertirA24HorasLaboratorio(hora12: String): String {
         val formatter24 = DateTimeFormatter.ofPattern("HH:mm:ss")
         val time = LocalTime.parse(hora12.trim(), formatter12)
         time.format(formatter24)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         ""
     }
 }
