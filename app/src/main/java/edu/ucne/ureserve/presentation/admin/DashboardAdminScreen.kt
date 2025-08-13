@@ -37,12 +37,10 @@ import androidx.navigation.compose.rememberNavController
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
+import edu.ucne.ureserve.presentation.empleados.MenuItem
 
 @Composable
 fun DashboardAdminScreen(
-    onOpcionesEmpleadoProyector: () -> Unit = {},
-    onReportes: () -> Unit = {},
-    onBuscarReservas: () -> Unit = {},
     onLogout: () -> Unit = {},
     navController: NavController,
     usuario: UsuarioDTO
@@ -149,31 +147,25 @@ fun DashboardAdminScreen(
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
 @Composable
 fun MenuItem(
     iconRes: Int,
     text: String,
     onClick: () -> Unit,
-    circleWidth: Dp = 172.dp,
-    circleHeight: Dp = 162.dp,
-    iconWidth: Dp = 101.dp,
-    iconHeight: Dp = 104.dp,
-    rowAlignment: Arrangement.Horizontal = Arrangement.Center,
-    rowWidthFraction: Float = 1f
+    style: MenuItemStyle = MenuItemStyle()
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth(rowWidthFraction)
+            .fillMaxWidth(style.rowWidthFraction)
             .padding(vertical = 16.dp)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = rowAlignment,
+        horizontalArrangement = style.rowAlignment,
     ) {
         Box(
             modifier = Modifier
-                .width(circleWidth)
-                .height(circleHeight)
+                .width(style.circleWidth)
+                .height(style.circleHeight)
                 .clip(CircleShape)
                 .background(Color(0xFFFFDF00)),
             contentAlignment = Alignment.Center
@@ -182,8 +174,8 @@ fun MenuItem(
                 painter = painterResource(id = iconRes),
                 contentDescription = null,
                 modifier = Modifier
-                    .width(iconWidth)
-                    .height(iconHeight)
+                    .width(style.iconWidth)
+                    .height(style.iconHeight)
             )
         }
 
@@ -218,12 +210,18 @@ fun PreviewDashboardAdminScreen() {
 
     MaterialTheme {
         DashboardAdminScreen(
-            onOpcionesEmpleadoProyector = {},
-            onReportes = {},
-            onBuscarReservas = {},
             onLogout = {},
             navController = navController,
             usuario = mockUsuario
         )
     }
 }
+
+data class MenuItemStyle(
+    val circleWidth: Dp = 120.dp,
+    val circleHeight: Dp = 120.dp,
+    val iconWidth: Dp = 90.dp,
+    val iconHeight: Dp = 90.dp,
+    val rowAlignment: Arrangement.Horizontal = Arrangement.Center,
+    val rowWidthFraction: Float = 1f
+)
