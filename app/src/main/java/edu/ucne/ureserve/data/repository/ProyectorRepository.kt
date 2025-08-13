@@ -58,10 +58,6 @@ class ProyectorRepository @Inject constructor(
         return remoteDataSource.updateDetalleReservaProyector(id, detalle)
     }
 
-    suspend fun deleteDetalleReservaProyector(id: Int) {
-        remoteDataSource.deleteDetalleReservaProyector(id)
-    }
-
     fun getProyectores(): Flow<Resource<List<ProyectoresDto>>> = flow {
         try {
             emit(Resource.Loading())
