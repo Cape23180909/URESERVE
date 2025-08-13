@@ -127,7 +127,6 @@ fun RegistroReservaScreen(
                     )
 
                     RegistroSalaVipForm(
-                        fecha = fecha,
                         onCancelarClick = {
                             notificationHandler.showNotification(
                                 title = "Reserva cancelada",
@@ -167,7 +166,6 @@ fun RegistroReservaScreen(
 
 @Composable
 fun RegistroSalaVipForm(
-    fecha: String,
     onCancelarClick: () -> Unit,
     onConfirmarClick: (
         correoElectronico: String,
