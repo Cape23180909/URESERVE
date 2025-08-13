@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -41,19 +40,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
 import edu.ucne.ureserve.data.remote.dto.ProyectoresDto
-import edu.ucne.ureserve.presentation.login.AuthManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -63,19 +59,18 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
 
+private const val TIME_FORMAT_PATTERN = "hh:mm a"
+
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun PrevisualizacionProyectorScreen(
-    viewModel: ReservaProyectorViewModel = hiltViewModel(),
     navController: NavController,
-    fecha: String,
-    horaInicio: String,
-    horaFin: String,
-    proyectorJson: String? = null,
-    onBack: () -> Unit = {},
-    onFinish: () -> Unit = {}
+    reservaArgs: ReservaProyectorArgs,
+    viewModel: ReservaProyectorViewModel = hiltViewModel()
 ) {
+
+    val (fecha, horaInicio, horaFin, proyectorJson) = reservaArgs
     val context = LocalContext.current
     val postNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -92,12 +87,11 @@ fun PrevisualizacionProyectorScreen(
             proyectorJson?.let { Json.decodeFromString<ProyectoresDto>(it) }?.also {
                 viewModel.seleccionarProyector(it)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
 
-    val state by viewModel.state.collectAsState()
     val proyectorSeleccionado by viewModel.proyectorSeleccionado.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -116,28 +110,28 @@ fun PrevisualizacionProyectorScreen(
         "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
         "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM",
         "04:00 PM", "05:00 PM"
-    ).sortedBy { LocalTime.parse(it, DateTimeFormatter.ofPattern("hh:mm a", Locale.US)) }
+    ).sortedBy {
+        LocalTime.parse(it, DateTimeFormatter.ofPattern(TIME_FORMAT_PATTERN, Locale.US))
+    }
 
     val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault())
     val fechaLocalDate = try {
         LocalDate.parse(fecha, dateFormatter)
-    } catch (e: DateTimeParseException) {
+    } catch (_: DateTimeParseException) {
         null
     }
 
-    val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+    val timeFormatter = DateTimeFormatter.ofPattern(TIME_FORMAT_PATTERN, Locale.US)
     val horaInicioParsed = try {
         LocalTime.parse(horaInicio, timeFormatter)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
     val horaFinParsed = try {
         LocalTime.parse(horaFin, timeFormatter)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
-
-    val codigoReserva = remember { (100000..999999).random() }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
         LazyColumn(
@@ -311,21 +305,16 @@ fun PrevisualizacionProyectorScreen(
                                             snackbarHostState.showSnackbar("No se ha seleccionado un proyector")
                                             return@launch
                                         }
-                                        val matricula = AuthManager.currentUser?.correoInstitucional ?: run {
-                                            snackbarHostState.showSnackbar("Usuario no autenticado")
-                                            return@launch
-                                        }
+
                                         if (fechaLocalDate == null || horaInicioParsed == null || horaFinParsed == null) {
                                             snackbarHostState.showSnackbar("Datos de reserva inválidos")
                                             return@launch
                                         }
 
                                         viewModel.confirmarReservaProyector(
-                                            proyectorId = proyectorFinal.proyectorId,
                                             fechaLocal = fechaLocalDate,
                                             horaInicio = horaInicioParsed,
-                                            horaFin = horaFinParsed,
-                                            matricula = matricula
+                                            horaFin = horaFinParsed
                                         )
 
                                         delay(1000)
@@ -370,13 +359,13 @@ fun PrevisualizacionProyectorScreen(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun isWithinReservation(horario: String, horaInicio: String, horaFin: String): Boolean {
-    val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+    val timeFormatter = DateTimeFormatter.ofPattern(TIME_FORMAT_PATTERN, Locale.US)
     return try {
         val horarioTime = LocalTime.parse(horario, timeFormatter)
         val inicioTime = LocalTime.parse(horaInicio, timeFormatter)
         val finTime = LocalTime.parse(horaFin, timeFormatter)
         horarioTime >= inicioTime && horarioTime <= finTime
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         false
     }
 }
@@ -409,16 +398,11 @@ fun Pevisualizacioncreen(context: Context) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
-@Composable
-fun PreviewPrevisualizacionProyectorScreen() {
-    MaterialTheme {
-        PrevisualizacionProyectorScreen(
-            navController = rememberNavController(),
-            fecha = "04-08-2025",
-            horaInicio = "12:00 PM",
-            horaFin = "01:00 PM"
-        )
-    }
-}
+data class ReservaProyectorArgs(
+    val fecha: String,
+    val horaInicio: String,
+    val horaFin: String,
+    val proyectorJson: String? = null,
+    val onBack: () -> Unit = {},
+    val onFinish: () -> Unit = {}
+)
