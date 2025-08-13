@@ -2,28 +2,12 @@ package edu.ucne.ureserve.presentation.laboratorios
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -97,9 +81,7 @@ fun LaboratorioReservationScreen(
                 CalendarSection(
                     calendar = calendar,
                     selectedDate = selectedDate,
-                    onDateSelected = { date ->
-                        selectedDate = date
-                    }
+                    onDateSelected = { date -> selectedDate = date }
                 )
             }
             item {
@@ -132,16 +114,16 @@ fun LaboratorioReservationScreen(
 private fun HeaderSection() {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.Start
+        horizontalAlignment = Alignment.CenterHorizontally // Centrado horizontal
     ) {
         Text(
             text = "LABORATORIOS",
-            modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 color = Color.White
-            )
+            ),
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(40.dp))
         Text(
@@ -166,8 +148,8 @@ private fun CalendarSection(
     selectedDate: Calendar?,
     onDateSelected: (Calendar) -> Unit
 ) {
-    var currentMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
-    var currentYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var currentMonth by remember { mutableIntStateOf(calendar.get(Calendar.MONTH)) }
+    var currentYear by remember { mutableIntStateOf(calendar.get(Calendar.YEAR)) }
 
     val tempCalendar = Calendar.getInstance().apply {
         set(Calendar.YEAR, currentYear)
@@ -178,10 +160,30 @@ private fun CalendarSection(
     val daysInMonth = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
     val firstDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK) - 1
 
-    val monthName = tempCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
+    val monthName = tempCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) ?: ""
+
     val shortWeekdays = Array(7) { i ->
         tempCalendar.apply { set(Calendar.DAY_OF_WEEK, i + 1) }
-            .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
+            .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: ""
+    }
+
+    fun isSameDate(cal1: Calendar?, cal2: Calendar?): Boolean {
+        if (cal1 == null || cal2 == null) return false
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+                cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
+    }
+
+    fun createDate(day: Int): Calendar {
+        return Calendar.getInstance().apply {
+            set(Calendar.YEAR, currentYear)
+            set(Calendar.MONTH, currentMonth)
+            set(Calendar.DAY_OF_MONTH, day)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
     }
 
     Row(
@@ -203,7 +205,7 @@ private fun CalendarSection(
         }
 
         Text(
-            text = monthName?.uppercase() ?: "",
+            text = monthName.uppercase(),
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -246,45 +248,35 @@ private fun CalendarSection(
     Column {
         var dayCounter = 1 - firstDayOfWeek
 
-        repeat(6) { week ->
+        repeat(6) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                repeat(7) { dayOfWeek ->
+                for (dayOfWeek in 0 until 7) {
                     val day = dayCounter + dayOfWeek
                     val isCurrentMonth = day in 1..daysInMonth
-                    val date = if (isCurrentMonth) {
-                        Calendar.getInstance().apply {
-                            set(Calendar.YEAR, currentYear)
-                            set(Calendar.MONTH, currentMonth)
-                            set(Calendar.DAY_OF_MONTH, day)
-                        }
-                    } else null
+                    val date = if (isCurrentMonth) createDate(day) else null
 
-                    val today = Calendar.getInstance()
-                    val isToday = date?.let {
-                        it.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                                it.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                                it.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH)
-                    } ?: false
+                    val today = Calendar.getInstance().apply {
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                    val isToday = isSameDate(date, today)
 
-                    val isPastDate = date?.let { it.before(today) && !isToday } ?: false
+                    val isPastDate = date?.before(today) == true && !isToday
                     val isSunday = date?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
 
                     CalendarDay(
                         day = if (isCurrentMonth) day.toString() else "",
-                        isSelected = selectedDate?.let {
-                            it.get(Calendar.YEAR) == date?.get(Calendar.YEAR) &&
-                                    it.get(Calendar.MONTH) == date?.get(Calendar.MONTH) &&
-                                    it.get(Calendar.DAY_OF_MONTH) == date?.get(Calendar.DAY_OF_MONTH)
-                        } ?: false,
+                        isSelected = isSameDate(selectedDate, date),
                         isAvailable = isCurrentMonth && !isPastDate && !isSunday,
                         onClick = { if (isCurrentMonth && date != null && !isSunday) onDateSelected(date) }
                     )
                 }
             }
-
             dayCounter += 7
             if (dayCounter > daysInMonth) return@Column
         }
@@ -352,26 +344,28 @@ private fun ReservationButton(
     onClick: () -> Unit,
     onBottomNavClick: (String) -> Unit
 ) {
-    Button(
-        onClick = onClick,
-        enabled = isEnabled,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text("Reservar", fontWeight = FontWeight.Bold)
-    }
-    Spacer(modifier = Modifier.height(32.dp))
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF2E5C94))
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceAround
-    ) {
-        BottomNavItem(
-            iconRes = R.drawable.icon_inicio,
-            label = "Inicio",
-            isSelected = true,
-            onClick = { onBottomNavClick("Inicio") }
-        )
+    Column {
+        Button(
+            onClick = onClick,
+            enabled = isEnabled,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Reservar", fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF2E5C94))
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            BottomNavItem(
+                iconRes = R.drawable.icon_inicio,
+                label = "Inicio",
+                isSelected = true,
+                onClick = { onBottomNavClick("Inicio") }
+            )
+        }
     }
 }
