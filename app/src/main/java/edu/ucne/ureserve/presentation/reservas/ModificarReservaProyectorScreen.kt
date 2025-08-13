@@ -91,7 +91,6 @@ fun ModificarReservaProyectorScreen(
     val state by viewModel.state.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
-    var showProyectorDropdown by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var startTime by remember { mutableStateOf(LocalTime.NOON) }
     var endTime by remember { mutableStateOf(LocalTime.NOON.plusHours(1)) }
