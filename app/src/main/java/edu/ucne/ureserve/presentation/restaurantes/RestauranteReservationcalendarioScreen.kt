@@ -25,6 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -180,8 +181,9 @@ private fun CalendarSectionRestaurante(
     selectedDate: Calendar?,
     onDateSelected: (Calendar) -> Unit
 ) {
-    var currentMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
-    var currentYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var currentMonth by remember { mutableIntStateOf(calendar.get(Calendar.MONTH)) }
+    var currentYear by remember { mutableIntStateOf(calendar.get(Calendar.YEAR)) }
+
     val tempCalendar = Calendar.getInstance().apply {
         set(Calendar.YEAR, currentYear)
         set(Calendar.MONTH, currentMonth)
@@ -277,8 +279,8 @@ private fun CalendarSectionRestaurante(
                         day = if (isCurrentMonth) day.toString() else "",
                         isSelected = selectedDate?.let {
                             it.get(Calendar.YEAR) == date?.get(Calendar.YEAR) &&
-                                    it.get(Calendar.MONTH) == date?.get(Calendar.MONTH) &&
-                                    it.get(Calendar.DAY_OF_MONTH) == date?.get(Calendar.DAY_OF_MONTH)
+                                    it.get(Calendar.MONTH) == date.get(Calendar.MONTH) &&
+                                    it.get(Calendar.DAY_OF_MONTH) == date.get(Calendar.DAY_OF_MONTH)
                         } ?: false,
                         isAvailable = isCurrentMonth && !isPastDate && !isSunday,
                         onClick = { if (isCurrentMonth && date != null && !isSunday) onDateSelected(date) }
