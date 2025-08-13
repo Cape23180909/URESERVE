@@ -3,7 +3,9 @@ package edu.ucne.ureserve.presentation.restaurantes
 import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,11 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,11 +35,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -49,215 +55,252 @@ fun RegistroReservaRestauranteScreen(
     fecha: String,
     onCancelarClick: () -> Unit,
     onConfirmarClick: () -> Unit,
+    navController: NavHostController,
     viewModel: RestaurantesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-
-    val postNotificationPermission =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-        } else null
-
     val notificationHandler = remember { NotificationHandler(context) }
+    val postNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+    } else null
 
-    LaunchedEffect(true) {
-        if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
+    LaunchedEffect(postNotificationPermission) {
+        if (postNotificationPermission?.status?.isGranted == false) {
             postNotificationPermission.launchPermissionRequest()
         }
     }
-    Column(
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(Color(0xFF023E8A))
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo_reserve),
-                contentDescription = "Logo",
-                modifier = Modifier.size(40.dp)
-            )
-            Text(
-                text = "Registro Restaurante",
-                color = Color(0xFF023E8A),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Image(
-                painter = painterResource(id = R.drawable.comer),
-                contentDescription = "Restaurante",
-                modifier = Modifier.size(40.dp)
-            )
-        }
-
-        Text(
-            text = "Formulario para $fecha",
-            style = MaterialTheme.typography.headlineSmall,
-            color = Color(0xFF023E8A),
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        RegistroReservaRestauranteForm(
-            fecha = fecha,
-            onCancelarClick = {
-                notificationHandler.showNotification(
-                    title = "Reserva Cancelada",
-                    message = "No se ha guardado la reserva del restaurante."
-                )
-                onCancelarClick()
-            },
-            onConfirmarClick = { nombre, direccion, capacidad, telefono, correo, descripcion ->
-                DatosPersonalesSalaVipStore.lista.add(
-                    DatosPersonalesSalaVip(
-                        correoElectronico = correo,
-                        nombre = nombre,
-                        direccion = direccion,
-                        telefono = telefono,
-                        descripcion = descripcion,
-                        fecha = fecha
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo_reserve),
+                            contentDescription = "Logo",
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "Registro Restaurante",
+                            color = Color(0xFF023E8A),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Image(
+                            painter = painterResource(id = R.drawable.comer),
+                            contentDescription = "Restaurante",
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                    Text(
+                        text = "COMPLETAR REGISTRO DE RESERVA PARA $fecha",
+                        color = Color(0xFF023E8A),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        textAlign = TextAlign.Center
                     )
-                )
+                    RegistroReservaRestauranteForm(
+                        onCancelarClick = {
+                            notificationHandler.showNotification(
+                                title = "Formulario Cancelado",
+                                message = "La reserva del restaurante no fue guardada."
+                            )
+                            onCancelarClick()
+                        },
+                        onConfirmarClick = { nombres, apellidos, telefono, matricula, cedula, correoElectronico, direccion ->
+                            // Guardar en el Store (como lo tienes actualmente)
+                            DatosPersonalesRestauranteStore.lista.add(
+                                DatosPersonalesRestaurante(
+                                    nombres = nombres,
+                                    apellidos = apellidos,
+                                    telefono = telefono,
+                                    matricula = matricula,
+                                    cedula = cedula,
+                                    correoElectronico = correoElectronico,
+                                    direccion = direccion,
+                                    fecha = fecha
+                                )
+                            )
 
-                viewModel.setFecha(fecha)
-
-                notificationHandler.showNotification(
-                    title = "Reserva Confirmada",
-                    message = "Tu reserva en $nombre ha sido registrada exitosamente."
-                )
-                onConfirmarClick()
+                            viewModel.setFecha(fecha)
+                            notificationHandler.showNotification(
+                                title = "Reserva Confirmada",
+                                message = "La reserva del restaurante a nombre de $nombres fue registrada correctamente."
+                            )
+                            navController.navigate("PagoRestaurante?fecha=$fecha")
+                        }
+                    )
+                }
             }
-        )
+        }
     }
 }
 
 @Composable
 private fun RegistroReservaRestauranteForm(
-    fecha: String,
     onCancelarClick: () -> Unit,
     onConfirmarClick: (
-        nombre: String,
-        ubicacion: String,
-        capacidad: String,
+        nombres: String,
+        apellidos: String,
         telefono: String,
-        correo: String,
-        descripcion: String
+        matricula: String,
+        cedula: String,
+        correoElectronico: String,
+        direccion: String
     ) -> Unit
 ) {
-    var nombre by remember { mutableStateOf("") }
-    var ubicacion by remember { mutableStateOf("") }
-    var capacidad by remember { mutableStateOf("") }
+    var correoElectronico by remember { mutableStateOf("") }
+    var nombres by remember { mutableStateOf("") }
+    var apellidos by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
+    var matricula by remember { mutableStateOf("") }
+    var cedula by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
 
     val formularioCompleto = listOf(
-        nombre, ubicacion, capacidad, telefono, correo, descripcion
-    ).all { it.isNotBlank() }
+        nombres, apellidos, telefono, matricula, cedula, direccion, correoElectronico
+    ).all { it.isNotBlank() } && matricula.length == 8 && cedula.length == 11
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "Datos de la Reserva",
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            color = Color(0xFF023E8A)
-        )
-        Spacer(Modifier.height(12.dp))
-
         OutlinedTextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-            label = { Text("Nombre del Restaurante *") },
+            value = correoElectronico,
+            onValueChange = { correoElectronico = it },
+            label = { Text("Correo electrónico *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
-            value = ubicacion,
-            onValueChange = { ubicacion = it },
-            label = { Text("Ubicación *") },
+            value = nombres,
+            onValueChange = { nombres = it },
+            label = { Text("Nombres *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
-            value = capacidad,
-            onValueChange = { capacidad = it },
-            label = { Text("Capacidad *") },
+            value = apellidos,
+            onValueChange = { apellidos = it },
+            label = { Text("Apellidos *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = telefono,
             onValueChange = { telefono = it },
-            label = { Text("Teléfono *") },
+            label = { Text("Teléfono *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
-            value = correo,
-            onValueChange = { correo = it },
-            label = { Text("Correo electrónico *") },
+            value = buildString {
+                append(matricula.take(8))
+                if (length > 4) insert(4, "-")
+            },
+            onValueChange = { newValue ->
+                matricula = newValue.filter { it.isDigit() }.take(8)
+            },
+            label = { Text("Matrícula *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
-            value = descripcion,
-            onValueChange = { descripcion = it },
-            label = { Text("Descripción *") },
+            value = cedula.run {
+                when {
+                    length <= 3 -> this
+                    length <= 10 -> "${substring(0, 3)}-${substring(3)}"
+                    else -> "${substring(0, 3)}-${substring(3, 10)}-${substring(10)}"
+                }
+            },
+            onValueChange = { newValue ->
+                val clean = newValue.filter { it.isDigit() }.take(11)
+                cedula = clean
+            },
+            label = { Text("Cédula *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(Modifier.height(24.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = direccion,
+            onValueChange = { direccion = it },
+            label = { Text("Dirección *", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(24.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            OutlinedButton(
-                onClick = onCancelarClick,
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("CANCELAR")
-            }
-            Spacer(Modifier.width(16.dp))
             Button(
                 onClick = {
-                    onConfirmarClick(
-                        nombre, ubicacion, capacidad,
-                        telefono, correo, descripcion
-                    )
+                    correoElectronico = ""
+                    nombres = ""
+                    apellidos = ""
+                    telefono = ""
+                    matricula = ""
+                    cedula = ""
+                    direccion = ""
+                    onCancelarClick()
+                },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF023E8A))
+            ) {
+                Text("CANCELAR", color = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Button(
+                onClick = {
+                    onConfirmarClick(nombres, apellidos, telefono, matricula, cedula, correoElectronico, direccion)
                 },
                 enabled = formularioCompleto,
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (formularioCompleto) Color(0xFF388E3C) else Color.Gray
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C))
             ) {
                 Text("CONFIRMAR", color = Color.White)
             }
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewRegistroReservaRestaurante() {
-    MaterialTheme {
-        RegistroReservaRestauranteScreen(
-            fecha = "20/06/2025",
-            onCancelarClick = {},
-            onConfirmarClick = {}
-        )
     }
 }
