@@ -20,10 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,8 +44,6 @@ import java.util.TimeZone
 @Composable
 fun DashboardLaboratorioListScreen(
     selectedDateMillis: Long,
-    onLaboratorioSelected: (laboratorioId: Int, laboratorioNombre: String) -> Unit,
-    onBackClick: () -> Unit,
     onBottomNavClick: (String) -> Unit,
     navController: NavController
 ) {
@@ -59,7 +54,6 @@ fun DashboardLaboratorioListScreen(
     }
     val context = LocalContext.current
     val notificationHandler = remember { NotificationHandler(context) }
-    var laboratorioSeleccionado by remember { mutableStateOf<LaboratoriosDto?>(null) }
 
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFF023E8A))) {
         TopAppBar(
@@ -109,9 +103,7 @@ fun DashboardLaboratorioListScreen(
                 items(getLaboratorios()) { laboratorio ->
                     LaboratorioCard(
                         laboratorio = laboratorio,
-                        isSelected = laboratorio == laboratorioSeleccionado,
                         onClick = {
-                            laboratorioSeleccionado = laboratorio
                             notificationHandler.showNotification(
                                 title = "Laboratorio seleccionado",
                                 message = "Has seleccionado: ${laboratorio.nombre}"
@@ -155,10 +147,8 @@ fun formatoFecha(calendar: Calendar): String {
 @Composable
 fun LaboratorioCard(
     laboratorio: LaboratoriosDto,
-    onClick: () -> Unit,
-    isSelected: Boolean,
+    onClick: () -> Unit
 ) {
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
