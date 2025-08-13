@@ -1,4 +1,4 @@
-package edu.ucne.ureserve.presentation.salones
+package edu.ucne.ureserve.presentation.restaurantes
 
 import android.Manifest
 import android.net.Uri
@@ -37,39 +37,52 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.presentation.restaurantes.RestaurantesViewModel
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ReservaSalonScreen(
     fecha: String,
-    onCancelarClick: () -> Unit = {},
-    onConfirmarClick: () -> Unit = {},
-    navController: NavController,
-    viewModel: RestaurantesViewModel = hiltViewModel()
+    navController: NavController
 ) {
     val context = LocalContext.current
+    val notificationHandler = setupNotificationPermission(context)
 
-    val postNotificationPermission =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-        } else null
+    ReservaSalonContent(
+        fecha = fecha,
+        navController = navController,
+        notificationHandler = notificationHandler
+    )
+}
 
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+private fun setupNotificationPermission(context: android.content.Context): NotificationHandler {
     val notificationHandler = remember { NotificationHandler(context) }
+    val postNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+    } else null
 
-    LaunchedEffect(true) {
+    LaunchedEffect(Unit) {
         if (postNotificationPermission != null && !postNotificationPermission.status.isGranted) {
             postNotificationPermission.launchPermissionRequest()
         }
     }
 
+    return notificationHandler
+}
+
+@Composable
+private fun ReservaSalonContent(
+    fecha: String,
+    navController: NavController,
+    notificationHandler: NotificationHandler
+) {
     var correoElectronico by remember { mutableStateOf("") }
     var nombres by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
@@ -93,189 +106,303 @@ fun ReservaSalonScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo_reserve),
-                contentDescription = "Logo",
-                modifier = Modifier.size(50.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Registro de reserva Salón",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White
-            )
-        }
-
+        HeaderSection()
         Spacer(modifier = Modifier.height(24.dp))
+        FormSection(
+            correoElectronico = correoElectronico,
+            onCorreoChange = { correoElectronico = it },
+            nombres = nombres,
+            onNombresChange = { nombres = it },
+            apellidos = apellidos,
+            onApellidosChange = { apellidos = it },
+            matricula = matricula,
+            onMatriculaChange = { matricula = it },
+            cedula = cedula,
+            onCedulaChange = { cedula = it },
+            telefono = telefono,
+            onTelefonoChange = { telefono = it },
+            direccion = direccion,
+            onDireccionChange = { direccion = it },
+            textFieldStyle = textFieldStyle
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        ButtonSection(
+            formularioCompleto = formularioCompleto,
+            fecha = fecha,
+            navController = navController,
+            notificationHandler = notificationHandler,
+            nombres = nombres,
+            apellidos = apellidos,
+            cedula = cedula,
+            matricula = matricula,
+            telefono = telefono,
+            correoElectronico = correoElectronico,
+            direccion = direccion,
+            horaInicio = horaInicio,
+            horaFin = horaFin
+        )
+    }
+}
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, RoundedCornerShape(12.dp))
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "COMPLETAR REGISTRO DE RESERVA",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+@Composable
+private fun HeaderSection() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.logo_reserve),
+            contentDescription = "Logo",
+            modifier = Modifier.size(50.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "Registro de reserva Salón",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White
+        )
+    }
+}
 
-            Spacer(modifier = Modifier.height(16.dp))
+@Composable
+private fun FormSection(
+    correoElectronico: String,
+    onCorreoChange: (String) -> Unit,
+    nombres: String,
+    onNombresChange: (String) -> Unit,
+    apellidos: String,
+    onApellidosChange: (String) -> Unit,
+    matricula: String,
+    onMatriculaChange: (String) -> Unit,
+    cedula: String,
+    onCedulaChange: (String) -> Unit,
+    telefono: String,
+    onTelefonoChange: (String) -> Unit,
+    direccion: String,
+    onDireccionChange: (String) -> Unit,
+    textFieldStyle: TextStyle
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "COMPLETAR REGISTRO DE RESERVA",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = correoElectronico,
-                onValueChange = { correoElectronico = it },
-                label = { Text("Correo electrónico *", fontWeight = FontWeight.Bold, color = Color.Black) },
-                textStyle = textFieldStyle,
-                modifier = Modifier.fillMaxWidth()
-            )
+        TextFieldItem(
+            value = correoElectronico,
+            onValueChange = onCorreoChange,
+            label = "Correo electrónico *",
+            textFieldStyle = textFieldStyle
+        )
+        TextFieldItem(
+            value = nombres,
+            onValueChange = onNombresChange,
+            label = "Nombres *",
+            textFieldStyle = textFieldStyle
+        )
+        TextFieldItem(
+            value = apellidos,
+            onValueChange = onApellidosChange,
+            label = "Apellidos *",
+            textFieldStyle = textFieldStyle
+        )
+        TextFieldItem(
+            value = telefono,
+            onValueChange = onTelefonoChange,
+            label = "Teléfono *",
+            textFieldStyle = textFieldStyle,
+            keyboardType = KeyboardType.Phone
+        )
+        MatriculaField(matricula, onMatriculaChange, textFieldStyle)
+        CedulaField(cedula, onCedulaChange, textFieldStyle)
+        TextFieldItem(
+            value = direccion,
+            onValueChange = onDireccionChange,
+            label = "Dirección *",
+            textFieldStyle = textFieldStyle
+        )
+    }
+}
 
-            Spacer(modifier = Modifier.height(8.dp))
+@Composable
+private fun TextFieldItem(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    textFieldStyle: TextStyle,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label, fontWeight = FontWeight.Bold, color = Color.Black) },
+        textStyle = textFieldStyle,
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+}
 
-            OutlinedTextField(
-                value = nombres,
-                onValueChange = { nombres = it },
-                label = { Text("Nombres *", fontWeight = FontWeight.Bold, color = Color.Black) },
-                textStyle = textFieldStyle,
-                modifier = Modifier.fillMaxWidth()
-            )
+@Composable
+private fun MatriculaField(
+    matricula: String,
+    onMatriculaChange: (String) -> Unit,
+    textFieldStyle: TextStyle
+) {
+    OutlinedTextField(
+        value = buildString {
+            append(matricula.take(8))
+            if (length > 4) insert(4, "-")
+        },
+        onValueChange = { newValue ->
+            onMatriculaChange(newValue.filter { it.isDigit() }.take(8))
+        },
+        label = { Text("Matrícula *", fontWeight = FontWeight.Bold, color = Color.Black) },
+        textStyle = textFieldStyle,
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        placeholder = { Text("XXXX-XXXX", color = Color.Gray) }
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+}
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = apellidos,
-                onValueChange = { apellidos = it },
-                label = { Text("Apellidos *", fontWeight = FontWeight.Bold, color = Color.Black) },
-                textStyle = textFieldStyle,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = telefono,
-                onValueChange = { telefono = it },
-                label = { Text("Teléfono *", fontWeight = FontWeight.Bold, color = Color.Black) },
-                textStyle = textFieldStyle,
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = buildString {
-                    append(matricula.take(8))
-                    if (length > 4) insert(4, "-")
-                },
-                onValueChange = { newValue ->
-                    matricula = newValue.filter { it.isDigit() }.take(8)
-                },
-                label = { Text("Matrícula *", fontWeight = FontWeight.Bold, color = Color.Black) },
-                textStyle = textFieldStyle,
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                placeholder = { Text("XXXX-XXXX", color = Color.Gray) }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = cedula.run {
-                    when {
-                        length <= 3 -> this
-                        length <= 10 -> "${substring(0, 3)}-${substring(3)}"
-                        else -> "${substring(0, 3)}-${substring(3, 10)}-${substring(10)}"
-                    }
-                },
-                onValueChange = { newValue ->
-                    cedula = newValue.filter { it.isDigit() }.take(11)
-                },
-                label = { Text("Cédula *", fontWeight = FontWeight.Bold, color = Color.Black) },
-                textStyle = textFieldStyle,
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                placeholder = { Text("XXX-XXXXXXX-X", color = Color.Gray) }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = direccion,
-                onValueChange = { direccion = it },
-                label = { Text("Dirección *", fontWeight = FontWeight.Bold, color = Color.Black) },
-                textStyle = textFieldStyle,
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions.Default
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = {
-                        notificationHandler.showNotification(
-                            title = "Reserva cancelada",
-                            message = "Has cancelado el registro de reserva del salón."
-                        )
-                        nombres = ""
-                        apellidos = ""
-                        cedula = ""
-                        matricula = ""
-                        telefono = ""
-                        correoElectronico = ""
-                        direccion = ""
-                        onCancelarClick()
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0077B6))
-                ) {
-                    Text("CANCELAR")
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Button(
-                    onClick = {
-                        DatosPersonalesSalonStore.lista.add(
-                            DatosPersonalesSalon(
-                                nombres = nombres,
-                                apellidos = apellidos,
-                                cedula = cedula,
-                                matricula = matricula,
-                                telefono = telefono,
-                                correoElectronico = correoElectronico,
-                                direccion = direccion,
-                                fecha = fecha,
-                                horaInicio = horaInicio,
-                                horaFin = horaFin
-                            )
-                        )
-                        notificationHandler.showNotification(
-                            title = "Reserva confirmada",
-                            message = "Tu reserva del salón fue registrada para la fecha $fecha."
-                        )
-                        navController.navigate("PagoSalon?fecha=${Uri.encode(fecha)}")
-                    },
-                    enabled = formularioCompleto,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (formularioCompleto) Color(0xFF388E3C) else Color.Gray
-                    )
-                ) {
-                    Text("CONFIRMAR", color = Color.White)
-                }
+@Composable
+private fun CedulaField(
+    cedula: String,
+    onCedulaChange: (String) -> Unit,
+    textFieldStyle: TextStyle
+) {
+    OutlinedTextField(
+        value = cedula.run {
+            when {
+                length <= 3 -> this
+                length <= 10 -> "${substring(0, 3)}-${substring(3)}"
+                else -> "${substring(0, 3)}-${substring(3, 10)}-${substring(10)}"
             }
+        },
+        onValueChange = { newValue ->
+            onCedulaChange(newValue.filter { it.isDigit() }.take(11))
+        },
+        label = { Text("Cédula *", fontWeight = FontWeight.Bold, color = Color.Black) },
+        textStyle = textFieldStyle,
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        placeholder = { Text("XXX-XXXXXXX-X", color = Color.Gray) }
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+}
+
+@Composable
+private fun ButtonSection(
+    formularioCompleto: Boolean,
+    fecha: String,
+    navController: NavController,
+    notificationHandler: NotificationHandler,
+    nombres: String,
+    apellidos: String,
+    cedula: String,
+    matricula: String,
+    telefono: String,
+    correoElectronico: String,
+    direccion: String,
+    horaInicio: String,
+    horaFin: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Button(
+            onClick = {
+                handleCancelClick(
+                    notificationHandler = notificationHandler,
+                    onCancelarClick = { navController.popBackStack() }
+                )
+            },
+            modifier = Modifier.weight(1f),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0077B6))
+        ) {
+            Text("CANCELAR")
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Button(
+            onClick = {
+                handleConfirmClick(
+                    fecha = fecha,
+                    navController = navController,
+                    notificationHandler = notificationHandler,
+                    nombres = nombres,
+                    apellidos = apellidos,
+                    cedula = cedula,
+                    matricula = matricula,
+                    telefono = telefono,
+                    correoElectronico = correoElectronico,
+                    direccion = direccion,
+                    horaInicio = horaInicio,
+                    horaFin = horaFin
+                )
+            },
+            enabled = formularioCompleto,
+            modifier = Modifier.weight(1f),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (formularioCompleto) Color(0xFF388E3C) else Color.Gray
+            )
+        ) {
+            Text("CONFIRMAR", color = Color.White)
         }
     }
+}
+
+private fun handleCancelClick(
+    notificationHandler: NotificationHandler,
+    onCancelarClick: () -> Unit
+) {
+    notificationHandler.showNotification(
+        title = "Reserva cancelada",
+        message = "Has cancelado el registro de reserva del salón."
+    )
+    onCancelarClick()
+}
+
+private fun handleConfirmClick(
+    fecha: String,
+    navController: NavController,
+    notificationHandler: NotificationHandler,
+    nombres: String,
+    apellidos: String,
+    cedula: String,
+    matricula: String,
+    telefono: String,
+    correoElectronico: String,
+    direccion: String,
+    horaInicio: String,
+    horaFin: String
+) {
+    DatosPersonalesSalonStore.lista.add(
+        DatosPersonalesSalon(
+            nombres = nombres,
+            apellidos = apellidos,
+            cedula = cedula,
+            matricula = matricula,
+            telefono = telefono,
+            correoElectronico = correoElectronico,
+            direccion = direccion,
+            fecha = fecha,
+            horaInicio = horaInicio,
+            horaFin = horaFin
+        )
+    )
+    notificationHandler.showNotification(
+        title = "Reserva confirmada",
+        message = "Tu reserva del salón fue registrada para la fecha $fecha."
+    )
+    navController.navigate("PagoSalon?fecha=${Uri.encode(fecha)}")
 }
