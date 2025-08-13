@@ -6,7 +6,6 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import edu.ucne.ureserve.data.remote.DetalleReservaProyectorsApi
 import edu.ucne.ureserve.data.remote.RemoteDataSource
 import edu.ucne.ureserve.data.remote.ReservacionesApi
 import edu.ucne.ureserve.data.remote.Resource
@@ -30,7 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ReservaProyectorViewModel @Inject constructor(
     internal val repository: ProyectorRepository,
-    private val detalleReservaApi: DetalleReservaProyectorsApi,
+//    private val detalleReservaApi: DetalleReservaProyectorsApi,
     internal val reservaApi: ReservacionesApi,
     private val remoteDataSource: RemoteDataSource
 ) : ViewModel() {
@@ -114,7 +113,7 @@ class ReservaProyectorViewModel @Inject constructor(
         } else {
             val errorMsg = try {
                 response.errorBody()?.string() ?: "Error desconocido"
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 "Error leyendo cuerpo del error"
             }
             throw Exception("Error ${response.code()}: $errorMsg")
@@ -233,11 +232,10 @@ class ReservaProyectorViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun confirmarReservaProyector(
-        proyectorId: Int,
+//        proyectorId: Int,
         fechaLocal: LocalDate,
         horaInicio: LocalTime,
-        horaFin: LocalTime,
-        matricula: String
+        horaFin: LocalTime
     ) {
         viewModelScope.launch {
             try {
