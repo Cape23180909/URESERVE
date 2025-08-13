@@ -56,7 +56,8 @@ import edu.ucne.ureserve.R
 fun TerminosReservaRestauranteScreen(
     onAceptarClick: () -> Unit = {},
     onCancelarClick: () -> Unit = {},
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+
 ) {
     val context = LocalContext.current
 
