@@ -53,74 +53,18 @@ fun ReservasenCursoRestauranteScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .background(Color(0xFFA7A7A7))
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo_reserve),
-                    contentDescription = "Logo",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.icon_reserva),
-                    contentDescription = "Reservas en Curso",
-                    modifier = Modifier.size(50.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        item {
-            Text(
-                text = "Reservas de Restaurantes en Curso",
-                fontSize = 23.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+        item { HeaderSection() }
 
         when (state) {
             is ReservaViewModel.ReservaListState.Loading -> {
-                item {
-                    Text(
-                        text = "Cargando reservas...",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                item { LoadingSection() }
             }
             is ReservaViewModel.ReservaListState.Success -> {
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color(0xFF2E5C94))
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Tiempo Restante", color = Color.White)
-                        Text("Reservas", color = Color.White)
-                    }
-                }
+                item { TableHeader() }
                 items(reservaciones) { reserva ->
                     ReservationRestauranteItem(
                         reserva = reserva,
-                        color = when (reserva.tipoReserva) {
-                            4 -> Color(0xFFFFA500)
-                            5 -> Color(0xFFADD8E6)
-                            else -> Color(0xFF6EE610)
-                        },
+                        color = tipoReservaColor(reserva.tipoReserva),
                         onClick = {
                             val encodedMatricula = Uri.encode(reserva.matricula)
                             navController.navigate(
@@ -131,30 +75,94 @@ fun ReservasenCursoRestauranteScreen(
                 }
             }
             is ReservaViewModel.ReservaListState.Error -> {
-                item {
-                    Text(
-                        text = (state as ReservaViewModel.ReservaListState.Error).message,
-                        color = Color.Red,
-                        fontSize = 18.sp,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                item { ErrorSection((state as ReservaViewModel.ReservaListState.Error).message) }
             }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(20.dp))
-            Button(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(25.dp)),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
-            ) {
-                Text("Volver", color = Color.White, fontSize = 18.sp)
-            }
-        }
+        item { BackButton { navController.popBackStack() } }
+    }
+}
+
+@Composable
+private fun HeaderSection() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .background(Color(0xFFA7A7A7))
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.logo_reserve),
+            contentDescription = "Logo",
+            modifier = Modifier.size(50.dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.icon_reserva),
+            contentDescription = "Reservas en Curso",
+            modifier = Modifier.size(50.dp)
+        )
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+    Text(
+        text = "Reservas de Restaurantes en Curso",
+        fontSize = 23.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+        modifier = Modifier.fillMaxWidth()
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+}
+
+@Composable
+private fun LoadingSection() {
+    Text(
+        text = "Cargando reservas...",
+        color = Color.White,
+        fontSize = 18.sp,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun TableHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF2E5C94))
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text("Tiempo Restante", color = Color.White)
+        Text("Reservas", color = Color.White)
+    }
+}
+
+@Composable
+private fun ErrorSection(message: String) {
+    Text(
+        text = message,
+        color = Color.Red,
+        fontSize = 18.sp,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun BackButton(onClick: () -> Unit) {
+    Spacer(modifier = Modifier.height(20.dp))
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .clip(RoundedCornerShape(25.dp)),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E5C94))
+    ) {
+        Text("Volver", color = Color.White, fontSize = 18.sp)
     }
 }
 
@@ -164,32 +172,11 @@ fun ReservationRestauranteItem(
     color: Color,
     onClick: () -> Unit
 ) {
-    var tiempoRestante by remember { mutableStateOf<String>("Cargando...") }
+    var tiempoRestante by remember { mutableStateOf("Cargando...") }
     var error by remember { mutableStateOf(false) }
 
-    fun parsearFechaHoraSeguro(fecha: String, hora: String): Date? {
-        return try {
-            val fechaLimpia = fecha.take(10)
-            val horaLimpia = hora.take(8)
-            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-            sdf.parse("$fechaLimpia $horaLimpia")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    fun formatearTiempoRestante(diferencia: Long): String {
-        val segundos = diferencia / 1000
-        val minutos = segundos / 60
-        val horas = minutos / 60
-        val minutosRestantes = minutos % 60
-        val segundosRestantes = segundos % 60
-        return String.format("%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
-    }
-
-    LaunchedEffect(reserva.fecha, reserva.horaFin) {
-        val fechaHoraFin = parsearFechaHoraSeguro(reserva.fecha, "23:59:59")
+    LaunchedEffect(reserva.fecha) {
+        val fechaHoraFin = parseFechaHoraFin(reserva.fecha)
         if (fechaHoraFin == null) {
             error = true
             tiempoRestante = "--:--"
@@ -198,32 +185,39 @@ fun ReservationRestauranteItem(
         while (true) {
             val ahora = System.currentTimeMillis()
             val diff = fechaHoraFin.time - ahora
-            if (diff > 0) {
-                tiempoRestante = formatearTiempoRestante(diff)
-            } else {
-                tiempoRestante = "Finalizado"
-                break
-            }
+            tiempoRestante = if (diff > 0) formatearTiempoRestante(diff) else "Finalizado"
+            if (diff <= 0) break
             delay(1000L - (System.currentTimeMillis() % 1000))
         }
     }
 
     val isActive = tiempoRestante != "Finalizado" && !error
-    val iconRes = when (reserva.tipoReserva) {
-        4 -> R.drawable.sala
-        5 -> R.drawable.salon
-        else -> R.drawable.icon_restaurante
-    }
-    val tipoReservaText = when (reserva.tipoReserva) {
-        4 -> "Sala VIP"
-        5 -> "Salón de Reuniones"
-        else -> "Restaurante"
-    }
+    val iconRes = tipoReservaIcon(reserva.tipoReserva)
+    val tipoReservaText = tipoReservaTexto(reserva.tipoReserva)
 
+    ReservationItemContent(
+        tiempoRestante = tiempoRestante,
+        isActive = isActive,
+        iconRes = iconRes,
+        tipoReservaText = tipoReservaText,
+        color = color,
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun ReservationItemContent(
+    tiempoRestante: String,
+    isActive: Boolean,
+    iconRes: Int,
+    tipoReservaText: String,
+    color: Color,
+    onClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable(onClick = onClick)
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -282,6 +276,45 @@ fun ReservationRestauranteItem(
             }
         }
     }
+}
+
+private fun parseFechaHoraFin(fecha: String): Date? {
+    return try {
+        val fechaLimpia = fecha.take(10)
+        val horaFin = "23:59:59"
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        sdf.parse("$fechaLimpia $horaFin")
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
+
+private fun formatearTiempoRestante(diferencia: Long): String {
+    val segundos = diferencia / 1000
+    val minutos = segundos / 60
+    val horas = minutos / 60
+    val minutosRestantes = minutos % 60
+    val segundosRestantes = segundos % 60
+    return String.format(Locale.getDefault(), "%02dh %02dmin %02ds", horas, minutosRestantes, segundosRestantes)
+}
+
+private fun tipoReservaColor(tipoReserva: Int): Color = when (tipoReserva) {
+    4 -> Color(0xFFFFA500)
+    5 -> Color(0xFFADD8E6)
+    else -> Color(0xFF6EE610)
+}
+
+private fun tipoReservaIcon(tipoReserva: Int): Int = when (tipoReserva) {
+    4 -> R.drawable.sala
+    5 -> R.drawable.salon
+    else -> R.drawable.icon_restaurante
+}
+
+private fun tipoReservaTexto(tipoReserva: Int): String = when (tipoReserva) {
+    4 -> "Sala VIP"
+    5 -> "Salón de Reuniones"
+    else -> "Restaurante"
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
