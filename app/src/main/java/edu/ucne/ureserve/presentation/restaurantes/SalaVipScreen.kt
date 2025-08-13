@@ -35,8 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -46,7 +44,6 @@ import edu.ucne.ureserve.R
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun SalaVipScreen(
-    navController: NavHostController,
     onCancelClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onBottomNavClick: (String) -> Unit = {},
@@ -246,9 +243,7 @@ fun SalaVipScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSalaVipScreen() {
-    val navController = rememberNavController()
     SalaVipScreen(
-        navController = navController,
         onBottomNavClick = {}
     )
 }
