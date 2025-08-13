@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.ucne.registrotecnicos.common.NotificationHandler
 import edu.ucne.ureserve.R
-import edu.ucne.ureserve.data.remote.dto.EstudianteDto
 import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 
 val Amarillo = Color(0xFFFFDF00)
@@ -45,7 +44,6 @@ val Azul = Color(0xFF023E8A)
 @Composable
 fun ProfileScreen(
     usuario: UsuarioDTO,
-    estudiante: EstudianteDto,
     onLogout: () -> Unit,
     onBottomNavClick: (String) -> Unit = {}) {
     val context = LocalContext.current
@@ -76,13 +74,13 @@ fun ProfileScreen(
                         .padding(top = 60.dp, start = 16.dp, end = 16.dp)
                 ) {
                     Text(
-                        text = "${usuario.nombres}",
+                        text = usuario.nombres,
                         fontSize = 18.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "${usuario.apellidos}",
+                        text = usuario.apellidos,
                         fontSize = 14.sp,
                         color = Color.White
                     )
@@ -149,7 +147,6 @@ fun ProfileScreen(
                 BottomNavItem(
                     iconRes = R.drawable.icon_inicio,
                     label = "Inicio",
-                    isSelected = true,
                     onClick = { onBottomNavClick("Inicio") }
                 )
                 BottomNavItem(
@@ -214,7 +211,6 @@ fun UserInfoRow(icon: Painter, label: String, value: String) {
 fun BottomNavItem(
     iconRes: Int,
     label: String,
-    isSelected: Boolean = false,
     onClick: () -> Unit
 ) {
     Column(
@@ -244,17 +240,8 @@ fun ProfileScreenPreview() {
         correoInstitucional = "juan.perez@example.com",
         clave = "123456"
     )
-
-    val estudiantePrueba = EstudianteDto(
-        estudianteId = 1,
-        matricula = "",
-        facultad = "",
-        carrera = ""
-    )
-
     ProfileScreen(
         usuario = usuarioPrueba,
-        estudiante = estudiantePrueba,
         onLogout = {}
     )
 }
