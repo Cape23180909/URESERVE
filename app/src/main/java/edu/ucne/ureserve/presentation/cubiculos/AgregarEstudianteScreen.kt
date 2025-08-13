@@ -57,10 +57,8 @@ import edu.ucne.ureserve.presentation.cubiculos.ReservaCubiculoViewModel
 fun AgregarEstudianteScreen(
     viewModel: ReservaCubiculoViewModel = hiltViewModel(),
     navController: NavController,
-    onCancel: () -> Unit = {},
-    onAdd: (String) -> Unit = {}
+    onCancel: () -> Unit = {}
 ) {
-
     val context = LocalContext.current
 
     val postNotificationPermission =
@@ -92,21 +90,6 @@ fun AgregarEstudianteScreen(
         }
     }
 
-    fun formatMatricula(input: String): String {
-        return when {
-            input.length <= 4 -> input
-            input.length <= 8 -> "${input.substring(0, 4)}-${input.substring(4)}"
-            else -> "${input.substring(0, 4)}-${input.substring(4, 8)}"
-        }
-    }
-
-    fun onMatriculaChange(input: String) {
-        val cleanInput = input.replace("-", "")
-        if (cleanInput.length <= 8) {
-            matricula = formatMatricula(cleanInput)
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -115,201 +98,238 @@ fun AgregarEstudianteScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
+        MatriculaInputCard(
+            matricula = matricula,
+            onMatriculaChange = { matricula = formatMatriculaInput(it) },
+            onCancel = onCancel,
+            onAddClick = {
+                processAddMatricula(
+                    matricula,
+                    viewModel,
+                    notificationHandler,
+                    navController
+                )
+            },
+            isLoading = isLoading
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        NumericKeyboard(
+            onNumberClick = { number -> matricula = appendNumber(matricula, number) }
+        )
+    }
+}
+
+private fun formatMatriculaInput(input: String): String {
+    val cleanInput = input.replace("-", "")
+    return when {
+        cleanInput.length <= 4 -> cleanInput
+        cleanInput.length <= 8 -> "${cleanInput.substring(0, 4)}-${cleanInput.substring(4)}"
+        else -> "${cleanInput.substring(0, 4)}-${cleanInput.substring(4, 8)}"
+    }
+}
+
+private fun appendNumber(current: String, number: Int): String {
+    val cleanCurrent = current.replace("-", "")
+    return if (cleanCurrent.length < 8) {
+        formatMatriculaInput(cleanCurrent + number.toString())
+    } else current
+}
+
+private fun processAddMatricula(
+    matricula: String,
+    viewModel: ReservaCubiculoViewModel,
+    notificationHandler: NotificationHandler,
+    navController: NavController
+) {
+    val matriculaLimpia = matricula.replace("-", "")
+    when {
+        matriculaLimpia.isEmpty() -> {
+            viewModel.setError("Debe añadir una matrícula válida")
+            notificationHandler.showNotification("Error", "Debe añadir una matrícula válida")
+        }
+        matriculaLimpia.length < 8 -> {
+            viewModel.setError("La matrícula debe tener 8 dígitos")
+            notificationHandler.showNotification("Error", "La matrícula debe tener 8 dígitos")
+        }
+        else -> {
+            viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
+                if (usuarioEncontrado != null) {
+                    viewModel.addMember(usuarioEncontrado)
+                    notificationHandler.showNotification(
+                        "Estudiante añadido",
+                        "Matrícula $matriculaLimpia añadida correctamente."
+                    )
+                    navController.popBackStack()
+                } else {
+                    viewModel.setError("Matrícula no válida")
+                    notificationHandler.showNotification("Error", "Matrícula no válida")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MatriculaInputCard(
+    matricula: String,
+    onMatriculaChange: (String) -> Unit,
+    onCancel: () -> Unit,
+    onAddClick: () -> Unit,
+    isLoading: Boolean
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF6D87A4))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .background(Color(0xFFFFD700), shape = RoundedCornerShape(8.dp))
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
+                Image(
+                    painter = painterResource(id = R.drawable.logo_reserve),
+                    contentDescription = "Logo",
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Digite la matrícula:",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            OutlinedTextField(
+                value = matricula,
+                onValueChange = onMatriculaChange,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                textStyle = TextStyle(fontSize = 20.sp, textAlign = TextAlign.Center, color = Color.Black),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedContainerColor = Color(0xFFF6F8FC),
+                    unfocusedContainerColor = Color(0xFFF6F8FA),
+                    cursorColor = Color.Black
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(
+                    onClick = onCancel,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF0D47A1),
+                        contentColor = Color.White
+                    ),
                     modifier = Modifier
-                        .size(60.dp)
-                        .background(Color(0xFFFFD700), shape = RoundedCornerShape(8.dp))
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
+                        .height(50.dp)
+                        .width(120.dp),
+                    shape = RoundedCornerShape(20.dp)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo_reserve),
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(40.dp)
+                    Text(
+                        text = "CANCELAR",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Digite la matrícula:",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                OutlinedTextField(
-                    value = matricula,
-                    onValueChange = { onMatriculaChange(it) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    textStyle = TextStyle(fontSize = 20.sp, textAlign = TextAlign.Center, color = Color.Black),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = Color(0xFFF6F8FC),
-                        unfocusedContainerColor = Color(0xFFF6F8FA),
-                        cursorColor = Color.Black
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                Button(
+                    onClick = onAddClick,
                 ) {
-                    Button(
-                        onClick = onCancel,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF0D47A1),
-                            contentColor = Color.White
-                        ),
-                        modifier = Modifier
-                            .height(50.dp)
-                            .width(120.dp),
-                        shape = RoundedCornerShape(20.dp)
-                    ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
                         Text(
-                            text = "CANCELAR",
-                            fontSize = 13.sp,
+                            text = "AÑADIR",
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
-                    }
-
-                    Button(
-                        onClick = {
-                            val matriculaLimpia = matricula.replace("-", "")
-
-                            when {
-                                matriculaLimpia.isEmpty() -> {
-                                    viewModel.setError("Debe añadir una matrícula válida")
-                                    notificationHandler.showNotification(
-                                        title = "Error",
-                                        message = "Debe añadir una matrícula válida"
-                                    )
-                                }
-
-                                matriculaLimpia.length < 8 -> {
-                                    viewModel.setError("La matrícula debe tener 8 dígitos")
-                                    notificationHandler.showNotification(
-                                        title = "Error",
-                                        message = "La matrícula debe tener 8 dígitos"
-                                    )
-                                }
-
-                                else -> {
-                                    viewModel.buscarUsuarioPorMatricula(matriculaLimpia) { usuarioEncontrado ->
-                                        if (usuarioEncontrado != null) {
-                                            viewModel.addMember(usuarioEncontrado)
-
-
-                                            notificationHandler.showNotification(
-                                                title = "Estudiante añadido",
-                                                message = "Matrícula ${matriculaLimpia} añadida correctamente."
-                                            )
-
-                                            navController.popBackStack()
-                                        } else {
-                                            viewModel.setError("Matrícula no válida")
-                                            notificationHandler.showNotification(
-                                                title = "Error",
-                                                message = "Matrícula no válida"
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                        } else {
-                            Text(
-                                text = "AÑADIR",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
                     }
                 }
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF0D47A1))
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            for (i in 1..3) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    for (j in 1..3) {
-                        val number = (i - 1) * 3 + j
-                        Button(
-                            onClick = { onMatriculaChange(matricula + number.toString()) },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF2E5C94),
-                                contentColor = Color.White
-                            ),
-                            modifier = Modifier
-                                .size(100.dp)
-                                .padding(8.dp),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = number.toString(),
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+@Composable
+private fun NumericKeyboard(onNumberClick: (Int) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF0D47A1))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        for (i in 1..3) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                for (j in 1..3) {
+                    val number = (i - 1) * 3 + j
+                    Button(
+                        onClick = { onNumberClick(number) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2E5C94),
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier
+                            .size(100.dp)
+                            .padding(8.dp),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = number.toString(),
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                onClick = { onNumberClick(0) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF2E5C94),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(8.dp),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Button(
-                    onClick = { onMatriculaChange(matricula + "0") },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2E5C94),
-                        contentColor = Color.White
-                    ),
-                    modifier = Modifier
-                        .size(100.dp)
-                        .padding(8.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "0",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text(
+                    text = "0",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
