@@ -76,8 +76,7 @@ fun GradientBackground(content: @Composable () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (UsuarioDTO) -> Unit,
-    apiUrl: String = "https://ureserve-hghra5gdhzgzdghk.eastus2-01.azurewebsites.net/api/Usuarios"
+    onLoginSuccess: (UsuarioDTO) -> Unit
 ) {
     val context = LocalContext.current
     val notificationHandler = remember { NotificationHandler(context) }
