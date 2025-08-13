@@ -29,11 +29,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import edu.ucne.ureserve.R
-
+private const val VISUALIZAR_RESERVAS_TEXTO = "Visualizar Reservas en Curso"
 @Composable
 fun DisponibilidadAdminReservaScreen(
     navController: NavController
 ) {
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -90,7 +91,7 @@ fun DisponibilidadAdminReservaScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Visualizar Reservas en Curso",
+                            text = VISUALIZAR_RESERVAS_TEXTO ,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
@@ -118,7 +119,7 @@ fun DisponibilidadAdminReservaScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Visualizar Reservas en Curso",
+                            text = VISUALIZAR_RESERVAS_TEXTO ,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
@@ -151,7 +152,7 @@ fun DisponibilidadAdminReservaScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Visualizar Reservas en Curso",
+                            text = VISUALIZAR_RESERVAS_TEXTO ,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
@@ -179,7 +180,7 @@ fun DisponibilidadAdminReservaScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Visualizar Reservas en Curso",
+                            text = VISUALIZAR_RESERVAS_TEXTO ,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
