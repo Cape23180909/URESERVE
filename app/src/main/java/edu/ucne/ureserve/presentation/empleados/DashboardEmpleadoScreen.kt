@@ -37,9 +37,6 @@ import edu.ucne.ureserve.data.remote.dto.UsuarioDTO
 
 @Composable
 fun DashboardEmpleadoScreen(
-    onOpcionesEmpleadoProyector: () -> Unit = {},
-    onReportes: () -> Unit = {},
-    onBuscarReservas: () -> Unit = {},
     onLogout: () -> Unit,
     navController: NavController,
     usuario: UsuarioDTO
