@@ -1,6 +1,5 @@
 package edu.ucne.ureserve.presentation.login
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,10 +16,6 @@ class AuthViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _authState = MutableLiveData<AuthState>()
-    val authState: LiveData<AuthState> = _authState
-
-    private val _usuarioUiState = MutableLiveData(UsuarioUiState())
-    val usuarioUiState: LiveData<UsuarioUiState> = _usuarioUiState
 
     fun login(email: String, password: String) {
         if (email.isEmpty() || password.isEmpty()) {
@@ -29,42 +24,33 @@ class AuthViewModel @Inject constructor(
         }
 
         _authState.value = AuthState.Loading
-
         viewModelScope.launch {
-            val localUser = repository.getLocalUserByEmail(email).first()
+            if (tryLocalLogin(email, password)) {
+                return@launch
+            }
+            performRemoteLogin(email, password)
+        }
+    }
 
-            if (localUser != null) {
-                if (localUser.clave == password) {
-                    _authState.value = AuthState.Authenticated
-                } else {
-                    _authState.value = AuthState.Error("Contraseña incorrecta")
-                }
-            } else {
+    private suspend fun tryLocalLogin(email: String, password: String): Boolean {
+        val localUser = repository.getLocalUserByEmail(email).first()
+        return if (localUser != null && localUser.clave == password) {
+            _authState.value = AuthState.Authenticated
+            true
+        } else {
+            false
+        }
+    }
 
-                repository.login(email, password).collect { resource ->
-                    when (resource) {
-                        is Resource.Loading -> _authState.value = AuthState.Loading
-                        is Resource.Success -> _authState.value = AuthState.Authenticated
-                        is Resource.Error -> {
-
-                            val fallbackUser = repository.getLocalUserByEmail(email).first()
-                            if (fallbackUser != null && fallbackUser.clave == password) {
-                                _authState.value = AuthState.Authenticated
-                            } else {
-                                _authState.value = AuthState.Error(resource.message ?: "Error desconocido")
-                            }
-                        }
-                    }
+    private suspend fun performRemoteLogin(email: String, password: String) {
+        repository.login(email, password).collect { resource ->
+            when (resource) {
+                is Resource.Loading -> _authState.value = AuthState.Loading
+                is Resource.Success -> _authState.value = AuthState.Authenticated
+                is Resource.Error -> {
+                    _authState.value = AuthState.Error(resource.message ?: "Error desconocido")
                 }
             }
         }
     }
-
-    fun signOut() {
-        repository.logout()
-        _authState.value = AuthState.Unauthenticated
-    }
 }
-
-
-
