@@ -30,7 +30,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,7 +74,6 @@ fun PlanificadorLaboratorioScreen(
     var horaInicioSeleccionada by remember { mutableStateOf("") }
     var horaFinSeleccionada by remember { mutableStateOf("") }
     var mostrarSeleccionFin by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         val horaActual = LocalTime.now()
