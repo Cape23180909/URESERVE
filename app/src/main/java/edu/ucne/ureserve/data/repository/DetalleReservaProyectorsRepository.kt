@@ -37,7 +37,4 @@ class DetalleReservaProyectorsRepository @Inject constructor(
 
     suspend fun updateDetalleReservaProyector(detalle: DetalleReservaProyectorsDto): DetalleReservaProyectorsDto =
         remoteDataSource.updateDetalleReservaProyector(detalle.detalleReservaProyectorId, detalle)
-
-    suspend fun deleteDetalleReservaProyector(id: Int) =
-        remoteDataSource.deleteDetalleReservaProyector(id)
 }
