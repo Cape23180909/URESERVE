@@ -139,8 +139,7 @@ fun LaboratorioSwitchScreen(
                         laboratorios.forEach { laboratorio ->
                             LaboratorioItem(
                                 nombre = laboratorio.nombre,
-                                disponible = laboratorio.disponible,
-                                laboratorioId = laboratorio.laboratorioId,
+                                disponible = laboratorio.disponible
                             ) {
                                 viewModel.actualizarDisponibilidadLaboratorio(
                                     laboratorio.laboratorioId,
@@ -177,7 +176,6 @@ fun LaboratorioSwitchScreen(
 
 @Composable
 fun LaboratorioItem(
-    laboratorioId: Int,
     nombre: String,
     disponible: Boolean,
     onCheckedChange: (Boolean) -> Unit
@@ -237,7 +235,7 @@ fun LaboratorioItem(
 
                     try {
                         onCheckedChange(newState)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         currentState = !newState
                         showError = true
                     }
@@ -252,8 +250,8 @@ fun LaboratorioItem(
         }
     }
 
-    if (showError) {
-        LaunchedEffect(showError) {
+    LaunchedEffect(showError) {
+        if (showError) {
             Toast.makeText(
                 context,
                 "Error al actualizar el estado del proyector",
