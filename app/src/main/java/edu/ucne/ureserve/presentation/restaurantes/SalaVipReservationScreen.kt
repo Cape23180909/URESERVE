@@ -1,4 +1,4 @@
-package edu.ucne.ureserve.presentation.salavip
+package edu.ucne.ureserve.presentation.restaurantes
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,6 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -56,48 +57,14 @@ fun SalaVipReservationScreen(
     val isDateValid = selectedDate != null && !isSunday
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Column {
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.logo_reserve),
-                            contentDescription = "Logo",
-                            modifier = Modifier.size(60.dp)
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.sala),
-                            contentDescription = "Sala VIP",
-                            modifier = Modifier.size(60.dp)
-                        )
-                    }
-                }
-                ,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF6D87A4)
-                )
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .background(Color(0xFF023E8A))
-            )
-        }
-
+        AppBarSection()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFF023E8A))
                 .padding(16.dp)
         ) {
-            item {
-                HeaderSectionVip()
-            }
+            item { HeaderSectionVip() }
             item {
                 CalendarSectionVip(
                     calendar = calendar,
@@ -107,32 +74,66 @@ fun SalaVipReservationScreen(
             }
             item {
                 Spacer(modifier = Modifier.height(24.dp))
-
                 if (isSunday) {
-                    Text(
-                        text = "No se pueden hacer reservas los domingos",
-                        color = Color.Red,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        textAlign = TextAlign.Center
-                    )
+                    SundayWarning()
                 }
-
                 ReservationButtonVip(
                     isEnabled = isDateValid,
-                    onClick = {
-                        val fechaSeleccionada = selectedDate?.time?.toString() ?: "Hoy"
-                        navController?.navigate("PagoSalaVip?fecha=$fechaSeleccionada")
-                    },
                     onBottomNavClick = onBottomNavClick,
                     navController = navController,
                     selectedDate = selectedDate ?: calendar
                 )
-
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AppBarSection() {
+    Column {
+        TopAppBar(
+            title = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_reserve),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(60.dp)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.sala),
+                        contentDescription = "Sala VIP",
+                        modifier = Modifier.size(60.dp)
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color(0xFF6D87A4)
+            )
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .background(Color(0xFF023E8A))
+        )
+    }
+}
+
+@Composable
+private fun SundayWarning() {
+    Text(
+        text = "No se pueden hacer reservas los domingos",
+        color = Color.Red,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        textAlign = TextAlign.Center
+    )
 }
 
 @Composable
@@ -177,31 +178,47 @@ private fun CalendarSectionVip(
     selectedDate: Calendar?,
     onDateSelected: (Calendar) -> Unit
 ) {
-    var currentMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
-    var currentYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
-    val tempCalendar = Calendar.getInstance().apply {
-        set(Calendar.YEAR, currentYear)
-        set(Calendar.MONTH, currentMonth)
-        set(Calendar.DAY_OF_MONTH, 1)
+    var currentMonth by remember { mutableIntStateOf(calendar[Calendar.MONTH]) }
+    var currentYear by remember { mutableIntStateOf(calendar[Calendar.YEAR]) }
+    val tempCalendar = rememberCalendar(currentYear, currentMonth)
+    val monthData = rememberMonthData(tempCalendar)
+
+    Column {
+        MonthNavigationHeader(
+            monthName = monthData.monthName,
+            onPreviousMonth = {
+                currentMonth = if (currentMonth == 0) 11 else currentMonth - 1
+                if (currentMonth == 11) currentYear--
+            },
+            onNextMonth = {
+                currentMonth = if (currentMonth == 11) 0 else currentMonth + 1
+                if (currentMonth == 0) currentYear++
+            }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        CalendarGrid(
+            monthData = monthData,
+            currentYear = currentYear,
+            currentMonth = currentMonth,
+            selectedDate = selectedDate,
+            onDateSelected = onDateSelected
+        )
     }
-    val daysInMonth = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-    val firstDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK) - 1
-    val monthName = tempCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
-    val shortWeekdays = Array(7) { i ->
-        tempCalendar.apply { set(Calendar.DAY_OF_WEEK, i + 1) }
-            .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
-    }
+}
+
+@Composable
+private fun MonthNavigationHeader(
+    monthName: String?,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = {
-            currentMonth--
-            if (currentMonth < 0) {
-                currentMonth = 11
-                currentYear--
-            }
-        }) {
+        IconButton(onClick = onPreviousMonth) {
             Icon(
                 painter = painterResource(id = R.drawable.icon_left),
                 contentDescription = "Retroceder Mes",
@@ -217,13 +234,7 @@ private fun CalendarSectionVip(
             ),
             modifier = Modifier.weight(1f)
         )
-        IconButton(onClick = {
-            currentMonth++
-            if (currentMonth > 11) {
-                currentMonth = 0
-                currentYear++
-            }
-        }) {
+        IconButton(onClick = onNextMonth) {
             Icon(
                 painter = painterResource(id = R.drawable.icon_right),
                 contentDescription = "Avanzar Mes",
@@ -231,6 +242,10 @@ private fun CalendarSectionVip(
             )
         }
     }
+}
+
+@Composable
+private fun WeekdaysHeader(shortWeekdays: List<String>) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -244,48 +259,109 @@ private fun CalendarSectionVip(
             )
         }
     }
-    Spacer(modifier = Modifier.height(8.dp))
+}
+
+@Composable
+private fun CalendarGrid(
+    monthData: MonthData,
+    currentYear: Int,
+    currentMonth: Int,
+    selectedDate: Calendar?,
+    onDateSelected: (Calendar) -> Unit
+) {
+    val today = Calendar.getInstance()
+    var dayCounter = 1 - monthData.firstDayOfWeek
+
     Column {
-        var dayCounter = 1 - firstDayOfWeek
         repeat(6) {
+            if (dayCounter > monthData.daysInMonth) return@Column
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 repeat(7) { dayOfWeek ->
                     val day = dayCounter + dayOfWeek
-                    val isCurrentMonth = day in 1..daysInMonth
-                    val date = if (isCurrentMonth) {
-                        Calendar.getInstance().apply {
-                            set(Calendar.YEAR, currentYear)
-                            set(Calendar.MONTH, currentMonth)
-                            set(Calendar.DAY_OF_MONTH, day)
-                        }
-                    } else null
-                    val today = Calendar.getInstance()
-                    val isToday = date?.let {
-                        it.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                                it.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                                it.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH)
-                    } ?: false
-                    val isPastDate = date?.let { it.before(today) && !isToday } ?: false
-                    val isSunday = date?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
-                    CalendarDayVip(
-                        day = if (isCurrentMonth) day.toString() else "",
-                        isSelected = selectedDate?.let {
-                            it.get(Calendar.YEAR) == date?.get(Calendar.YEAR) &&
-                                    it.get(Calendar.MONTH) == date?.get(Calendar.MONTH) &&
-                                    it.get(Calendar.DAY_OF_MONTH) == date?.get(Calendar.DAY_OF_MONTH)
-                        } ?: false,
-                        isAvailable = isCurrentMonth && !isPastDate && !isSunday,
-                        onClick = { if (isCurrentMonth && date != null && !isSunday) onDateSelected(date) }
-                    )
+                    val date = createDateIfValid(day, monthData.daysInMonth, currentYear, currentMonth)
+
+                    if (date != null) {
+                        val isToday = isToday(date, today)
+                        val isPastDate = date.before(today) && !isToday
+                        val isSunday = date[Calendar.DAY_OF_WEEK] == Calendar.SUNDAY
+
+                        CalendarDayVip(
+                            day = day.toString(),
+                            isSelected = isSelected(date, selectedDate),
+                            isAvailable = !isPastDate && !isSunday,
+                            onClick = { if (!isSunday) onDateSelected(date) }
+                        )
+                    } else {
+                        CalendarDayVip(
+                            day = "",
+                            isSelected = false,
+                            isAvailable = false,
+                            onClick = {}
+                        )
+                    }
                 }
             }
             dayCounter += 7
-            if (dayCounter > daysInMonth) return@Column
         }
     }
+}
+
+private fun rememberCalendar(year: Int, month: Int): Calendar {
+    return Calendar.getInstance().apply {
+        set(Calendar.YEAR, year)
+        set(Calendar.MONTH, month)
+        set(Calendar.DAY_OF_MONTH, 1)
+    }
+}
+
+private data class MonthData(
+    val daysInMonth: Int,
+    val firstDayOfWeek: Int,
+    val monthName: String?,
+    val shortWeekdays: List<String>
+)
+
+@Composable
+private fun rememberMonthData(calendar: Calendar): MonthData {
+    val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+    val firstDayOfWeek = calendar[Calendar.DAY_OF_WEEK] - 1
+    val monthName = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
+
+    val shortWeekdays = List(7) { i ->
+        calendar.apply { set(Calendar.DAY_OF_WEEK, i + 1) }
+            .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
+            ?: ""
+    }
+
+    return MonthData(daysInMonth, firstDayOfWeek, monthName, shortWeekdays)
+}
+
+private fun createDateIfValid(day: Int, daysInMonth: Int, year: Int, month: Int): Calendar? {
+    return if (day in 1..daysInMonth) {
+        Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month)
+            set(Calendar.DAY_OF_MONTH, day)
+        }
+    } else null
+}
+
+private fun isToday(date: Calendar, today: Calendar): Boolean {
+    return date[Calendar.YEAR] == today[Calendar.YEAR] &&
+            date[Calendar.MONTH] == today[Calendar.MONTH] &&
+            date[Calendar.DAY_OF_MONTH] == today[Calendar.DAY_OF_MONTH]
+}
+
+private fun isSelected(date: Calendar, selectedDate: Calendar?): Boolean {
+    return selectedDate?.let {
+        it[Calendar.YEAR] == date[Calendar.YEAR] &&
+                it[Calendar.MONTH] == date[Calendar.MONTH] &&
+                it[Calendar.DAY_OF_MONTH] == date[Calendar.DAY_OF_MONTH]
+    } ?: false
 }
 
 @Composable
@@ -305,6 +381,7 @@ private fun CalendarDayVip(
         !isAvailable -> Color.White
         else -> Color.White
     }
+
     Box(
         modifier = Modifier
             .size(40.dp)
@@ -345,7 +422,6 @@ private fun CalendarDayVip(
 @Composable
 private fun ReservationButtonVip(
     isEnabled: Boolean,
-    onClick: () -> Unit,
     onBottomNavClick: (String) -> Unit,
     navController: NavController?,
     selectedDate: Calendar
@@ -358,12 +434,10 @@ private fun ReservationButtonVip(
         if (isEnabled) {
             Button(
                 onClick = {
-                    val fechaFormateada = "${selectedDate.get(Calendar.DAY_OF_MONTH)}/" +
-                            "${selectedDate.get(Calendar.MONTH) + 1}/" +
-                            "${selectedDate.get(Calendar.YEAR)}"
-
+                    val fechaFormateada = "${selectedDate[Calendar.DAY_OF_MONTH]}/" +
+                            "${selectedDate[Calendar.MONTH] + 1}/" +
+                            "${selectedDate[Calendar.YEAR]}"
                     navController?.navigate("PagoSalaVip?fecha=$fechaFormateada")
-
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -375,11 +449,8 @@ private fun ReservationButtonVip(
             ) {
                 Text("Reservar ahora", fontWeight = FontWeight.Bold)
             }
-
         }
-
         Spacer(modifier = Modifier.height(70.dp))
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
