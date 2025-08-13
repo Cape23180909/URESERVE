@@ -69,7 +69,7 @@ class CubiculoRepository @Inject constructor(
         }
     }
 
-    suspend fun getCubiculosDisponibles(fecha: String, horaInicio: String, horaFin: String) =
+    suspend fun getCubiculosDisponibles() =
         remoteDataSource.getCubiculos()
 
     suspend fun getUsuarioById(id: Int): UsuarioDTO {
@@ -83,10 +83,10 @@ class CubiculoRepository @Inject constructor(
     suspend fun buscarUsuarioPorMatricula(matricula: String): UsuarioDTO? {
         return try {
             val usuarios = usuarioApi.getAll()
-            val normalizedMatricula = matricula.replace("-", "")
+            val normalizedMatricula = matricula.replace("-", "").lowercase()
             usuarios.find {
-                val userMatricula = it.estudiante?.matricula?.replace("-", "") ?: ""
-                userMatricula.equals(normalizedMatricula, ignoreCase = true)
+                val userMatricula = it.estudiante?.matricula?.replace("-", "")?.lowercase() ?: ""
+                userMatricula == normalizedMatricula
             }
         } catch (e: Exception) {
             Log.e("CubiculoRepository", "Error buscando usuario", e)
