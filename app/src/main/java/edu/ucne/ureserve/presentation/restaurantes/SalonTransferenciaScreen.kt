@@ -39,6 +39,8 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import edu.ucne.registrotecnicos.common.NotificationHandler
 
+private const val NOTIFICATION_TITLE_TRANSFERENCIA = "Transferencia Seleccionada"
+
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SalonTransferenciaScreen(
@@ -60,6 +62,7 @@ fun SalonTransferenciaScreen(
             postNotificationPermission.launchPermissionRequest()
         }
     }
+
     var bancoSeleccionado by remember { mutableStateOf("") }
 
     Surface(
@@ -101,7 +104,7 @@ fun SalonTransferenciaScreen(
                             bancoSeleccionado = "Banco DED Lobo - 979-291390283"
                             onTransferenciaClick(bancoSeleccionado)
                             notificationHandler.showNotification(
-                                title = "Transferencia Seleccionada",
+                                title = NOTIFICATION_TITLE_TRANSFERENCIA, // ✅ Usamos constante
                                 message = "Has seleccionado $bancoSeleccionado"
                             )
                         },
@@ -118,7 +121,7 @@ fun SalonTransferenciaScreen(
                             bancoSeleccionado = "Banco DED Lobo - 999-100529-2"
                             onTransferenciaClick(bancoSeleccionado)
                             notificationHandler.showNotification(
-                                title = "Transferencia Seleccionada",
+                                title = NOTIFICATION_TITLE_TRANSFERENCIA, // ✅ Usamos constante
                                 message = "Has seleccionado $bancoSeleccionado"
                             )
                         },
@@ -135,7 +138,7 @@ fun SalonTransferenciaScreen(
                             bancoSeleccionado = "Banco Popular - 71936351-5"
                             onTransferenciaClick(bancoSeleccionado)
                             notificationHandler.showNotification(
-                                title = "Transferencia Seleccionada",
+                                title = NOTIFICATION_TITLE_TRANSFERENCIA, // ✅ Usamos constante
                                 message = "Has seleccionado $bancoSeleccionado"
                             )
                         },
