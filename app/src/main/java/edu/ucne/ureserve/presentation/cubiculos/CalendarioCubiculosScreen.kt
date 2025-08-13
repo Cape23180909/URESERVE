@@ -27,17 +27,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -45,6 +44,7 @@ import edu.ucne.ureserve.R
 import edu.ucne.ureserve.presentation.dashboard.BottomNavItem
 import java.util.Calendar
 import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,7 +134,62 @@ fun CubiculoReservationScreen(
         }
     }
 }
+@Composable
+private fun ReservationButton(
+    isEnabled: Boolean,
+    onClick: () -> Unit,
+    onBottomNavClick: (String) -> Unit,
+    navController: NavController
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        enabled = isEnabled,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF023E8A),
+            contentColor = Color.White
+        )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clickable {
+                    navController.navigate("ReservaCubiculo?fecha=Hoy")
+                }
+                .padding(8.dp)
+        ) {
+            Text(
+                text = "¿Desea reservar ahora?",
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.icon_clock),
+                contentDescription = "Reservar Ahora",
+                tint = Color.Unspecified,
+                modifier = Modifier.size(34.dp)
+            )
+        }
 
+    }
+
+    Spacer(modifier = Modifier.height(70.dp))
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF2E5C94))
+            .padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceAround
+    ) {
+        BottomNavItem(
+            iconRes = R.drawable.icon_inicio,
+            label = "Inicio",
+            isSelected = true,
+            onClick = { onBottomNavClick("Inicio") }
+        )
+    }
+}
 @Composable
 private fun HeaderSection() {
     Column(
@@ -166,15 +221,14 @@ private fun HeaderSection() {
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
-
 @Composable
 private fun CalendarSection(
     calendar: Calendar,
     selectedDate: Calendar?,
     onDateSelected: (Calendar) -> Unit
 ) {
-    var currentMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
-    var currentYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var currentMonth by remember { mutableIntStateOf(calendar.get(Calendar.MONTH)) }
+    var currentYear by remember { mutableIntStateOf(calendar.get(Calendar.YEAR)) }
 
     val tempCalendar = Calendar.getInstance().apply {
         set(Calendar.YEAR, currentYear)
@@ -185,23 +239,54 @@ private fun CalendarSection(
     val daysInMonth = tempCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
     val firstDayOfWeek = tempCalendar.get(Calendar.DAY_OF_WEEK) - 1
 
-    val monthName = tempCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
+    val monthName = tempCalendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) ?: ""
+
     val shortWeekdays = Array(7) { i ->
         tempCalendar.apply { set(Calendar.DAY_OF_WEEK, i + 1) }
-            .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault())
+            .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault()) ?: ""
     }
 
+    MonthNavigation(
+        monthName = monthName,
+        onPreviousMonth = {
+            if (currentMonth == 0) {
+                currentMonth = 11
+                currentYear--
+            } else currentMonth--
+        },
+        onNextMonth = {
+            if (currentMonth == 11) {
+                currentMonth = 0
+                currentYear++
+            } else currentMonth++
+        }
+    )
+
+    WeekDaysRow(shortWeekdays)
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    DaysGrid(
+        currentYear = currentYear,
+        currentMonth = currentMonth,
+        daysInMonth = daysInMonth,
+        firstDayOfWeek = firstDayOfWeek,
+        selectedDate = selectedDate,
+        onDateSelected = onDateSelected
+    )
+}
+
+@Composable
+private fun MonthNavigation(
+    monthName: String,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = {
-            currentMonth--
-            if (currentMonth < 0) {
-                currentMonth = 11
-                currentYear--
-            }
-        }) {
+        IconButton(onClick = onPreviousMonth) {
             Icon(
                 painter = painterResource(id = R.drawable.icon_left),
                 contentDescription = "Retroceder Mes",
@@ -210,7 +295,7 @@ private fun CalendarSection(
         }
 
         Text(
-            text = monthName?.uppercase() ?: "",
+            text = monthName.uppercase(),
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -219,13 +304,7 @@ private fun CalendarSection(
             modifier = Modifier.weight(1f)
         )
 
-        IconButton(onClick = {
-            currentMonth++
-            if (currentMonth > 11) {
-                currentMonth = 0
-                currentYear++
-            }
-        }) {
+        IconButton(onClick = onNextMonth) {
             Icon(
                 painter = painterResource(id = R.drawable.icon_right),
                 contentDescription = "Avanzar Mes",
@@ -233,7 +312,10 @@ private fun CalendarSection(
             )
         }
     }
+}
 
+@Composable
+private fun WeekDaysRow(shortWeekdays: Array<String>) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -247,13 +329,22 @@ private fun CalendarSection(
             )
         }
     }
+}
 
-    Spacer(modifier = Modifier.height(8.dp))
+@Composable
+private fun DaysGrid(
+    currentYear: Int,
+    currentMonth: Int,
+    daysInMonth: Int,
+    firstDayOfWeek: Int,
+    selectedDate: Calendar?,
+    onDateSelected: (Calendar) -> Unit
+) {
+    var dayCounter = 1 - firstDayOfWeek
+    val today = Calendar.getInstance()
 
     Column {
-        var dayCounter = 1 - firstDayOfWeek
-
-        repeat(6) { week ->
+        repeat(6) { // 6 weeks
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -269,23 +360,23 @@ private fun CalendarSection(
                         }
                     } else null
 
-                    val today = Calendar.getInstance()
-                    val isToday = date?.let {
-                        it.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                                it.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                                it.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH)
-                    } ?: false
+                    val isToday = if (date != null) {
+                        date.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                                date.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
+                                date.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH)
+                    } else false
 
                     val isPastDate = date?.let { it.before(today) && !isToday } ?: false
                     val isSunday = date?.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
 
+                    val isSelected = selectedDate != null && date != null &&
+                            selectedDate.get(Calendar.YEAR) == date.get(Calendar.YEAR) &&
+                            selectedDate.get(Calendar.MONTH) == date.get(Calendar.MONTH) &&
+                            selectedDate.get(Calendar.DAY_OF_MONTH) == date.get(Calendar.DAY_OF_MONTH)
+
                     CalendarDay(
                         day = if (isCurrentMonth) day.toString() else "",
-                        isSelected = selectedDate?.let {
-                            it.get(Calendar.YEAR) == date?.get(Calendar.YEAR) &&
-                                    it.get(Calendar.MONTH) == date?.get(Calendar.MONTH) &&
-                                    it.get(Calendar.DAY_OF_MONTH) == date?.get(Calendar.DAY_OF_MONTH)
-                        } ?: false,
+                        isSelected = isSelected,
                         isAvailable = isCurrentMonth && !isPastDate && !isSunday,
                         onClick = { if (isCurrentMonth && date != null && !isSunday) onDateSelected(date) }
                     )
@@ -350,71 +441,5 @@ private fun CalendarDay(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ReservationButton(
-    isEnabled: Boolean,
-    onClick: () -> Unit,
-    onBottomNavClick: (String) -> Unit,
-    navController: NavController
-) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        enabled = isEnabled,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF023E8A),
-            contentColor = Color.White
-        )
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clickable {
-                    navController.navigate("ReservaCubiculo?fecha=Hoy")
-                }
-                .padding(8.dp)
-        ) {
-            Text(
-                text = "¿Desea reservar ahora?",
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                painter = painterResource(id = R.drawable.icon_clock),
-                contentDescription = "Reservar Ahora",
-                tint = Color.Unspecified,
-                modifier = Modifier.size(34.dp)
-            )
-        }
-
-    }
-
-    Spacer(modifier = Modifier.height(70.dp))
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF2E5C94))
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceAround
-    ) {
-        BottomNavItem(
-            iconRes = R.drawable.icon_inicio,
-            label = "Inicio",
-            isSelected = true,
-            onClick = { onBottomNavClick("Inicio") }
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewCubiculoReservationScreen() {
-    MaterialTheme {
-        CubiculoReservationScreen(onBottomNavClick = {},
-        navController = NavController(LocalContext.current))
     }
 }
